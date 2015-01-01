@@ -19,13 +19,6 @@ $config = [
 			'enableStrictParsing' => true,
 			'showScriptName' => false,
 			'rules' => [
-				/*[
-					'class' => 'yii\rest\UrlRule', 
-					'controller' => 'user',
-					'tokens' => [
-							'{id}' => '<id:\d+>'
-						]
-				],*/
 				[
 					'class' => 'yii\rest\UrlRule', 
 					'controller' => ['api/v1/country'], 
@@ -37,6 +30,14 @@ $config = [
 				[
 					'class' => 'yii\rest\UrlRule', 
 					'controller' => ['api/v1/user'], 
+					'tokens' => [
+							'{id}' => '<id:\d+>'
+						]
+				],
+                
+                [
+					'class' => 'yii\rest\UrlRule', 
+					'controller' => ['api/v1/group'], 
 					'tokens' => [
 							'{id}' => '<id:\d+>'
 						]
