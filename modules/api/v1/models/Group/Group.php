@@ -1,7 +1,6 @@
 <?php
 
-namespace app\modules\api\v1\models;
-use \yii\base\Exception;
+namespace app\modules\api\v1\models\Group;
 
 use yii\db\ActiveRecord;
 
@@ -46,8 +45,9 @@ class Group extends ActiveRecord
     {
         if (parent::beforeSave($insert)) {
             // Set current date in created_on and updated_on
-            if ($insert)
+            if ($insert){
                 $this->created_on = date("Y-m-d H:i:s", time());
+            }
 
             $this->updated_on = date("Y-m-d H:i:s", time());
             return true;
@@ -89,6 +89,10 @@ class Group extends ActiveRecord
                 return array('success'=>$this->success ,'data'=>$this->data , 'errors'=>$this->error_lst);
 
         }
+    }
+    
+    public function putGroup(){
+        
     }
 	
     
