@@ -34,7 +34,7 @@ class Group extends ActiveRecord
     {
         return [
             [['name'], 'required'],
-            [['name'], 'unique', 'message'=> 'Please enter a unique hospital group name'],
+            [['name'], 'unique', 'message' => 'Please enter a unique hospital group name'],
             [['administrator'], 'integer'],
             [['administrator'], 'isUserExist'],
             [['deactivate'], 'hasValidCharacter']
@@ -77,7 +77,8 @@ class Group extends ActiveRecord
             $this->success= true;
             $this->data = $this->id;
                     
-            return array('success'=>$this->success ,'data'=>$this->data , 'errors'=>$this->error_lst);
+            return array('success'=>$this->success, 'data'=>$this->data, 
+                'errors'=>$this->error_lst);
 
         } 
         
@@ -86,7 +87,8 @@ class Group extends ActiveRecord
                     array_push($this->error_lst, $value[0]);
                 }
 
-                return array('success'=>$this->success ,'data'=>$this->data , 'errors'=>$this->error_lst);
+                return array('success'=>$this->success, 'data'=>$this->data, 
+                    'errors'=>$this->error_lst);
 
         }
     }

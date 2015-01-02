@@ -53,26 +53,5 @@ class GroupController extends Controller
         public function actionDelete($id){
             
         }
-	
-	private function findModel($id)
-    {
-        $response = Yii::$app->response;
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        Yii::$app->response->headers->set('Content-type', 'application/json; charset=utf-8');
-        $response->statusCode = 200;
-        
-        
-        if (($model = Group::findOne($id)) !== null) {
-            return $model;
-        } 
-        else {
-
-            $response->data = array('success'=>false ,'data'=>array() , 
-                'errors'=>array("Could not find record"));
-//          echo json_encode(array('status'=>0,'error_code'=>400,
-//              'message'=>'Bad request'),JSON_PRETTY_PRINT);
-            exit;
-        }
-    }
     
 }
