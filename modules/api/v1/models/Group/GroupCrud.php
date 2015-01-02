@@ -13,12 +13,14 @@ class GroupCrud{
     }
     
     public function create($params){
+        $this->group->scenario = 'post';
         $this->group->attributes = $params;
         return $this->group->postGroup();
     }
     
     public function update($id, $params){
         if (($this->group = Group::findOne($id)) !== null) {
+            $this->group->scenario = 'put';
             $this->group->attributes = $params;
             return $this->group->putGroup();
         } 
