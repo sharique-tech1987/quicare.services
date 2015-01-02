@@ -28,6 +28,20 @@ class GroupCrud{
             return array('success'=>false ,'data'=>array(), 
                 'errors'=>array("Could not find record"));
         }
+    }
+    
+    public function read($id=null){
+        if (isset($id)) {
+            if (($this->group = Group::findOne($id)) !== null) {
+                return array('success'=>true ,'data'=>array($this->group->attributes), 
+                    'errors'=>array());
+            }
+            else {
+                return array('success'=>false ,'data'=>array(), 
+                    'errors'=>array("Could not find record"));
+            }
+            
+        }
         
         
     }

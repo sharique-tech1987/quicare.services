@@ -26,7 +26,9 @@ class GroupController extends Controller
 	
 	
 	public function actionView($id){
-		
+		$this->response->statusCode = 200;
+            
+        $this->response->data = $this->groupCrud->read($id);
 	}
 	
 	public function actionCreate(){
