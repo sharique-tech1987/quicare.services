@@ -3,42 +3,53 @@
 namespace app\modules\api\v1\models\Group;
 
 use app\modules\api\v1\models\Group\Group;
+use app\modules\api\models\ServiceResult;
 
 class GroupCrud{
     
     private $group;
+    private $serviceResult;
     
     public function __construct() {
         $this->group = new Group();
+        $this->serviceResult = new ServiceResult();
     }
     
     public function create($params){
         $this->group->scenario = 'post';
         $this->group->attributes = $params;
-        return $this->group->postGroup();
+        $this->serviceResult->attributes = $this->group->postGroup();
+        return $this->serviceResult;
     }
     
     public function update($id, $params){
         if (($this->group = Group::findOne($id)) !== null) {
             $this->group->scenario = 'put';
             $this->group->attributes = $params;
-            return $this->group->putGroup();
+            $this->serviceResult->attributes = $this->group->putGroup();
+            return $this->serviceResult;
         } 
         else {
-            return array('success'=>false ,'data'=>array(), 
-                'errors'=>array("Could not find record"));
+            $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
+                                                'error_lst'=>array("Could not find record"));
+            return $this->serviceResult;
+            
         }
     }
     
     public function read($id=null){
         if (isset($id)) {
             if (($this->group = Group::findOne($id)) !== null) {
-                return array('success'=>true ,'data'=>array($this->group->attributes), 
-                    'errors'=>array());
+                $this->serviceResult->attributes = array('success'=>true, 
+                                                    'data'=>array($this->group->attributes), 
+                                                    'error_lst'=>array());
+                return $this->serviceResult;
             }
             else {
-                return array('success'=>false ,'data'=>array(), 
-                    'errors'=>array("Could not find record"));
+                $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
+                                                'error_lst'=>array("Could not find record"));
+                return $this->serviceResult;
+                
             }
             
         }

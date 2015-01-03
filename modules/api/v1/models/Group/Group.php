@@ -7,11 +7,7 @@ use yii\db\ActiveRecord;
 class Group extends ActiveRecord
 {
     
-    public $error_lst = array();
-    public $data = array();
-    public $success = false;
-	
-	/**
+    /**
      * @inheritdoc
      */
     public static function tableName()
@@ -83,40 +79,40 @@ class Group extends ActiveRecord
     
     public function postGroup(){
         if ($this->save()) {
-            $this->success = true;
-            $this->data["id"] = $this->id;
+            $data = array("id" => $this->id);
                     
-            return array('success'=>$this->success, 'data'=>$this->data, 
-                'errors'=>$this->error_lst);
+            return array('success'=>true, 'data'=>$data, 
+                'error_lst'=>array());
 
         } 
         else{
-            $this->populateErrors();
-            return array('success'=>$this->success, 'data'=>$this->data, 
-                'errors'=>$this->error_lst);
+            $error_list = $this->populateErrors();
+            return array('success'=>false, 'data'=>array(), 
+                'error_lst'=>$error_list);
         }
     }
     
     private function populateErrors(){
+        $error_list = array();
         foreach($this->errors as $key => $value){
-            array_push($this->error_lst, $value[0]);
+            array_push($error_list, $value[0]);
         }
+        return $error_list;
     }
     
     public function putGroup(){
         if ($this->save()) {
-            $this->success = true;
-            $this->data["message"] = "Record has been updated";
+            $data = array("message" => "Record has been updated");
 	 
-			return array('success'=>$this->success, 'data'=>$this->data, 
-                'errors'=>$this->error_lst);
+			return array('success'=>true, 'data'=>$data, 
+                'error_lst'=>array());
 	 
 		} 
 		else{
-			$this->populateErrors();
-            return array('success'=>$this->success, 'data'=>$this->data, 
-                'errors'=>$this->error_lst);
-		}
+            $error_list = $this->populateErrors();
+            return array('success'=>false, 'data'=>array(), 
+                'error_lst'=>$error_list);
+        }
         
     }
 	

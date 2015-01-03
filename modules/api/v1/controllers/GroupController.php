@@ -41,7 +41,7 @@ class GroupController extends Controller
         
     }
 	
-        public function actionUpdate($id){
+    public function actionUpdate($id){
             
             $params = Yii::$app->request->post();
             date_default_timezone_set("UTC");
@@ -52,7 +52,7 @@ class GroupController extends Controller
         
         }
 	
-        public function actionDelete($id){
+    public function actionDelete($id){
             
         }
     
