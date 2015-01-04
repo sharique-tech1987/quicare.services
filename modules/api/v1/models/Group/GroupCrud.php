@@ -4,6 +4,7 @@ namespace app\modules\api\v1\models\Group;
 
 use app\modules\api\v1\models\Group\Group;
 use app\modules\api\models\ServiceResult;
+use app\modules\api\models\RecordFilter;
 
 class GroupCrud{
     
@@ -37,7 +38,7 @@ class GroupCrud{
         }
     }
     
-    public function read($id=null){
+    public function read($id=null, $params=null){
         if (isset($id)) {
             if (($this->group = Group::findOne($id)) !== null) {
                 $this->serviceResult->attributes = array('success'=>true, 
@@ -50,6 +51,22 @@ class GroupCrud{
                                                 'error_lst'=>array("Could not find record"));
                 return $this->serviceResult;
                 
+            }
+            
+        }
+        else{
+            $recordFilter = new RecordFilter();
+            $recordFilter->attributes = $params;
+            
+            if($recordFilter->validate()){
+                $this->serviceResult->attributes = $this->group->read($recordFilter);
+                return $this->serviceResult;
+            }
+            else{
+                $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
+                                                'error_lst'=>$recordFilter->getErrorList());
+                return $this->serviceResult;
+
             }
             
         }

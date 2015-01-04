@@ -21,6 +21,10 @@ class GroupController extends Controller
     }
     
     public function actionIndex(){
+        $params = Yii::$app->request->get();
+        
+        $this->response->statusCode = 200;
+        $this->response->data = $this->groupCrud->read($id=null, $params=$params);
         
     }
 	
