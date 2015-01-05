@@ -2,10 +2,8 @@
 namespace app\modules\api\v1\controllers;
 
 use yii\rest\Controller;
-use app\modules\api\v1\models\Group\Group;
 use app\modules\api\v1\models\Group\GroupCrud;
 use Yii;
-use yii\db\Query;
 
 class GroupController extends Controller
 {

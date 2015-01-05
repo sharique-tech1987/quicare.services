@@ -19,29 +19,15 @@ $config = [
 			'enableStrictParsing' => true,
 			'showScriptName' => false,
 			'rules' => [
-				[
-					'class' => 'yii\rest\UrlRule', 
-					'controller' => ['api/v1/country'], 
-					'tokens' => [
-							'{id}' => '<id:\\w+>'
-						]
-				],
-				
-				[
-					'class' => 'yii\rest\UrlRule', 
-					'controller' => ['api/v1/user'], 
-					'tokens' => [
-							'{id}' => '<id:\d+>'
-						]
-				],
-                
-                [
-					'class' => 'yii\rest\UrlRule', 
-					'controller' => ['api/v1/group'], 
-					'tokens' => [
-							'{id}' => '<id:\d+>'
-						]
-				],
+                /*
+                 * All url rules names are starting with their controller name respectively
+                 */
+                // Country rule is only added for testing purpose
+                // Remove all its components when there is no need of it
+                require(__DIR__ . '/urlRules/countryUrlRule.php'),
+                require(__DIR__ . '/urlRules/userUrlRule.php'),
+                require(__DIR__ . '/urlRules/groupUrlRule.php'),
+
 			],
 		],
         'request' => [
