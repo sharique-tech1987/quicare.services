@@ -101,7 +101,9 @@ class RecordFilter extends Model{
     }
     
     function isValidJSON($string){
-        return is_string($string) && is_object(Json::decode($string, false)) && 
+        // Use Json::decode, it generates yii\base\InvalidParamException
+        // Try to handle these exceptions by own exception class
+        return is_string($string) && is_object(json_decode($string, false)) && 
         (json_last_error() == JSON_ERROR_NONE) ? true : false;
     }
 }

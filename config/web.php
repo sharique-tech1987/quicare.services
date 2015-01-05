@@ -27,6 +27,7 @@ $config = [
                 require(__DIR__ . '/urlRules/countryUrlRule.php'),
                 require(__DIR__ . '/urlRules/userUrlRule.php'),
                 require(__DIR__ . '/urlRules/groupUrlRule.php'),
+                require(__DIR__ . '/urlRules/facilityUrlRule.php'),
 
 			],
 		],
