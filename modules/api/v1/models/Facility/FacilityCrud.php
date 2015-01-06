@@ -17,7 +17,7 @@ class FacilityCrud{
     }
     
     public function create($params){
-//        $this->facility->scenario = 'post';
+        $this->facility->scenario = 'post';
         $this->facility->attributes = $params;
         $this->serviceResult->attributes = $this->facility->postFacility();
         return $this->serviceResult;
@@ -25,14 +25,14 @@ class FacilityCrud{
     
     public function update($id, $params){
         if (($this->facility = Facility::findOne($id)) !== null) {
-//            $this->facility->scenario = 'put';
+            $this->facility->scenario = 'put';
             $this->facility->attributes = $params;
             $this->serviceResult->attributes = $this->facility->putFacility();
             return $this->serviceResult;
         } 
         else {
             $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>array("Could not find record"));
+                                                'error_lst'=>array("record" =>  "Could not find record"));
             return $this->serviceResult;
             
         }
@@ -48,7 +48,7 @@ class FacilityCrud{
             }
             else {
                 $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>array("Could not find record"));
+                                                'error_lst'=>array("record" => "Could not find record"));
                 return $this->serviceResult;
                 
             }
@@ -64,7 +64,7 @@ class FacilityCrud{
             }
             else{
                 $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>$recordFilter->getErrorList());
+                                                'error_lst'=>$recordFilter->getErrors());
                 return $this->serviceResult;
 
             }

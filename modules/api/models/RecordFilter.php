@@ -50,7 +50,7 @@ class RecordFilter extends Model{
                 
             }
             else{
-                $this->addError($attribute, "Page and limit both should be provided"); 
+                $this->addError("limit_filter", "Page and limit both should be provided"); 
                 $this->_pairedLimitFlag = false;
             }
         }
@@ -86,7 +86,7 @@ class RecordFilter extends Model{
                 
             }
             else{
-                $this->addError($attribute, "Sort and orderby both should be provided"); 
+                $this->addError("sort_filter", "Sort and orderby both should be provided"); 
                 $this->_pairedSortingFlag = false;
             }
         }

@@ -31,18 +31,131 @@ class Facility extends ActiveRecord
     public function rules() {
         
         return [ 
-            [['name'], 'required', 
-                'message' => 'Please enter a unique facility name' ], 
+            [['name', 'address1', 'city', 'zip_code', 'state',  
+                            'type', 'ein', 'npi', 'phone', 'email', 'representative_name',  
+                            'representative_contact_number', 'representative_email' ], 'required', 
+                'on' => ['post'], 'message' => '{attribute} should not be empty',  ],
+            [['name', 'ein', 'npi'],  'unique', 'on' => ['post', 'put'], 
+                'message' => '{attribute} should be unique' ],
+            [['email', 'representative_email' ], 'email', 'on' => ['post', 'put'] ],
+            [['zip_code'], 'hasFiveDigits', 'on' => ['post', 'put'] ],
+            [['ein'], 'hasNineDigits' , 'on' => ['post', 'put'] ],
+            [['npi', 'phone', 'representative_contact_number'], 'hasTenDigits', 
+                'on' => ['post', 'put']  ],
+            [['city'], 'hasAlphabetsOnly', 'on' => ['post', 'put'] ],
+            [['state'], 'hasValidState', 'on' => ['post', 'put'] ],
+            [['type'], 'hasValidFacilityType', 'on' => ['post', 'put'] ],
+            [['representative_name'], 'hasValidSpecialCharacters', 'on' => ['post', 'put'] ],
+            [['designated_representative'], 'hasValidRepresentative'],
+            [['deactivate'], 'hasValidDeactivateValue', 'on' => ['put']]
         ];
     }
+    
+    public function hasValidDeactivateValue($attribute,$params)
+        {
+        /*
+         * Check if given character has 'F' or 'T'
+         */
+        $value = strtoupper(trim($this->$attribute));
+        if($value != 'F' && $value != 'T'){
+            $this->addError($attribute, "Invalid entry");
+        }
+    }
+    
+    public function hasValidRepresentative($attribute,$params){
+        /*
+         * Designated Quicare representative record should exist in user table
+         * Check this field only when facility type is clinic, fsed, ed
+         */
+    }
+    
+    public function hasValidSpecialCharacters($attribute,$params){
+        /*
+         * Representative name should contain alphabets and can contain following characters
+         * [- ' . ,]
+         */
+        $value = trim($this->$attribute);
+        if (preg_match("/[^A-Za-z\s-'.,]/", $value)){
+            $this->addError($attribute, "Please enter a representative's "
+                . "name at the healthcare facility");
+        }
+    }
+    
+    public function hasAlphabetsOnly($attribute,$params){
+        /*
+         * City only contains alphabets
+         */
+        $value = trim($this->$attribute);
+        if (preg_match('/[^A-Za-z\s]/', $value)){
+            $this->addError($attribute, "Please enter alphabets only");
+        }
+    }
+    
+    public function hasValidState($attribute,$params){
+        /*
+         * State should be valid 2 character code which exist in state table
+         */
+        
+    }
+    
+    public function hasValidFacilityType($attribute,$params){
+        /*
+         * Facility type should be valid 2 character code which exist in 
+         * health_care_facility_type table
+         */
+        
+    }
+    
+    public function hasTenDigits($attribute,$params){
+        /*
+         * NPI, phone and Representative contact number only contain 10 digits
+         */
+        $value = trim($this->$attribute);
+        if( ((int)$value) < 0 || strlen($value) != 10){
+            $this->addError($attribute, ucfirst($attribute) . " should be 10 digit");
+        }
+    }
+    
+    public function hasNineDigits($attribute,$params){
+        /*
+         * EIN only contain 9 digits
+         */
+        $value = trim($this->$attribute);
+        if( ((int)$value) < 0 || strlen($value) != 9){
+            $this->addError($attribute, "Please enter a valid 9 digit "
+                . "EIN of the healthcare facility");
+        }
+        
+    }
 
+    public function hasFiveDigits($attribute,$params){
+        /*
+         * Zip code only contain 5 digits
+         */
+        $value = trim($this->$attribute);
+        if( ((int)$value) < 0 || strlen($value) != 5){
+            $this->addError($attribute, "Please enter a valid 5 digit "
+                . "zip code of the healthcare facility");
+        }
+        
+        
+    }
 
-//    public function scenarios()
-//    {
-//        $scenarios = parent::scenarios();
-//        return $scenarios;
-//        
-//    }
+    public function scenarios()
+    {
+        $scenarios = parent::scenarios();
+        $scenarios['post'] = ['name', 'address1', 'address2', 'city', 'zip_code', 'state',  
+                            'type', 'ein', 'npi', 'phone', 'email', 'representative_name',  
+                            'representative_contact_number',  'representative_email',  
+                            'designated_representative', 'default_group' ];
+        
+        $scenarios['put'] = ['name', 'address1', 'address2', 'city', 'zip_code', 'state',  
+                            'type', 'ein', 'npi', 'phone', 'email', 'representative_name',  
+                            'representative_contact_number',  'representative_email',  
+                            'designated_representative', 'default_group', 'deactivate' ];
+        return $scenarios;
+        
+    }
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
@@ -77,21 +190,13 @@ class Facility extends ActiveRecord
 
         } 
         else{
-            $error_list = $this->populateErrors();
             return array('success'=>false, 'data'=>array(), 
-                'error_lst'=>$error_list);
+                'error_lst'=>  $this->errors);
         }
-    }
-    
-    private function populateErrors(){
-        $error_list = array();
-        foreach($this->errors as $key => $value){
-            array_push($error_list, $value[0]);
-        }
-        return $error_list;
     }
     
     public function putFacility(){
+        $this->deactivate = strtoupper(trim($this->deactivate));
         if ($this->save()) {
             $data = array("message" => "Record has been updated");
 	 
@@ -100,9 +205,8 @@ class Facility extends ActiveRecord
 	 
 		} 
 		else{
-            $error_list = $this->populateErrors();
             return array('success'=>false, 'data'=>array(), 
-                'error_lst'=>$error_list);
+                'error_lst'=>$this->errors);
         }
         
     }
