@@ -26,6 +26,9 @@ class GroupCrud{
     public function update($id, $params){
         if (($this->group = Group::findOne($id)) !== null) {
             $this->group->scenario = 'put';
+            if(isset($params["deactivate"])){
+                $params["deactivate"] = strtoupper(trim($params["deactivate"]));
+            }
             $this->group->attributes = $params;
             $this->serviceResult->attributes = $this->group->put();
             return $this->serviceResult;

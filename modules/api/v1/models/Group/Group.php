@@ -76,15 +76,10 @@ class Group extends BaseResource
         /*
          * Check if given character has 'F' or 'T'
          */
-        $value = strtoupper(trim($this->$attribute));
+        $value = $this->$attribute;
         if($value != 'F' && $value != 'T'){
             $this->addError($attribute, "Invalid entry");
         }
-    }
-    
-    public function put(){
-        $this->deactivate = strtoupper(trim($this->deactivate));
-        return parent::put();
     }
     
     private function addFilters($query, $filters){
