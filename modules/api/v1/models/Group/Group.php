@@ -35,9 +35,10 @@ class Group extends ActiveRecord
                 'message' => 'Please enter a unique hospital group name' ],
             [['name'], 'unique', 
                 'message' => 'Please enter a unique hospital group name', 'on' => ['post', 'put'] ],
+            // Use only one validation rule to validate number and user existance
             [['administrator'], 'integer', 'on' => ['post', 'put'] ],
             [['administrator'], 'isUserExist', 'on' => ['post', 'put']],
-            [['deactivate'], 'hasValidCharacter', 'on' => ['put']]
+            [['deactivate'], 'hasValidDeactivateValue', 'on' => ['put']]
         ];
     }
     
@@ -71,7 +72,7 @@ class Group extends ActiveRecord
         // Call User::findOne($id) to check
     }
     
-    public function hasValidCharacter($attribute,$params){
+    public function hasValidDeactivateValue($attribute,$params){
         /*
          * Check if given character has 'F' or 'T'
          */
@@ -105,6 +106,7 @@ class Group extends ActiveRecord
     }
     
     public function putGroup(){
+        $this->deactivate = strtoupper(trim($this->deactivate));
         if ($this->save()) {
             $data = array("message" => "Record has been updated");
 	 
