@@ -82,9 +82,9 @@ class Group extends BaseResource
         }
     }
     
-    public function putGroup(){
+    public function put(){
         $this->deactivate = strtoupper(trim($this->deactivate));
-        return parent::putGroup();
+        return parent::put();
     }
     
     private function addFilters($query, $filters){

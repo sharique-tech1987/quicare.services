@@ -19,7 +19,7 @@ class GroupCrud{
     public function create($params){
         $this->group->scenario = 'post';
         $this->group->attributes = $params;
-        $this->serviceResult->attributes = $this->group->postGroup();
+        $this->serviceResult->attributes = $this->group->post();
         return $this->serviceResult;
     }
     
@@ -27,12 +27,12 @@ class GroupCrud{
         if (($this->group = Group::findOne($id)) !== null) {
             $this->group->scenario = 'put';
             $this->group->attributes = $params;
-            $this->serviceResult->attributes = $this->group->putGroup();
+            $this->serviceResult->attributes = $this->group->put();
             return $this->serviceResult;
         } 
         else {
             $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>array("Could not find record"));
+                                                'error_lst'=>array("record" => "Could not find record"));
             return $this->serviceResult;
             
         }
@@ -48,7 +48,7 @@ class GroupCrud{
             }
             else {
                 $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>array("Could not find record"));
+                                                'error_lst'=>array("record" => "Could not find record"));
                 return $this->serviceResult;
                 
             }
@@ -64,7 +64,7 @@ class GroupCrud{
             }
             else{
                 $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>$recordFilter->getErrorList());
+                                                'error_lst'=>$recordFilter->getErrors());
                 return $this->serviceResult;
 
             }

@@ -6,7 +6,7 @@ use app\modules\api\models\RecordFilter;
 use \yii\db\ActiveRecord;
 class BaseResource extends ActiveRecord{
     
-    public function postGroup(){
+    public function post(){
         if ($this->save()) {
             $data = array("id" => $this->id);
                     
@@ -15,13 +15,12 @@ class BaseResource extends ActiveRecord{
 
         } 
         else{
-            $error_list = $this->populateErrors();
             return array('success'=>false, 'data'=>array(), 
-                'error_lst'=>$error_list);
+                'error_lst'=>$this->getErrors());
         }
     }
     
-    public function putGroup(){
+    public function put(){
         if ($this->save()) {
             $data = array("message" => "Record has been updated");
 	 
@@ -30,9 +29,8 @@ class BaseResource extends ActiveRecord{
 	 
 		} 
 		else{
-            $error_list = $this->populateErrors();
             return array('success'=>false, 'data'=>array(), 
-                'error_lst'=>$error_list);
+                'error_lst'=>  $this->getErrors());
         }
         
     }
@@ -60,11 +58,4 @@ class BaseResource extends ActiveRecord{
         return $query;
     }
     
-    private function populateErrors(){
-        $error_list = array();
-        foreach($this->errors as $key => $value){
-            array_push($error_list, $value[0]);
-        }
-        return $error_list;
-    }
 }
