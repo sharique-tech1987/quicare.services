@@ -18,21 +18,59 @@ class FacilityCrud{
     
     public function create($params){
         $this->facility->scenario = 'post';
+        $params = $this->trimParams($params);
         $this->facility->attributes = $params;
-        $this->serviceResult->attributes = $this->facility->postFacility();
+        $this->serviceResult->attributes = $this->facility->post();
         return $this->serviceResult;
+    }
+    
+    private function trimParams($params){
+        if(isset($params["deactivate"])){
+            $params["deactivate"] = strtoupper(trim($params["deactivate"]));
+        }
+        if(isset($params["representative_name"])){
+            $params["representative_name"] = trim($params["representative_name"]);
+        }
+        
+        if(isset($params["city"])){
+            $params["city"] = trim($params["city"]);
+        }
+        
+        if(isset($params["npi"])){
+            $params["npi"] = trim($params["npi"]);
+        }
+        
+        if(isset($params["phone"])){
+            $params["phone"] = trim($params["phone"]);
+        }
+        
+        if(isset($params["representative_contact_number"])){
+            $params["representative_contact_number"] = 
+                trim($params["representative_contact_number"]);
+        }
+        
+        if(isset($params["ein"])){
+            $params["ein"] = trim($params["ein"]);
+        }
+        
+        if(isset($params["zip_code"])){
+            $params["zip_code"] = trim($params["zip_code"]);
+        }
+    
+        return $params;
     }
     
     public function update($id, $params){
         if (($this->facility = Facility::findOne($id)) !== null) {
             $this->facility->scenario = 'put';
+            $params = $this->trimParams($params);
             $this->facility->attributes = $params;
-            $this->serviceResult->attributes = $this->facility->putFacility();
+            $this->serviceResult->attributes = $this->facility->put();
             return $this->serviceResult;
         } 
         else {
             $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>array("record" =>  "Could not find record"));
+                                        'error_lst'=>array("record" =>  "Could not find record"));
             return $this->serviceResult;
             
         }

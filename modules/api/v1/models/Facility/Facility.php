@@ -2,11 +2,11 @@
 
 namespace app\modules\api\v1\models\Facility;
 
-use yii\db\ActiveRecord;
+use app\modules\api\models\BaseResource;
 use app\modules\api\models\RecordFilter;
 use yii\helpers\Json;
 
-class Facility extends ActiveRecord
+class Facility extends BaseResource
 {
     
     /**
@@ -51,12 +51,11 @@ class Facility extends ActiveRecord
         ];
     }
     
-    public function hasValidDeactivateValue($attribute,$params)
-        {
+    public function hasValidDeactivateValue($attribute,$params){
         /*
          * Check if given character has 'F' or 'T'
          */
-        $value = strtoupper(trim($this->$attribute));
+        $value = $this->$attribute;
         if($value != 'F' && $value != 'T'){
             $this->addError($attribute, "Invalid entry");
         }
@@ -74,7 +73,7 @@ class Facility extends ActiveRecord
          * Representative name should contain alphabets and can contain following characters
          * [- ' . ,]
          */
-        $value = trim($this->$attribute);
+        $value = $this->$attribute;
         if (preg_match("/[^A-Za-z\s-'.,]/", $value)){
             $this->addError($attribute, "Please enter a representative's "
                 . "name at the healthcare facility");
@@ -85,7 +84,7 @@ class Facility extends ActiveRecord
         /*
          * City only contains alphabets
          */
-        $value = trim($this->$attribute);
+        $value = $this->$attribute;
         if (preg_match('/[^A-Za-z\s]/', $value)){
             $this->addError($attribute, "Please enter alphabets only");
         }
@@ -110,7 +109,7 @@ class Facility extends ActiveRecord
         /*
          * NPI, phone and Representative contact number only contain 10 digits
          */
-        $value = trim($this->$attribute);
+        $value = $this->$attribute;
         if( ((int)$value) < 0 || strlen($value) != 10){
             $this->addError($attribute, ucfirst($attribute) . " should be 10 digit");
         }
@@ -120,7 +119,7 @@ class Facility extends ActiveRecord
         /*
          * EIN only contain 9 digits
          */
-        $value = trim($this->$attribute);
+        $value = $this->$attribute;
         if( ((int)$value) < 0 || strlen($value) != 9){
             $this->addError($attribute, "Please enter a valid 9 digit "
                 . "EIN of the healthcare facility");
@@ -132,7 +131,7 @@ class Facility extends ActiveRecord
         /*
          * Zip code only contain 5 digits
          */
-        $value = trim($this->$attribute);
+        $value = $this->$attribute;
         if( ((int)$value) < 0 || strlen($value) != 5){
             $this->addError($attribute, "Please enter a valid 5 digit "
                 . "zip code of the healthcare facility");
@@ -171,60 +170,6 @@ class Facility extends ActiveRecord
         }
     }
     
-    public function hasValidCharacter($attribute,$params){
-        /*
-         * Check if given character has 'F' or 'T'
-         */
-        $value = strtoupper(trim($this->$attribute));
-        if($value != 'F' && $value != 'T'){
-            $this->addError($attribute, "Invalid entry");
-        }
-    }
-    
-    public function postFacility(){
-        if ($this->save()) {
-            $data = array("id" => $this->id);
-                    
-            return array('success'=>true, 'data'=>$data, 
-                'error_lst'=>array());
-
-        } 
-        else{
-            return array('success'=>false, 'data'=>array(), 
-                'error_lst'=>  $this->errors);
-        }
-    }
-    
-    public function putFacility(){
-        $this->deactivate = strtoupper(trim($this->deactivate));
-        if ($this->save()) {
-            $data = array("message" => "Record has been updated");
-	 
-			return array('success'=>true, 'data'=>$data, 
-                'error_lst'=>array());
-	 
-		} 
-		else{
-            return array('success'=>false, 'data'=>array(), 
-                'error_lst'=>$this->errors);
-        }
-        
-    }
-    
-    private function addOffsetAndLimit($query, $page, $limit){
-        if(isset($page) && isset($limit)){
-            $offset = $limit * ($page-1);
-            $query->offset($offset)->limit($limit);
-        }
-    }
-    
-    private function addOrderBy($query, $orderby, $sort){
-        if(isset($orderby) && isset($sort)){
-            $orderby_exp = $orderby . " " . $sort;
-            $query->orderBy($orderby_exp);
-        }
-    }
-    
     private function addFilters($query, $filters){
         if(isset($filters))
         {
@@ -238,10 +183,8 @@ class Facility extends ActiveRecord
     }
 	
     public function read(RecordFilter $recordFilter){
-        $query = Facility::find();
+        $query = parent::getReadQuery($recordFilter);
         
-        $this->addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
-        $this->addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
         $this->addFilters($query, $recordFilter->filter);
         
         $record_count = $query->count();
