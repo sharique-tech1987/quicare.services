@@ -2,11 +2,11 @@
 
 namespace app\modules\api\v1\models\Group;
 
-use yii\db\ActiveRecord;
+use app\modules\api\models\BaseResource;
 use app\modules\api\models\RecordFilter;
 use yii\helpers\Json;
 
-class Group extends ActiveRecord
+class Group extends BaseResource
 {
     
     /**
@@ -82,58 +82,9 @@ class Group extends ActiveRecord
         }
     }
     
-    public function postGroup(){
-        if ($this->save()) {
-            $data = array("id" => $this->id);
-                    
-            return array('success'=>true, 'data'=>$data, 
-                'error_lst'=>array());
-
-        } 
-        else{
-            $error_list = $this->populateErrors();
-            return array('success'=>false, 'data'=>array(), 
-                'error_lst'=>$error_list);
-        }
-    }
-    
-    private function populateErrors(){
-        $error_list = array();
-        foreach($this->errors as $key => $value){
-            array_push($error_list, $value[0]);
-        }
-        return $error_list;
-    }
-    
     public function putGroup(){
         $this->deactivate = strtoupper(trim($this->deactivate));
-        if ($this->save()) {
-            $data = array("message" => "Record has been updated");
-	 
-			return array('success'=>true, 'data'=>$data, 
-                'error_lst'=>array());
-	 
-		} 
-		else{
-            $error_list = $this->populateErrors();
-            return array('success'=>false, 'data'=>array(), 
-                'error_lst'=>$error_list);
-        }
-        
-    }
-    
-    private function addOffsetAndLimit($query, $page, $limit){
-        if(isset($page) && isset($limit)){
-            $offset = $limit * ($page-1);
-            $query->offset($offset)->limit($limit);
-        }
-    }
-    
-    private function addOrderBy($query, $orderby, $sort){
-        if(isset($orderby) && isset($sort)){
-            $orderby_exp = $orderby . " " . $sort;
-            $query->orderBy($orderby_exp);
-        }
+        return parent::putGroup();
     }
     
     private function addFilters($query, $filters){
@@ -149,10 +100,8 @@ class Group extends ActiveRecord
     }
 	
     public function read(RecordFilter $recordFilter){
-        $query = Group::find();
-        
-        $this->addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
-        $this->addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
+        $query = parent::getReadQuery($recordFilter);
+
         $this->addFilters($query, $recordFilter->filter);
         
         $record_count = $query->count();
