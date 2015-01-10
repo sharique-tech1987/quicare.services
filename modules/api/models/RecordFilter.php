@@ -56,14 +56,6 @@ class RecordFilter extends Model{
         }
     }
     
-    public function getErrorList(){
-        $error_list = array();
-        foreach($this->getErrors() as $key => $value){
-            array_push($error_list, $value[0]);
-        }
-        return $error_list;
-    }
-    
     public function beforeValidate() {
         
         if($this->attributes !== null){
