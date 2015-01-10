@@ -2,80 +2,62 @@
 
 namespace app\modules\api\v1\models\Facility;
 
+use app\modules\api\v1\models\Facility\Facility;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
-use Yii;
 
 class FacilityCrud{
     
+    private $facility;
     private $serviceResult;
     
     public function __construct() {
+        $this->facility = new Facility();
         $this->serviceResult = new ServiceResult();
     }
     
-    public function create($facility, $facilityGroups){
-        $transaction = Yii::$app->db->beginTransaction();
-        $isSaved = $facility->save();
-        
-//      Errors collection  
-        $errors = array();
-        
-        if ($isSaved) {
-            if (isset($facilityGroups)){
-                if (is_array($facilityGroups)){
-                    foreach ($facilityGroups as $fg) {
-                        $fg->facility_id = $facility->id;
-                        $isSaved = $fg->save();
-                        if(!$isSaved){
-//                        Collect Errors
-                            $errors = $fg->getErrors();
-                            break;
-                        }
-                    }
-                }
-                else{
-                    $facilityGroups->facility_id = $facility->id;
-                    $isSaved = $facilityGroups->save();
-                    if(!$isSaved){
-//                        Collect Errors
-                        $errors = $facilityGroups->getErrors();
-                    }
-                    
-                }
-            }
-            else{
-                // Facility Groups is not set
-                $isSaved = false;
-                $errors["facility_groups"] = "Facility groups should not be null";
-                
-            }
-            
-        }
-        else {
-//            Collect errors
-                $errors = $facility->getErrors();
-        }
-        
-        
-        
-        
-        if ($isSaved) {
-            $transaction->commit();
-            $data = array("id" => $facility->id);
-                    
-            $this->serviceResult = array('success'=>true, 'data'=>$data, 
-                'error_lst'=>array());
-            
-
-        } 
-        else{
-            $transaction->rollBack();
-            $this->serviceResult = array('success'=>false, 'data'=>array(), 
-                'error_lst'=>$errors);
-        }
-        
+    public function create($params){
+        $this->facility->scenario = 'post';
+        $params = $this->trimParams($params);
+        $this->facility->attributes = $params;
+        $this->serviceResult->attributes = $this->facility->post();
         return $this->serviceResult;
+    }
+    
+    private function trimParams($params){
+        if(isset($params["deactivate"])){
+            $params["deactivate"] = strtoupper(trim($params["deactivate"]));
+        }
+        if(isset($params["representative_name"])){
+            $params["representative_name"] = trim($params["representative_name"]);
+        }
+        
+        if(isset($params["city"])){
+            $params["city"] = trim($params["city"]);
+        }
+        
+        if(isset($params["npi"])){
+            $params["npi"] = trim($params["npi"]);
+        }
+        
+        if(isset($params["phone"])){
+            $params["phone"] = trim($params["phone"]);
+        }
+        
+        if(isset($params["representative_contact_number"])){
+            $params["representative_contact_number"] = 
+                trim($params["representative_contact_number"]);
+        }
+        
+        if(isset($params["ein"])){
+            $params["ein"] = trim($params["ein"]);
+        }
+        
+        if(isset($params["zip_code"])){
+            $params["zip_code"] = trim($params["zip_code"]);
+        }
+    
+        return $params;
     }
     
     public function update($id, $params){

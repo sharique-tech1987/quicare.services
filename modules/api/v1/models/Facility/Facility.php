@@ -2,11 +2,11 @@
 
 namespace app\modules\api\v1\models\Facility;
 
-use app\modules\api\models\BaseResource;
 use app\modules\api\models\RecordFilter;
 use yii\helpers\Json;
+use yii\db\ActiveRecord;
 
-class Facility extends BaseResource
+class Facility extends ActiveRecord
 {
     
     /**
@@ -125,9 +125,35 @@ class Facility extends BaseResource
             }
         }
     }
+    
+    private function addOffsetAndLimit($query, $page, $limit){
+        if(isset($page) && isset($limit)){
+            $offset = $limit * ($page-1);
+            $query->offset($offset)->limit($limit);
+        }
+    }
+    
+    private function addOrderBy($query, $orderby, $sort){
+        if(isset($orderby) && isset($sort)){
+            $orderby_exp = $orderby . " " . $sort;
+            $query->orderBy($orderby_exp);
+        }
+    }
+    
+    public function getReadQuery(RecordFilter $recordFilter){
+        $query = self::find();
+        
+        $this->addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
+        $this->addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
+        
+        return $query;
+    }
 	
     public function read(RecordFilter $recordFilter){
-        $query = parent::getReadQuery($recordFilter);
+        $query = self::find();
+        
+        $this->addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
+        $this->addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
         
         $this->addFilters($query, $recordFilter->filter);
         
