@@ -32,33 +32,34 @@ class Facility extends BaseResource
         
         return [ 
             [['name', 'address1', 'city', 'zip_code', 'state',  
-                            'type', 'ein', 'npi', 'phone', 'email', 'representative_name',  
+                            'type',  'npi', 'phone', 'email', 'representative_name',  
                             'representative_contact_number', 'representative_email' ], 'required', 
                 'on' => ['post'], 'message' => '{attribute} should not be empty',  ],
-            [['name', 'ein', 'npi'],  'unique', 'on' => ['post', 'put'], 
+            [['name',  'npi'],  'unique', 'on' => ['post', 'put'], 
                 'message' => '{attribute} should be unique' ],
             [['email', 'representative_email' ], 'email', 'on' => ['post', 'put'] ],
-            [['zip_code'], 'hasFiveDigits', 'on' => ['post', 'put'] ],
-            [['ein'], 'hasNineDigits' , 'on' => ['post', 'put'] ],
-            [['npi', 'phone', 'representative_contact_number'], 'hasTenDigits', 
-                'on' => ['post', 'put']  ],
-            [['city'], 'hasAlphabetsOnly', 'on' => ['post', 'put'] ],
+            [['zip_code'], 'compare', 'compareValue' => 0, 'operator' => '>', 
+                'on' => ['post', 'put'], "message" => "Please enter a valid 5 "
+                . "digit zip code of the healthcare facility"],
+            [ ['zip_code'], 'string', 'length' => [5, 5], 'on' => ['post', 'put'] ],
+            [['npi', 'phone', 'representative_contact_number'], 
+                'compare', 'compareValue' => 0, 'operator' => '>', 
+                'on' => ['post', 'put'], "message" => "{attribute} should be 10 digits"  ],
+            [['npi', 'phone', 'representative_contact_number'], 
+                'string', 'length' => [10, 10], 'on' => ['post', 'put']  ],
+            [['city'], 'match', 'pattern' => '/[^A-Za-z]/' 
+                , 'not' => true, 'message' => "Please enter alphabets only", 
+                'on' => ['post', 'put'] ],
             [['state'], 'hasValidState', 'on' => ['post', 'put'] ],
             [['type'], 'hasValidFacilityType', 'on' => ['post', 'put'] ],
-            [['representative_name'], 'hasValidSpecialCharacters', 'on' => ['post', 'put'] ],
+            [['representative_name'], 'match', 'pattern' => "/[^A-Za-z\s-'.,]/", 
+                'not' => true, 'message' => "Please enter a representative's "
+                . "name at the healthcare facility", 
+                'on' => ['post', 'put'] ],
             [['designated_representative'], 'hasValidRepresentative'],
-            [['deactivate'], 'hasValidDeactivateValue', 'on' => ['put']]
+            [['deactivate'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
+                'on' => ['put'], "message" => "Please enter valid deactivate value"],
         ];
-    }
-    
-    public function hasValidDeactivateValue($attribute,$params){
-        /*
-         * Check if given character has 'F' or 'T'
-         */
-        $value = $this->$attribute;
-        if($value != 'F' && $value != 'T'){
-            $this->addError($attribute, "Invalid entry");
-        }
     }
     
     public function hasValidRepresentative($attribute,$params){
@@ -66,28 +67,6 @@ class Facility extends BaseResource
          * Designated Quicare representative record should exist in user table
          * Check this field only when facility type is clinic, fsed, ed
          */
-    }
-    
-    public function hasValidSpecialCharacters($attribute,$params){
-        /*
-         * Representative name should contain alphabets and can contain following characters
-         * [- ' . ,]
-         */
-        $value = $this->$attribute;
-        if (preg_match("/[^A-Za-z\s-'.,]/", $value)){
-            $this->addError($attribute, "Please enter a representative's "
-                . "name at the healthcare facility");
-        }
-    }
-    
-    public function hasAlphabetsOnly($attribute,$params){
-        /*
-         * City only contains alphabets
-         */
-        $value = $this->$attribute;
-        if (preg_match('/[^A-Za-z\s]/', $value)){
-            $this->addError($attribute, "Please enter alphabets only");
-        }
     }
     
     public function hasValidState($attribute,$params){
@@ -105,51 +84,16 @@ class Facility extends BaseResource
         
     }
     
-    public function hasTenDigits($attribute,$params){
-        /*
-         * NPI, phone and Representative contact number only contain 10 digits
-         */
-        $value = $this->$attribute;
-        if( ((int)$value) < 0 || strlen($value) != 10){
-            $this->addError($attribute, ucfirst($attribute) . " should be 10 digit");
-        }
-    }
-    
-    public function hasNineDigits($attribute,$params){
-        /*
-         * EIN only contain 9 digits
-         */
-        $value = $this->$attribute;
-        if( ((int)$value) < 0 || strlen($value) != 9){
-            $this->addError($attribute, "Please enter a valid 9 digit "
-                . "EIN of the healthcare facility");
-        }
-        
-    }
-
-    public function hasFiveDigits($attribute,$params){
-        /*
-         * Zip code only contain 5 digits
-         */
-        $value = $this->$attribute;
-        if( ((int)$value) < 0 || strlen($value) != 5){
-            $this->addError($attribute, "Please enter a valid 5 digit "
-                . "zip code of the healthcare facility");
-        }
-        
-        
-    }
-
     public function scenarios()
     {
         $scenarios = parent::scenarios();
         $scenarios['post'] = ['name', 'address1', 'address2', 'city', 'zip_code', 'state',  
-                            'type', 'ein', 'npi', 'phone', 'email', 'representative_name',  
+                            'type', 'npi', 'phone', 'email', 'representative_name',  
                             'representative_contact_number',  'representative_email',  
                             'designated_representative', 'default_group' ];
         
         $scenarios['put'] = ['name', 'address1', 'address2', 'city', 'zip_code', 'state',  
-                            'type', 'ein', 'npi', 'phone', 'email', 'representative_name',  
+                            'type', 'npi', 'phone', 'email', 'representative_name',  
                             'representative_contact_number',  'representative_email',  
                             'designated_representative', 'default_group', 'deactivate' ];
         return $scenarios;
