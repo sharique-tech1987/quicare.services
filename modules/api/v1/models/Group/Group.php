@@ -38,7 +38,8 @@ class Group extends BaseResource
             // Use only one validation rule to validate number and user existance
             [['administrator'], 'integer', 'on' => ['post', 'put'] ],
             [['administrator'], 'isUserExist', 'on' => ['post', 'put']],
-            [['deactivate'], 'hasValidDeactivateValue', 'on' => ['put']]
+            [['deactivate'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
+                'on' => ['put'], "message" => "Please enter valid deactivate value"],
         ];
     }
     
