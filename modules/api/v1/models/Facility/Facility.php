@@ -2,6 +2,7 @@
 
 namespace app\modules\api\v1\models\Facility;
 
+use app\modules\api\models\AppQueries;
 use app\modules\api\models\RecordFilter;
 use yii\helpers\Json;
 use yii\db\ActiveRecord;
@@ -74,6 +75,11 @@ class Facility extends ActiveRecord
          * State should be valid 2 character code which exist in state table
          */
         
+        $value = $this->$attribute;
+        $rows = AppQueries::findState($value);
+        if(!$rows){
+            $this->addError($attribute, "Please enter valid state");
+        }
     }
     
     public function hasValidFacilityType($attribute,$params){
@@ -81,6 +87,12 @@ class Facility extends ActiveRecord
          * Facility type should be valid 2 character code which exist in 
          * health_care_facility_type table
          */
+        
+        $value = $this->$attribute;
+        $rows = AppQueries::findFacilityType($value);
+        if(!$rows){
+            $this->addError($attribute, "Please enter valid facility type");
+        }
         
     }
     

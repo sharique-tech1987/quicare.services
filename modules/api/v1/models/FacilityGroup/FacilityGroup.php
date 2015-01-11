@@ -3,6 +3,7 @@
 
 namespace app\modules\api\v1\models\FacilityGroup;
 
+use app\modules\api\v1\models\Group\Group;
 use \yii\db\ActiveRecord;
 
 class FacilityGroup extends ActiveRecord{
@@ -26,7 +27,18 @@ class FacilityGroup extends ActiveRecord{
     
     public function scenarios() {
         return [
-            'default' => ['group_id']
+            'default' => ['group_id', '!facility_id']
+        ];
+    }
+    
+    public function rules() {
+        
+        return [ 
+            [['facility_id', 'group_id' ], 'required', 
+                 'message' => '{attribute} required',  ],
+            [['group_id'], 'exist',  'targetClass' => Group::className(), 'targetAttribute' => 'id', 
+                'message' => 'Foreign key violation. Group id does not exist']
+            
         ];
     }
     
