@@ -42,4 +42,8 @@ class FacilityGroup extends ActiveRecord{
         ];
     }
     
+    public static function deleteFacilityGroups($facility_id){
+        self::deleteAll('facility_id = :facility_id', [':facility_id' => $facility_id]);
+    }
+    
 }

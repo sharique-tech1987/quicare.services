@@ -48,43 +48,78 @@ class FacilityController extends Controller
             $facility->scenario = 'post';
             $facility->attributes = $params;
 
-            $facilityGroups;
-
-            if (isset($params["group_id"]) && is_int($params["group_id"])){
-                $facilityGroups = new FacilityGroup();
-                $facilityGroups->attributes = $params;
-            }
-            else if(isset($params["group_id"]) && is_array($params["group_id"])){
-                $facilityGroups = array();
-                $groups_ids = $params["group_id"];
-                foreach ($groups_ids as $value) {
-                        $tempFgObject = new FacilityGroup();
-                        $tempFgObject->group_id = $value;
-                        array_push($facilityGroups, $tempFgObject);
-                    }
-            }
+            $facilityGroups = $this->getFacilityGroup($params);
 
             $this->response->data = $this->facilityCrud->create($facility, $facilityGroups);
             
-        } catch (\Exception $ex) {
+        } 
+        catch (\Exception $ex) {
             $this->response->statusCode = 500;
-            $serviceResult = new ServiceResult();
-            $serviceResult = array('success'=>false, 'data'=>array(), 
-                                    'error_lst'=>array("exception" => $ex->getMessage()) );
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
             $this->response->data = $serviceResult;
         }
         
         
     }
-	
+    
+    private function getFacilityGroup($params){
+        $facilityGroups = null;
+
+        if (isset($params["group_id"]) && is_int($params["group_id"])){
+            $facilityGroups = new FacilityGroup();
+            $facilityGroups->attributes = $params;
+        }
+        else if(isset($params["group_id"]) && is_array($params["group_id"])){
+            $facilityGroups = array();
+            $groups_ids = $params["group_id"];
+            foreach ($groups_ids as $value) {
+                    $tempFgObject = new FacilityGroup();
+                    $tempFgObject->group_id = $value;
+                    array_push($facilityGroups, $tempFgObject);
+                }
+        }
+        
+        return $facilityGroups;
+    }
+    
+    private function findFacility($id){
+        $facility = Facility::findOne($id);
+        if($facility !== null ){
+            return $facility;
+        }
+        else{
+            throw new \Exception("Facility is not exist");
+        }
+    }
+
+
     public function actionUpdate($id){
-            
+        try {
             $params = Yii::$app->request->post();
             date_default_timezone_set("UTC");
 
             $this->response->statusCode = 200;
             
-            $this->response->data = $this->facilityCrud->update($id, $params);
+            $facility = $this->findFacility($id);
+            $facility->scenario = 'put';
+            $params = $this->trimParams($params);
+            $facility->attributes = $params;
+            
+            $facilityGroups = $this->getFacilityGroup($params);
+
+            $this->response->data = $this->facilityCrud->update($facility, $facilityGroups);
+                
+            
+            
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;    
+        }
+            
         
         }
 	

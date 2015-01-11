@@ -5,14 +5,9 @@ namespace app\modules\api\v1\models\Facility;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use Yii;
+use app\modules\api\v1\models\FacilityGroup\FacilityGroup;
 
 class FacilityCrud{
-    
-    private $serviceResult;
-    
-    public function __construct() {
-        $this->serviceResult = new ServiceResult();
-    }
     
     public function create($facility, $facilityGroups){
         $transaction = Yii::$app->db->beginTransaction();
@@ -58,40 +53,74 @@ class FacilityCrud{
         }
         
         
-        
+        $serviceResult = null;
         
         if ($isSaved) {
             $transaction->commit();
             $data = array("id" => $facility->id);
-                    
-            $this->serviceResult = array('success'=>true, 'data'=>$data, 
-                'error_lst'=>array());
-            
-
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
         } 
         else{
             $transaction->rollBack();
-            $this->serviceResult = array('success'=>false, 'data'=>array(), 
-                'error_lst'=>$errors);
+            $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+
         }
         
-        return $this->serviceResult;
+        return $serviceResult;
     }
     
-    public function update($id, $params){
-        if (($this->facility = Facility::findOne($id)) !== null) {
-            $this->facility->scenario = 'put';
-            $params = $this->trimParams($params);
-            $this->facility->attributes = $params;
-            $this->serviceResult->attributes = $this->facility->put();
-            return $this->serviceResult;
-        } 
-        else {
-            $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                        'error_lst'=>array("record" =>  "Could not find record"));
-            return $this->serviceResult;
-            
+    public function update($facility, $facilityGroups){
+        $transaction = Yii::$app->db->beginTransaction();
+        $isSaved = $facility->save();
+        
+//      Errors collection  
+        $errors = array();
+        
+        if ($isSaved) {
+            if (isset($facilityGroups)){
+                FacilityGroup::deleteFacilityGroups($facility->id);
+                if (is_array($facilityGroups)){
+                    foreach ($facilityGroups as $fg) {
+                        $fg->facility_id = $facility->id;
+                        $isSaved = $fg->save();
+                        if(!$isSaved){
+//                        Collect Errors
+                            $errors = $fg->getErrors();
+                            break;
+                        }
+                    }
+                }
+                else{
+                    $facilityGroups->facility_id = $facility->id;
+                    $isSaved = $facilityGroups->save();
+                    if(!$isSaved){
+//                        Collect Errors
+                        $errors = $facilityGroups->getErrors();
+                    }
+                    
+                }
+            }
         }
+        else {
+//            Collect errors
+                $errors = $facility->getErrors();
+        }
+        
+        
+        $serviceResult = null;
+        
+        if ($isSaved) {
+            $transaction->commit();
+            $data = array("message" => "Record has been updated");
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
+        } 
+        else{
+            $transaction->rollBack();
+            $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+
+        }
+        
+        return $serviceResult;
     }
     
     public function read($id=null, $params=null){
