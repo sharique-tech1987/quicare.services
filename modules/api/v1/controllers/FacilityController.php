@@ -47,6 +47,7 @@ class FacilityController extends Controller
 	
 	
 	public function actionView($id){
+//        Implementing relations to return facility users and groups
 		try {
             $this->response->statusCode = 200;
             
@@ -122,9 +123,9 @@ class FacilityController extends Controller
 	
     public function actionDelete($id){
         $this->response->statusCode = 500;
-            $serviceResult = new ServiceResult(false, $data = array(), 
-                $errors = array("message" => "Delete method not implemented for this resource" ));
-            $this->response->data = $serviceResult;
+        $serviceResult = new ServiceResult(false, $data = array(), 
+            $errors = array("message" => "Delete method not implemented for this resource" ));
+        $this->response->data = $serviceResult;
     }
  
     private function trimParams($params){

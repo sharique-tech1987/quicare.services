@@ -131,8 +131,8 @@ class FacilityCrud{
             if(isset($filter_object['search_text'])){
                 // Use query builder expressions for performance improvement
                 
-                $query->where("name LIKE :facility_name", 
-                        [":facility_name" => "%{$filter_object['search_text']}%"]);
+                $query->where("name LIKE :name", 
+                        [":name" => "%{$filter_object['search_text']}%"]);
             }
         }
     }

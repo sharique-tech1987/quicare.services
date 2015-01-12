@@ -5,76 +5,92 @@ namespace app\modules\api\v1\models\Group;
 use app\modules\api\v1\models\Group\Group;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
+use yii\helpers\Json;
 
 class GroupCrud{
     
-    private $group;
-    private $serviceResult;
-    
-    public function __construct() {
-        $this->group = new Group();
-        $this->serviceResult = new ServiceResult();
+    public function create(Group $group){
+        $isSaved = $group->save();
+        $serviceResult = null;
+        
+        if ($isSaved) {
+            $data = array("id" => $group->id);
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
+        } 
+        else{
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = $group->getErrors());
+        }
+        
+        return $serviceResult;
     }
     
-    public function create($params){
-        $this->group->scenario = 'post';
-        $this->group->attributes = $params;
-        $this->serviceResult->attributes = $this->group->post();
-        return $this->serviceResult;
+    public function update(Group $group){
+        $isSaved = $group->save();
+        $serviceResult = null;
+        
+        if ($isSaved) {
+            $data = array("message" => "Record has been updated");
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
+        } 
+        else{
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = $group->getErrors());
+        }
+        
+        return $serviceResult;
     }
     
-    public function update($id, $params){
-        if (($this->group = Group::findOne($id)) !== null) {
-            $this->group->scenario = 'put';
-            if(isset($params["deactivate"])){
-                $params["deactivate"] = strtoupper(trim($params["deactivate"]));
-            }
-            $this->group->attributes = $params;
-            $this->serviceResult->attributes = $this->group->put();
-            return $this->serviceResult;
+    public function read(RecordFilter $recordFilter){
+        $serviceResult = null;
+        if ($recordFilter->validate()) {
+            
+            $query = Group::find();
+            
+            $this->addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
+            $this->addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
+
+            $this->addFilters($query, $recordFilter->filter);
+
+            $record_count = $query->count();
+
+            $data = array("total_records" => $record_count, "records" => $query->all());
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
+            return $serviceResult;
+            
         } 
         else {
-            $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>array("record" => "Could not find record"));
-            return $this->serviceResult;
-            
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = $recordFilter->getErrors());
+            return $serviceResult;
         }
-    }
-    
-    public function read($id=null, $params=null){
-        if (isset($id)) {
-            if (($this->group = Group::findOne($id)) !== null) {
-                $this->serviceResult->attributes = array('success'=>true, 
-                                                    'data'=>array($this->group->attributes), 
-                                                    'error_lst'=>array());
-                return $this->serviceResult;
-            }
-            else {
-                $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>array("record" => "Could not find record"));
-                return $this->serviceResult;
-                
-            }
-            
-        }
-        else{
-            $recordFilter = new RecordFilter();
-            $recordFilter->attributes = $params;
-            
-            if($recordFilter->validate()){
-                $this->serviceResult->attributes = $this->group->read($recordFilter);
-                return $this->serviceResult;
-            }
-            else{
-                $this->serviceResult->attributes = array('success'=>false, 'data'=>array(), 
-                                                'error_lst'=>$recordFilter->getErrors());
-                return $this->serviceResult;
-
-            }
-            
-        }
-        
         
     }
     
+    
+    private function addFilters($query, $filters){
+        if(isset($filters))
+        {
+            $filter_object = Json::decode($filters, true);
+            if(isset($filter_object['search_text'])){
+                // Use query builder expressions for performance improvement
+                $query->where("name LIKE :name", 
+                        [":name" => "%{$filter_object['search_text']}%"]);
+            }
+        }
+    }
+    
+    private function addOffsetAndLimit($query, $page, $limit){
+        if(isset($page) && isset($limit)){
+            $offset = $limit * ($page-1);
+            $query->offset($offset)->limit($limit);
+        }
+    }
+    
+    private function addOrderBy($query, $orderby, $sort){
+        if(isset($orderby) && isset($sort)){
+            $orderby_exp = $orderby . " " . $sort;
+            $query->orderBy($orderby_exp);
+        }
+    }
 }

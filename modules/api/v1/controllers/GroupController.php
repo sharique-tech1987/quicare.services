@@ -3,7 +3,10 @@ namespace app\modules\api\v1\controllers;
 
 use yii\rest\Controller;
 use app\modules\api\v1\models\Group\GroupCrud;
+use app\modules\api\v1\models\Group\Group;
 use Yii;
+use app\modules\api\models\ServiceResult;
+use app\modules\api\models\RecordFilter;
 
 class GroupController extends Controller
 {
@@ -19,43 +22,112 @@ class GroupController extends Controller
     }
     
     public function actionIndex(){
-        $params = Yii::$app->request->get();
+        try {
+            $params = Yii::$app->request->get();
         
-        $this->response->statusCode = 200;
-        $this->response->data = $this->groupCrud->read($id=null, $params=$params);
+            $this->response->statusCode = 200;
+
+            $recordFilter = new RecordFilter();
+
+            $recordFilter->attributes = $params;
+
+            $this->response->data = $this->groupCrud->read($recordFilter);
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
         
     }
 	
 	
 	public function actionView($id){
-		$this->response->statusCode = 200;
+//        Implementing relations to return group users and facilities
+		try {
+            $this->response->statusCode = 200;
             
-        $this->response->data = $this->groupCrud->read($id);
+            $serviceResult = new ServiceResult(true, 
+                $data = $this->findGroup($id), 
+                $errors = array()); 
+            $this->response->data = $serviceResult;
+            
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
 	}
 	
 	public function actionCreate(){
-        $params = Yii::$app->request->post();
-        date_default_timezone_set("UTC");
+        try{
+            $params = Yii::$app->request->post();
+            date_default_timezone_set("UTC");
 
-        $this->response->statusCode = 200;
+            $this->response->statusCode = 200;
+
+            $group = new Group();
+            $group->scenario= 'post';
+            $group->attributes = $params;
+                
+        $this->response->data = $this->groupCrud->create($group);
+            
+        } catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
         
-        $this->response->data = $this->groupCrud->create($params);
         
     }
 	
     public function actionUpdate($id){
-            
+        
+        try {
             $params = Yii::$app->request->post();
             date_default_timezone_set("UTC");
 
             $this->response->statusCode = 200;
             
-            $this->response->data = $this->groupCrud->update($id, $params);
-        
+            $group = $this->findGroup($id);
+            $params = $this->trimParams($params);
+            $group->scenario = 'put';
+            $group->attributes = $params;
+            
+            $this->response->data = $this->groupCrud->update($group);
+        } catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
         }
+    }
 	
     public function actionDelete($id){
-            
-        }
+        $this->response->statusCode = 500;
+        $serviceResult = new ServiceResult(false, $data = array(), 
+            $errors = array("message" => "Delete method not implemented for this resource" ));
+        $this->response->data = $serviceResult;
+    }
     
+    private function trimParams($params){
+        if(isset($params["deactivate"])){
+            $params["deactivate"] = strtoupper(trim($params["deactivate"]));
+        }
+        return $params;
+    }
+    
+    private function findGroup($id){
+        $group = Group::findOne($id);
+        if($group !== null ){
+            return $group;
+        }
+        else{
+            throw new \Exception("Group is not exist");
+        }   
+    }
 }
