@@ -152,7 +152,7 @@ class FacilityCrud{
     }
     
     
-    public function read(RecordFilter $recordFilter){
+    public function readAll(RecordFilter $recordFilter){
         $serviceResult = null;
         if ($recordFilter->validate()) {
             
@@ -173,6 +173,24 @@ class FacilityCrud{
         else {
             $serviceResult = new ServiceResult(false, $data = array(), $errors = $recordFilter->getErrors());
             return $serviceResult;
+        }
+    }
+    
+    public function read(RecordFilter $recordFilter, $findModel = true){
+        $facility = Facility::findOne($recordFilter->id);
+        if($facility !== null ){
+            if($findModel){
+                return $facility;
+            }
+            else{
+                $facility_array = $facility->toArray();
+                $facility_array["groups"] = $facility->groups;
+                return $facility_array;
+            }
+            
+        }
+        else{
+            throw new \Exception("Facility is not exist");
         }
     }
     

@@ -6,6 +6,7 @@ use yii\base\Model;
 use yii\helpers\Json;
 
 class RecordFilter extends Model{
+    public $id;
     public $page;
     public $limit;
     public $sort;

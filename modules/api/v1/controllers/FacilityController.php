@@ -33,7 +33,7 @@ class FacilityController extends Controller
 
             $recordFilter->attributes = $params;
 
-            $this->response->data = $this->facilityCrud->read($recordFilter);
+            $this->response->data = $this->facilityCrud->readAll($recordFilter);
         } 
         catch (\Exception $ex) {
             $this->response->statusCode = 500;
@@ -50,9 +50,12 @@ class FacilityController extends Controller
 //        Implementing relations to return facility users and groups
 		try {
             $this->response->statusCode = 200;
+            $recordFilter = new RecordFilter();
+            $recordFilter->id = $id;
             
+            $facility = $this->facilityCrud->read($recordFilter, $findModel = false);
             $serviceResult = new ServiceResult(true, 
-                $data = $this->findFacility($id), 
+                $data = $facility , 
                 $errors = array()); 
             $this->response->data = $serviceResult;
             
@@ -99,7 +102,10 @@ class FacilityController extends Controller
 
             $this->response->statusCode = 200;
             
-            $facility = $this->findFacility($id);
+            $recordFilter = new RecordFilter();
+            $recordFilter->id = $id;
+            
+            $facility = $this->facilityCrud->read($recordFilter);
             $facility->scenario = 'put';
             $params = $this->trimParams($params);
             $facility->attributes = $params;
@@ -184,15 +190,7 @@ class FacilityController extends Controller
         return $facilityGroups;
     }
     
-    private function findFacility($id){
-        $facility = Facility::findOne($id);
-        if($facility !== null ){
-            return $facility;
-        }
-        else{
-            throw new \Exception("Facility is not exist");
-        }
-    }
+    
     
     
 }

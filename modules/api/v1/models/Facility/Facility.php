@@ -4,7 +4,7 @@ namespace app\modules\api\v1\models\Facility;
 
 use app\modules\api\models\AppQueries;
 use yii\db\ActiveRecord;
-
+use \app\modules\api\v1\models\Group\Group;
 
 class Facility extends ActiveRecord
 {
@@ -125,6 +125,11 @@ class Facility extends ActiveRecord
         }
     }
     
+    public function getGroups()
+    {
+        return $this->hasMany(Group::className(), ['id' => 'group_id'])
+            ->viaTable('health_care_facility_group', ['facility_id' => 'id']);
+    }
     
 }
 
