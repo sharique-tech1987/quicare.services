@@ -6,6 +6,8 @@ use app\modules\api\v1\models\Facility\FacilityCrud;
 use app\modules\api\v1\models\Facility\Facility;
 use app\modules\api\v1\models\FacilityGroup\FacilityGroup;
 use app\modules\api\models\ServiceResult;
+use app\modules\api\models\RecordFilter;
+
 use Yii;
 
 class FacilityController extends Controller
@@ -22,18 +24,44 @@ class FacilityController extends Controller
     }
     
     public function actionIndex(){
-        $params = Yii::$app->request->get();
+        try {
+            $params = Yii::$app->request->get();
         
-        $this->response->statusCode = 200;
-        $this->response->data = $this->facilityCrud->read($id=null, $params=$params);
+            $this->response->statusCode = 200;
+
+            $recordFilter = new RecordFilter();
+
+            $recordFilter->attributes = $params;
+
+            $this->response->data = $this->facilityCrud->read($recordFilter);
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
+        
         
     }
 	
 	
 	public function actionView($id){
-		$this->response->statusCode = 200;
+		try {
+            $this->response->statusCode = 200;
             
-        $this->response->data = $this->facilityCrud->read($id);
+            $serviceResult = new ServiceResult(true, 
+                $data = $this->findFacility($id), 
+                $errors = array()); 
+            $this->response->data = $serviceResult;
+            
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
 	}
 	
 	public function actionCreate(){
@@ -63,37 +91,6 @@ class FacilityController extends Controller
         
     }
     
-    private function getFacilityGroup($params){
-        $facilityGroups = null;
-
-        if (isset($params["group_id"]) && is_int($params["group_id"])){
-            $facilityGroups = new FacilityGroup();
-            $facilityGroups->attributes = $params;
-        }
-        else if(isset($params["group_id"]) && is_array($params["group_id"])){
-            $facilityGroups = array();
-            $groups_ids = $params["group_id"];
-            foreach ($groups_ids as $value) {
-                    $tempFgObject = new FacilityGroup();
-                    $tempFgObject->group_id = $value;
-                    array_push($facilityGroups, $tempFgObject);
-                }
-        }
-        
-        return $facilityGroups;
-    }
-    
-    private function findFacility($id){
-        $facility = Facility::findOne($id);
-        if($facility !== null ){
-            return $facility;
-        }
-        else{
-            throw new \Exception("Facility is not exist");
-        }
-    }
-
-
     public function actionUpdate($id){
         try {
             $params = Yii::$app->request->post();
@@ -125,15 +122,11 @@ class FacilityController extends Controller
 	
     public function actionDelete($id){
         $this->response->statusCode = 500;
-        $serviceResult = new ServiceResult();
-        $serviceResult = array('success'=>false, 'data'=>array(), 
-                                'error_lst'=>array("exception" => 
-                                    "Delete method not implemented for this resource") );
-        $this->response->data = $serviceResult;
-        
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("message" => "Delete method not implemented for this resource" ));
+            $this->response->data = $serviceResult;
     }
  
-        
     private function trimParams($params){
         if(isset($params["deactivate"])){
             $params["deactivate"] = strtoupper(trim($params["deactivate"]));
@@ -169,4 +162,36 @@ class FacilityController extends Controller
     
         return $params;
     }
+    
+    private function getFacilityGroup($params){
+        $facilityGroups = null;
+
+        if (isset($params["group_id"]) && is_int($params["group_id"])){
+            $facilityGroups = new FacilityGroup();
+            $facilityGroups->attributes = $params;
+        }
+        else if(isset($params["group_id"]) && is_array($params["group_id"])){
+            $facilityGroups = array();
+            $groups_ids = $params["group_id"];
+            foreach ($groups_ids as $value) {
+                    $tempFgObject = new FacilityGroup();
+                    $tempFgObject->group_id = $value;
+                    array_push($facilityGroups, $tempFgObject);
+                }
+        }
+        
+        return $facilityGroups;
+    }
+    
+    private function findFacility($id){
+        $facility = Facility::findOne($id);
+        if($facility !== null ){
+            return $facility;
+        }
+        else{
+            throw new \Exception("Facility is not exist");
+        }
+    }
+    
+    
 }
