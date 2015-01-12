@@ -6,6 +6,7 @@ use app\modules\api\models\BaseResource;
 use app\modules\api\models\RecordFilter;
 use yii\helpers\Json;
 use yii\db\ActiveRecord;
+use app\modules\api\v1\models\Facility\Facility;
 
 class Group extends ActiveRecord
 {
@@ -72,6 +73,12 @@ class Group extends ActiveRecord
          * Check if given user is exist in user table
          */
         // Call User::findOne($id) to check
+    }
+    
+    public function getFacilities()
+    {
+        return $this->hasMany(Facility::className(), ['id' => 'facility_id'])
+            ->viaTable('health_care_facility_group', ['group_id' => 'id']);
     }
     
 }

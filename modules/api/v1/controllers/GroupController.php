@@ -31,7 +31,7 @@ class GroupController extends Controller
 
             $recordFilter->attributes = $params;
 
-            $this->response->data = $this->groupCrud->read($recordFilter);
+            $this->response->data = $this->groupCrud->readAll($recordFilter);
         } 
         catch (\Exception $ex) {
             $this->response->statusCode = 500;
@@ -44,12 +44,16 @@ class GroupController extends Controller
 	
 	
 	public function actionView($id){
-//        Implementing relations to return group users and facilities
+//        Implementing relations to return group users
 		try {
             $this->response->statusCode = 200;
+            $recordFilter = new RecordFilter();
+            $recordFilter->id = $id;
+            
+            $group = $this->groupCrud->read($recordFilter, $findModel = false);
             
             $serviceResult = new ServiceResult(true, 
-                $data = $this->findGroup($id), 
+                $data = $group, 
                 $errors = array()); 
             $this->response->data = $serviceResult;
             
@@ -93,7 +97,10 @@ class GroupController extends Controller
 
             $this->response->statusCode = 200;
             
-            $group = $this->findGroup($id);
+            $recordFilter = new RecordFilter();
+            $recordFilter->id = $id;
+            
+            $group = $this->groupCrud->read($recordFilter);
             $params = $this->trimParams($params);
             $group->scenario = 'put';
             $group->attributes = $params;
@@ -121,13 +128,5 @@ class GroupController extends Controller
         return $params;
     }
     
-    private function findGroup($id){
-        $group = Group::findOne($id);
-        if($group !== null ){
-            return $group;
-        }
-        else{
-            throw new \Exception("Group is not exist");
-        }   
-    }
+    
 }

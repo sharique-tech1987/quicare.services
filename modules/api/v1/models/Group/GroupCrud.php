@@ -41,7 +41,7 @@ class GroupCrud{
         return $serviceResult;
     }
     
-    public function read(RecordFilter $recordFilter){
+    public function readAll(RecordFilter $recordFilter){
         $serviceResult = null;
         if ($recordFilter->validate()) {
             
@@ -92,5 +92,22 @@ class GroupCrud{
             $orderby_exp = $orderby . " " . $sort;
             $query->orderBy($orderby_exp);
         }
+    }
+    
+    public function read(RecordFilter $recordFilter, $findModel = true){
+        $group = Group::findOne($recordFilter->id);
+        if($group !== null ){
+            if($findModel){
+                return $group;
+            }
+            else{
+                $group_array = $group->toArray();
+                $group_array["facilities"] = $group->facilities;
+                return $group_array;
+            }
+        }
+        else{
+            throw new \Exception("Group is not exist");
+        }   
     }
 }
