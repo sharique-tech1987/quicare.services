@@ -128,7 +128,7 @@ class FacilityController extends Controller
         }
 	
     public function actionDelete($id){
-        $this->response->statusCode = 500;
+        $this->response->statusCode = 405;
         $serviceResult = new ServiceResult(false, $data = array(), 
             $errors = array("message" => "Delete method not implemented for this resource" ));
         $this->response->data = $serviceResult;

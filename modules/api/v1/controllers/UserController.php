@@ -1,331 +1,190 @@
 <?php
 namespace app\modules\api\v1\controllers;
- 
-use Yii;
-use app\modules\api\v1\models\User;
-use yii\data\ActiveDataProvider;
-//use yii\web\Controller;
+
 use yii\rest\Controller;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-use yii\db\Query;
- 
-/**
-* UserController implements the CRUD actions for User model.
-*/
+use app\modules\api\v1\models\User\UserCrud;
+use app\modules\api\v1\models\User\User;
+use app\modules\api\models\ServiceResult;
+use app\modules\api\models\RecordFilter;
+use app\modules\api\v1\models\UserGroup\UserGroup;
+use app\modules\api\v1\models\UserFacility\UserFacility;
+
+use Yii;
+
 class UserController extends Controller
 {
- 
-    public function behaviors()
-    {
-    return [
-        'verbs' => [
-        'class' => VerbFilter::className(),
-        'actions' => [
-			/*'index'  => ['get'],
-			'view'   => ['get'],
-			'create' => ['get', 'post'],
-			'update' => ['get', 'put', 'post'],
-			'delete' => ['post', 'delete'],
-			*/
-            'index'=>['get'],
-            'view'=>['get'],
-            'create'=>['post'],
-            'update'=>['put'],
-            'delete' => ['delete'],
-            'deleteall'=>['post'],
-			
-        ],
- 
-        ]
-    ];
+    private $response;
+    private $userCrud;
+    
+    public function init() {
+        parent::init();
+        $this->userCrud = new UserCrud();
+        $this->response = Yii::$app->response;
+        $this->response->format = \yii\web\Response::FORMAT_JSON;
+        $this->response->headers->set('Content-type', 'application/json; charset=utf-8');
     }
- 
- 
-    public function beforeAction($event)
-    {
-    $action = $event->id;
-    if (isset($this->actions[$action])) {
-        $verbs = $this->actions[$action];
-    } elseif (isset($this->actions['*'])) {
-        $verbs = $this->actions['*'];
-    } else {
-        return $event->isValid;
-    }
-    $verb = Yii::$app->getRequest()->getMethod();
- 
-      $allowed = array_map('strtoupper', $verbs);
- 
-      if (!in_array($verb, $allowed)) {
- 
-        $this->setHeader(400);
-        echo json_encode(array('status'=>0,'error_code'=>400,'message'=>'Method not allowed'),JSON_PRETTY_PRINT);
-        exit;
- 
-    }  
- 
-      return true;  
-    }
- 
-    /**
-    * Lists all User models.
-    * @return mixed
-    */
-    public function actionIndex()
-    {
- 
-          $params=$_REQUEST;
-          $filter=array();
-          $sort="";
- 
-          $page=1;
-          $limit=10;
- 
-           if(isset($params['page']))
-             $page=$params['page'];
- 
- 
-           if(isset($params['limit']))
-              $limit=$params['limit'];
- 
-            $offset=$limit*($page-1);
- 
- 			$query=new Query;
-			$query->from('user')->select("id,name,age,createdAt,updatedAt")
-			->offset($offset)
-			->limit($limit)
-			;
-			
-            /* Filter elements */
-           if(isset($params['filter']))
-            {
-             $filter=(array)json_decode($params['filter']);
-            }
- 
- 			
-            if(isset($params['datefilter']))
-            {
-             $datefilter=(array)json_decode($params['datefilter']);
-            }
- 
- 
-            if(isset($params['sort']))
-            {
-              	$sort=$params['sort'];
-				 if(isset($params['order']))
-				{  
-					if($params['order']=="false")
-					 $sort.=" desc";
-					else
-					 $sort.=" asc";
-		 
-				}
-            }
-			
-		$query->orderBy($sort);
- 
- 		
- 		if(isset($filter['id'])){
-			$query->andFilterWhere(['like', 'id', $filter['id']]);
-		}
-		
-		if (isset($filter['name'])){
-			$query->andFilterWhere(['like', 'name', $filter['name']]);
-		}
-		
-		if (isset($filter['age'])){
-			$query->andFilterWhere(['like', 'age', $filter['age']]);
-		}
-		
-		if(isset($datefilter['from']))
-	    {
-		 $query->andWhere("createdAt >= '".$datefilter['from']."' ");
-	    }
-	    if(isset($datefilter['to']))
-	    {
-		 $query->andWhere("createdAt <= '".$datefilter['to']."'");
-	    }
- 
-           $command = $query->createCommand();
-               $models = $command->queryAll();
- 
-               $totalItems=$query->count();
- 
-          $this->setHeader(200);
- 
-          echo json_encode(array('status'=>1,'data'=>$models,'totalItems'=>$totalItems),JSON_PRETTY_PRINT);
- 
-    }
- 
- 
-    /**
-    * Displays a single User model.
-    * @param integer $id
-    * @return mixed
-    */
-    public function actionView($id)
-    {
-      $model=$this->findModel($id);
- 
-      $this->setHeader(200);
-      echo json_encode(array('function'=>"in view", 'status'=>1,'data'=>array_filter($model->attributes)),JSON_PRETTY_PRINT);
- 
-    }
- 
-    /**
-    * Creates a new User model.
-    * @return json
-    */
-    public function actionCreate()
-    {
- 
-    $params=$_REQUEST;
- 
-    $model = new User();
-    $model->attributes=$params;
- 
- 
- 
-    if ($model->save()) {
- 
-        $this->setHeader(200);
+    
+    public function actionIndex(){
+        try {
+            $params = Yii::$app->request->get();
+        
+            $this->response->statusCode = 200;
 
-        echo json_encode(array('status'=>1,'data'=>array_filter($model->attributes)),JSON_PRETTY_PRINT);
- 
-    } 
-    else
-    {
-        $this->setHeader(400);
-        echo json_encode(array("function"=>'in create', "params"=>$params, 'status'=>0,'error_code'=>400,'errors'=>$model->errors),JSON_PRETTY_PRINT);
+            $recordFilter = new RecordFilter();
+
+            $recordFilter->attributes = $params;
+
+            $this->response->data = $this->userCrud->readAll($recordFilter);
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
+        
+        
     }
- 
-    }
- 
-    /**
-    * Updates an existing User model.
-    * @param integer $id
-    * @return json
-    */
 	
 	
-    public function actionUpdate($id)
-    {
-    $params=$_REQUEST;
- 
-    $model = $this->findModel($id);
- 
-    $model->attributes=$params;
+	public function actionView($id){
+//        Implementing relations to return facility users and groups
+		try {
+            $this->response->statusCode = 200;
+            $recordFilter = new RecordFilter();
+            $recordFilter->id = $id;
+            
+            $facility = $this->userCrud->read($recordFilter, $findModel = false);
+            $serviceResult = new ServiceResult(true, 
+                $data = $facility , 
+                $errors = array()); 
+            $this->response->data = $serviceResult;
+            
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
+	}
 	
- 
-    if ($model->save()) {
- 
-        $this->setHeader(200);
-        echo json_encode(array("function"=>'in update','params'=>$params, 'status'=>1,'data'=>array_filter($model->attributes)),JSON_PRETTY_PRINT);
- 
-    } 
-    else
-    {
-        $this->setHeader(400);
-        echo json_encode(array('status'=>0,'error_code'=>400,'errors'=>$model->errors),JSON_PRETTY_PRINT);
+	public function actionCreate(){
+        try {
+            $params = Yii::$app->request->post();
+            date_default_timezone_set("UTC");
+
+            $this->response->statusCode = 200;
+            $params = $this->trimParams($params);
+
+            $user = new User();
+            $user->scenario = 'post';
+            $user->attributes = $params;
+
+            $userGroups = $this->getUserGroup($params);
+            $userFacilities = $this->getUserFacilities($params);
+
+            $this->response->data = $this->userCrud->create($user, $userGroups, $userFacilities);
+            
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
+        
+        
+    }
+    
+    public function actionUpdate($id){
+        try {
+            $params = Yii::$app->request->post();
+            date_default_timezone_set("UTC");
+
+            $this->response->statusCode = 200;
+            
+            $recordFilter = new RecordFilter();
+            $recordFilter->id = $id;
+            
+            $facility = $this->userCrud->read($recordFilter);
+            $facility->scenario = 'put';
+            $params = $this->trimParams($params);
+            $facility->attributes = $params;
+            
+            $facilityGroups = $this->getUserGroup($params);
+
+            $this->response->data = $this->userCrud->update($facility, $facilityGroups);
+                
+            
+            
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;    
+        }
+            
+        
+        }
+	
+    public function actionDelete($id){
+        $this->response->statusCode = 405;
+        $serviceResult = new ServiceResult(false, $data = array(), 
+            $errors = array("message" => "Delete method not implemented for this resource" ));
+        $this->response->data = $serviceResult;
     }
  
+    private function trimParams($params){
+        if(isset($params["deactivate"])){
+            $params["deactivate"] = strtoupper(trim($params["deactivate"]));
+        }
+        
+        if(isset($params["npi"])){
+            $params["npi"] = trim($params["npi"]);
+        }
+        
+        
+    
+        return $params;
     }
- 
-    /**
-    * Deletes an existing User model.
-    * @param integer $id
-    * @return json
-    */
-    public function actionDelete($id)
-    {
-    $model=$this->findModel($id);
- 
-    if($model->delete())
-    { 
-        $this->setHeader(200);
-        echo json_encode(array('status'=>1,'data'=>array_filter($model->attributes)),JSON_PRETTY_PRINT);
- 
+    
+    private function getUserGroup($params){
+        $userGroups = null;
+
+        if(isset($params["group_id"]) && 
+            ( is_int($params["group_id"]) || is_array($params["group_id"]) ) ){
+            $userGroups = array();
+            $groups_ids = $params["group_id"];
+            foreach ($groups_ids as $value) {
+                    $tempUgObject = new UserGroup();
+                    $tempUgObject->group_id = $value;
+                    array_push($userGroups, $tempUgObject);
+                }
+        }
+        
+        return $userGroups;
     }
-    else
-    {
- 
-        $this->setHeader(400);
-        echo json_encode(array('status'=>0,'error_code'=>400,'errors'=>$model->errors),JSON_PRETTY_PRINT);
+    
+    private function getUserFacilities($params){
+        $userfacilities = null;
+
+        if(isset($params["facility_id"]) && 
+            ( is_int($params["facility_id"]) || is_array($params["facility_id"]) ) ){
+            $userfacilities = array();
+            $facility_ids = $params["facility_id"];
+            foreach ($facility_ids as $value) {
+                    $tempUfObject = new UserFacility();
+                    $tempUfObject->facility_id = $value;
+                    array_push($userfacilities, $tempUfObject);
+                }
+        }
+        
+        return $userfacilities;
     }
- 
-    }
-    /**
-    * Deletes an existing multiple User models at a time.
-    * @return json
-    */
-    public function actionDeleteall()
-    {
-    $ids=json_decode($_REQUEST['ids']);
- 
-    $data=array();
- 
-    foreach($ids as $id)
-    {
-      $model=$this->findModel($id);
- 
-      if($model->delete())
-        $data[]=array_filter($model->attributes);
-      else
-      {
-        $this->setHeader(400);
-        echo json_encode(array('status'=>0,'error_code'=>400,'errors'=>$model->errors),JSON_PRETTY_PRINT);
-        return;
-      }  
-    }
- 
-    $this->setHeader(200);
-    echo json_encode(array('status'=>1,'data'=>$data),JSON_PRETTY_PRINT);
- 
-    }
- 
-    /**
-    * Finds the User model based on its primary key value.
-    * If the model is not found, a 404 HTTP exception will be thrown.
-    * @param integer $id
-    * @return User the loaded model
-    */
-    protected function findModel($id)
-    {
-    if (($model = User::findOne($id)) !== null) {
-        return $model;
-    } else {
- 
-      $this->setHeader(400);
-      echo json_encode(array('status'=>0,'error_code'=>400,'message'=>'Bad request'),JSON_PRETTY_PRINT);
-      exit;
-    }
-    }
- 
-    private function setHeader($status)
-      {
- 
-      $status_header = 'HTTP/1.1 ' . $status . ' ' . $this->_getStatusCodeMessage($status);
-      $content_type="application/json; charset=utf-8";
- 
-      header($status_header);
-      header('Content-type: ' . $content_type);
-      header('X-Powered-By: ' . "Nintriva <nintriva.com>");
-      }
-    private function _getStatusCodeMessage($status)
-    {
-    // these could be stored in a .ini file and loaded
-    // via parse_ini_file()... however, this will suffice
-    // for an example
-    $codes = Array(
-        200 => 'OK',
-        400 => 'Bad Request',
-        401 => 'Unauthorized',
-        402 => 'Payment Required',
-        403 => 'Forbidden',
-        404 => 'Not Found',
-        500 => 'Internal Server Error',
-        501 => 'Not Implemented',
-    );
-    return (isset($codes[$status])) ? $codes[$status] : '';
-    }
+    
+    
+    
+    
 }
