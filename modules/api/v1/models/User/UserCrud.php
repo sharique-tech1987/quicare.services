@@ -6,7 +6,8 @@ use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\v1\models\UserGroup\UserGroup;
 use Yii;
-use app\modules\api\models\AppUserTypes;
+use app\modules\api\v1\models\UserFacility\UserFacility;
+use app\modules\api\v1\models\User\User;
 
 use yii\helpers\Json;
 
@@ -22,26 +23,37 @@ class UserCrud{
          * Function checks for valid params and throws exception if it has not valid params
          * E.g. Check if user is hospital physician it has groups and facilities
          */
+        $checkUserGroup = isset($userGroups);
+        $checkUserFacilities = isset($userFacilities);
+        
+        if($checkUserGroup && !(is_array($userGroups) && !empty($userGroups)) ){
+            throw new \Exception("Groups should be array");
+        }
+        if($checkUserFacilities && !(is_array($userFacilities) && !empty($userFacilities)) ){
+            throw new \Exception("Facilities should be array");
+        }
+        
+        
         if( (isset($user->category) && isset($user->role)) ){
             if( ( ($user->category == "HL" && $user->role == "PN") || 
                   ($user->category == "CC" && $user->role == "SN") ) && 
-                !( isset($userGroups) && isset($userFacilities))  ){
+                !( $checkUserGroup && $checkUserFacilities)  ){
                 throw new \Exception("User should have groups and facilities");
             }
             else if( !( ($user->category == "HL" && $user->role == "PN") || 
                   ($user->category == "CC" && $user->role == "SN") ) && 
                 $user->category != "AS" && $user->category != "HR"  ){
                 
-                if(!isset($userFacilities)){
+                if(!$checkUserFacilities){
                     throw new \Exception("User should have facilities");
                 }
-                else if(isset($userGroups)){
+                else if($checkUserGroup){
                     throw new \Exception("User should not have groups");
                 }
                 
             }
             else if( ($user->category == "AS" || $user->category == "HR") 
-                && (isset($userGroups) || isset($userFacilities))  ){
+                && ($checkUserGroup || $checkUserFacilities)  ){
                 throw new \Exception("User should not have groups and facilities");
             }
         }
@@ -76,6 +88,72 @@ class UserCrud{
             }
 //          if no errors in previous operation then proceed  
             if ( (sizeof($errors) == 0) && isset($userFacilities) ){
+                foreach ($userFacilities as $uf) {
+                    $uf->user_id = $user->id;
+                    $isSaved = $uf->save();
+                    if(!$isSaved){
+//                        Collect Errors
+                        $errors = $uf->getErrors();
+                        break;
+                    }
+                }
+
+            }
+
+            
+        }
+        else {
+//            Collect errors
+                $errors = $user->getErrors();
+        }
+        
+        
+        $serviceResult = null;
+        
+        if ($isSaved) {
+            $transaction->commit();
+            $data = array("id" => $user->id);
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
+        } 
+        else{
+            $transaction->rollBack();
+            $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+
+        }
+        
+        return $serviceResult;
+    }
+    
+    public function update(User $user, $userGroups, $userFacilities){
+        /*
+         * $userGroups is not mandatory for all users
+         * $userFacilities is not mandatory for all users
+         */
+        $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
+        
+        $transaction = Yii::$app->db->beginTransaction();
+        $isSaved = $user->save();
+        
+//      Errors collection  
+        $errors = array();
+        
+        if ($isSaved) {
+            if (isset($userGroups)){
+                UserGroup::deleteUsersGroups($user->id);
+                foreach ($userGroups as $ug) {
+                    $ug->user_id = $user->id;
+                    $isSaved = $ug->save();
+                    if(!$isSaved){
+//                        Collect Errors
+                        $errors = $ug->getErrors();
+                        break;
+                    }
+                }
+
+            }
+//          if no errors in previous operation then proceed  
+            if ( (sizeof($errors) == 0) && isset($userFacilities) ){
+                UserFacility::deleteUsersFacilities($user->id);
                 foreach ($userFacilities as $uf) {
                     $uf->user_id = $user->id;
                     $isSaved = $uf->save();
@@ -165,20 +243,21 @@ class UserCrud{
     }
     
     public function read(RecordFilter $recordFilter, $findModel = true){
-        $facility = Facility::findOne($recordFilter->id);
-        if($facility !== null ){
+        $user = User::findOne($recordFilter->id);
+        if($user !== null ){
             if($findModel){
-                return $facility;
+                return $user;
             }
             else{
-                $facility_array = $facility->toArray();
-                $facility_array["groups"] = $facility->groups;
-                return $facility_array;
+                $user_array = $user->toArray();
+                $user_array["groups"] = $user->groups;
+                $user_array["facilities"] = $user->facilities;
+                return $user_array;
             }
             
         }
         else{
-            throw new \Exception("Facility is not exist");
+            throw new \Exception("User is not exist");
         }
     }
     

@@ -44,7 +44,7 @@ class UserFacility extends ActiveRecord{
     }
     
     public static function deleteUsersFacilities($user_id){
-        self::deleteAll('id = :id', ['id' => $user_id]);
+        self::deleteAll('user_id = :id', ['id' => $user_id]);
     }
     
 }

@@ -7,6 +7,8 @@ use yii\db\ActiveRecord;
 use \app\modules\api\v1\models\Degree\Degree;
 use app\modules\api\v1\models\Specialty\Specialty;
 use app\modules\api\v1\models\UserRole\UserRole;
+use \app\modules\api\v1\models\Group\Group;
+use \app\modules\api\v1\models\Facility\Facility;
 
 class User extends ActiveRecord
 {
@@ -168,7 +170,18 @@ class User extends ActiveRecord
         }
     }
     
+    public function getGroups()
+    {
+        return $this->hasMany(Group::className(), ['id' => 'group_id'])
+            ->viaTable('user_group', ['user_id' => 'id']);
+    }
     
+    public function getFacilities()
+    {
+        
+        return $this->hasMany(Facility::className(), ['id' => 'facility_id'])
+            ->viaTable('user_health_care_facility', ['user_id' => 'id']);
+    }
     
 }
 

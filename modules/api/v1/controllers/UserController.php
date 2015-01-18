@@ -48,15 +48,14 @@ class UserController extends Controller
 	
 	
 	public function actionView($id){
-//        Implementing relations to return facility users and groups
-		try {
+        try {
             $this->response->statusCode = 200;
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;
             
-            $facility = $this->userCrud->read($recordFilter, $findModel = false);
+            $user = $this->userCrud->read($recordFilter, $findModel = false);
             $serviceResult = new ServiceResult(true, 
-                $data = $facility , 
+                $data = $user , 
                 $errors = array()); 
             $this->response->data = $serviceResult;
             
@@ -107,16 +106,16 @@ class UserController extends Controller
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;
             
-            $facility = $this->userCrud->read($recordFilter);
-            $facility->scenario = 'put';
+            $user = $this->userCrud->read($recordFilter);
+            $user->scenario = 'put';
             $params = $this->trimParams($params);
-            $facility->attributes = $params;
+            $user->attributes = $params;
             
-            $facilityGroups = $this->getUserGroup($params);
+            $userGroups = $this->getUserGroup($params);
+            $userFacilities = $this->getUserFacilities($params);
 
-            $this->response->data = $this->userCrud->update($facility, $facilityGroups);
-                
-            
+            $this->response->data = $this->userCrud->update($user, $userGroups, $userFacilities);
+        
             
         } 
         catch (\Exception $ex) {
@@ -181,7 +180,8 @@ class UserController extends Controller
         if(isset($params["group_id"]) && 
             ( is_int($params["group_id"]) || is_array($params["group_id"]) ) ){
             $userGroups = array();
-            $groups_ids = $params["group_id"];
+            $groups_ids = is_int($params["group_id"]) ? array($params["group_id"]) :
+                                                        $params["group_id"];
             foreach ($groups_ids as $value) {
                     $tempUgObject = new UserGroup();
                     $tempUgObject->group_id = $value;
@@ -198,7 +198,8 @@ class UserController extends Controller
         if(isset($params["facility_id"]) && 
             ( is_int($params["facility_id"]) || is_array($params["facility_id"]) ) ){
             $userfacilities = array();
-            $facility_ids = $params["facility_id"];
+            $facility_ids = is_int($params["facility_id"]) ? array($params["facility_id"]) : 
+                                                             $params["facility_id"];
             foreach ($facility_ids as $value) {
                     $tempUfObject = new UserFacility();
                     $tempUfObject->facility_id = $value;
