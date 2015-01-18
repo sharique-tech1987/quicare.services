@@ -185,6 +185,7 @@ class FacilityCrud{
             else{
                 $facility_array = $facility->toArray();
                 $facility_array["groups"] = $facility->groups;
+                $facility_array["users"] = $facility->users;
                 return $facility_array;
             }
             

@@ -197,7 +197,7 @@ class UserCrud{
             if(isset($filter_object['search_text'])){
                 // Use query builder expressions for performance improvement
                 
-                $query->where("name LIKE :name", 
+                $query->where("first_name LIKE :name", 
                         [":name" => "%{$filter_object['search_text']}%"]);
             }
         }
@@ -222,7 +222,7 @@ class UserCrud{
         $serviceResult = null;
         if ($recordFilter->validate()) {
             
-            $query = Facility::find();
+            $query = User::find();
             
             $this->addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
             $this->addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);

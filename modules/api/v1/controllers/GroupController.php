@@ -44,8 +44,7 @@ class GroupController extends Controller
 	
 	
 	public function actionView($id){
-//        Implementing relations to return group users
-		try {
+        try {
             $this->response->statusCode = 200;
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;

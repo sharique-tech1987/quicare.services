@@ -103,6 +103,7 @@ class GroupCrud{
             else{
                 $group_array = $group->toArray();
                 $group_array["facilities"] = $group->facilities;
+                $group_array["users"] = $group->users;
                 return $group_array;
             }
         }

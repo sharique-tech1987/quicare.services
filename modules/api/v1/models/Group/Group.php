@@ -2,11 +2,9 @@
 
 namespace app\modules\api\v1\models\Group;
 
-use app\modules\api\models\BaseResource;
-use app\modules\api\models\RecordFilter;
-use yii\helpers\Json;
 use yii\db\ActiveRecord;
 use app\modules\api\v1\models\Facility\Facility;
+use app\modules\api\v1\models\User\User;
 
 class Group extends ActiveRecord
 {
@@ -81,5 +79,10 @@ class Group extends ActiveRecord
             ->viaTable('health_care_facility_group', ['group_id' => 'id']);
     }
     
+    public function getUsers()
+    {
+        return $this->hasMany(User::className(), ['id' => 'user_id'])
+            ->viaTable('user_group', ['group_id' => 'id']);
+    }
 }
 

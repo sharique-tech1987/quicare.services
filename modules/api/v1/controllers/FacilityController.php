@@ -47,8 +47,7 @@ class FacilityController extends Controller
 	
 	
 	public function actionView($id){
-//        Implementing relations to return facility users and groups
-		try {
+        try {
             $this->response->statusCode = 200;
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;
