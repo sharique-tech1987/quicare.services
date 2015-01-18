@@ -6,6 +6,7 @@ use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\v1\models\UserGroup\UserGroup;
 use Yii;
+use app\modules\api\models\AppUserTypes;
 
 use yii\helpers\Json;
 
@@ -16,11 +17,44 @@ class UserCrud{
      * param: UserFacility
      */
     
+    private function verifyCreateOrUpdateParams(User $user, $userGroups, $userFacilities){
+        /*
+         * Function checks for valid params and throws exception if it has not valid params
+         * E.g. Check if user is hospital physician it has groups and facilities
+         */
+        if( (isset($user->category) && isset($user->role)) ){
+            if( ( ($user->category == "HL" && $user->role == "PN") || 
+                  ($user->category == "CC" && $user->role == "SN") ) && 
+                !( isset($userGroups) && isset($userFacilities))  ){
+                throw new \Exception("User should have groups and facilities");
+            }
+            else if( !( ($user->category == "HL" && $user->role == "PN") || 
+                  ($user->category == "CC" && $user->role == "SN") ) && 
+                $user->category != "AS" && $user->category != "HR"  ){
+                
+                if(!isset($userFacilities)){
+                    throw new \Exception("User should have facilities");
+                }
+                else if(isset($userGroups)){
+                    throw new \Exception("User should not have groups");
+                }
+                
+            }
+            else if( ($user->category == "AS" || $user->category == "HR") 
+                && (isset($userGroups) || isset($userFacilities))  ){
+                throw new \Exception("User should not have groups and facilities");
+            }
+        }
+        
+    }
+    
     public function create(User $user, $userGroups, $userFacilities){
         /*
          * $userGroups is not mandatory for all users
          * $userFacilities is not mandatory for all users
          */
+        $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
+        
         $transaction = Yii::$app->db->beginTransaction();
         $isSaved = $user->save();
         
@@ -53,15 +87,7 @@ class UserCrud{
                 }
 
             }
-//            else{
-//                /*
-//                 * This condition is an exception of parameter so it will check on 
-//                 * top of function.
-//                 */
-//                $isSaved = false;
-//                $errors["user_groups"] = "User groups should not be null";
-//                
-//            }
+
             
         }
         else {

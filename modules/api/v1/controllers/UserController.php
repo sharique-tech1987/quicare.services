@@ -145,6 +145,31 @@ class UserController extends Controller
             $params["npi"] = trim($params["npi"]);
         }
         
+        if(isset($params["degree"])){
+            $params["degree"] = strtoupper(trim($params["degree"]));
+        }
+        
+        if(isset($params["specialty"])){
+            $params["specialty"] = strtoupper(trim($params["specialty"]));
+        }
+        
+        if(isset($params["category"])){
+            $params["category"] = strtoupper(trim($params["category"]));
+        }
+        
+        if(isset($params["role"])){
+            $params["role"] = strtoupper(trim($params["role"]));
+        }
+        
+        if(isset($params["notify"])){
+            $params["notify"] = strtoupper(trim($params["notify"]));
+        }
+        
+        if(isset($params["enable_two_step_verification"])){
+            $params["enable_two_step_verification"] = 
+                strtoupper(trim($params["enable_two_step_verification"]));
+        }
+        
         
     
         return $params;

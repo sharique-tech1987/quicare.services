@@ -17,7 +17,7 @@ $config = [
 		'urlManager' => [
 			'enablePrettyUrl' => true,
 			'enableStrictParsing' => true,
-			'showScriptName' => false,
+//			'showScriptName' => false,
 			'rules' => [
                 /*
                  * All url rules names are starting with their controller name respectively
@@ -28,8 +28,12 @@ $config = [
                 require(__DIR__ . '/urlRules/userUrlRule.php'),
                 require(__DIR__ . '/urlRules/groupUrlRule.php'),
                 require(__DIR__ . '/urlRules/facilityUrlRule.php'),
-
-			],
+                require(__DIR__ . '/urlRules/userCategoryUrlRule.php'),
+                require(__DIR__ . '/urlRules/degreeUrlRule.php'),
+                require(__DIR__ . '/urlRules/specialtyUrlRule.php'),
+                
+                
+            ],
 		],
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
