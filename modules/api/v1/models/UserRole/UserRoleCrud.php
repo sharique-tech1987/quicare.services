@@ -1,51 +1,19 @@
 <?php
 
-namespace app\modules\api\v1\models\Group;
+namespace app\modules\api\v1\models\UserRole;
 
-use app\modules\api\v1\models\Group\Group;
+use app\modules\api\v1\models\UserRole\UserRole;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use yii\helpers\Json;
 
-class GroupCrud{
-    
-    public function create(Group $group){
-        $isSaved = $group->save();
-        $serviceResult = null;
-        
-        if ($isSaved) {
-            $data = array("id" => $group->id);
-            $serviceResult = new ServiceResult(true, $data, $errors = array());
-        } 
-        else{
-            $serviceResult = new ServiceResult(false, $data = array(), 
-                $errors = $group->getErrors());
-        }
-        
-        return $serviceResult;
-    }
-    
-    public function update(Group $group){
-        $isSaved = $group->save();
-        $serviceResult = null;
-        
-        if ($isSaved) {
-            $data = array("message" => "Record has been updated");
-            $serviceResult = new ServiceResult(true, $data, $errors = array());
-        } 
-        else{
-            $serviceResult = new ServiceResult(false, $data = array(), 
-                $errors = $group->getErrors());
-        }
-        
-        return $serviceResult;
-    }
+class UserRoleCrud{
     
     public function readAll(RecordFilter $recordFilter){
         $serviceResult = null;
         if ($recordFilter->validate()) {
             
-            $query = Group::find();
+            $query = UserRole::find();
             
             $this->addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
             $this->addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
@@ -67,15 +35,14 @@ class GroupCrud{
         
     }
     
-    
     private function addFilters($query, $filters){
         if(isset($filters))
         {
             $filter_object = Json::decode($filters, true);
             if(isset($filter_object['search_text'])){
                 // Use query builder expressions for performance improvement
-                $query->where("name LIKE :name", 
-                        [":name" => "%{$filter_object['search_text']}%"]);
+                $query->where(["category_short_name" => $filter_object['search_text'] ]);
+
             }
         }
     }
@@ -94,20 +61,5 @@ class GroupCrud{
         }
     }
     
-    public function read(RecordFilter $recordFilter, $findModel = true){
-        $group = Group::findOne($recordFilter->id);
-        if($group !== null ){
-            if($findModel){
-                return $group;
-            }
-            else{
-                $group_array = $group->toArray();
-                $group_array["facilities"] = $group->facilities;
-                return $group_array;
-            }
-        }
-        else{
-            throw new \Exception("Group is not exist");
-        }   
-    }
+    
 }
