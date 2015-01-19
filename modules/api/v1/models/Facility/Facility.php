@@ -6,6 +6,8 @@ use app\modules\api\models\AppQueries;
 use yii\db\ActiveRecord;
 use \app\modules\api\v1\models\Group\Group;
 use app\modules\api\v1\models\User\User;
+use app\modules\api\v1\models\FacilityType\FacilityType;
+use app\modules\api\v1\models\State\State;
 
 class Facility extends ActiveRecord
 {
@@ -76,8 +78,7 @@ class Facility extends ActiveRecord
          */
         
         $value = $this->$attribute;
-        $rows = AppQueries::findState($value);
-        if(!$rows){
+        if(!State::isStateExist($value)){
             $this->addError($attribute, "Please enter valid state");
         }
     }
@@ -89,8 +90,7 @@ class Facility extends ActiveRecord
          */
         
         $value = $this->$attribute;
-        $rows = AppQueries::findFacilityType($value);
-        if(!$rows){
+        if(!FacilityType::isFacilityTypeExist($value)){
             $this->addError($attribute, "Please enter valid facility type");
         }
         

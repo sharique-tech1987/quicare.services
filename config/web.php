@@ -32,6 +32,8 @@ $config = [
                 require(__DIR__ . '/urlRules/degreeUrlRule.php'),
                 require(__DIR__ . '/urlRules/specialtyUrlRule.php'),
                 require(__DIR__ . '/urlRules/userRoleUrlRule.php'),
+                require(__DIR__ . '/urlRules/facilityTypeUrlRule.php'),
+                require(__DIR__ . '/urlRules/stateUrlRule.php'),
                 
                 
             ],
