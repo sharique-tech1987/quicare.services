@@ -7,8 +7,9 @@ use yii\db\ActiveRecord;
 use \app\modules\api\v1\models\Degree\Degree;
 use app\modules\api\v1\models\Specialty\Specialty;
 use app\modules\api\v1\models\UserRole\UserRole;
-use \app\modules\api\v1\models\Group\Group;
-use \app\modules\api\v1\models\Facility\Facility;
+use app\modules\api\v1\models\Group\Group;
+use app\modules\api\v1\models\Facility\Facility;
+use app\modules\api\components\CryptoLib;
 
 class User extends ActiveRecord
 {
@@ -36,7 +37,7 @@ class User extends ActiveRecord
         
         return [ 
             [[ 'first_name', 'last_name', 'user_name', 'email',
-                'cell_phone', 'category', 'role', ], 'required', 
+                'cell_phone', 'category', 'role', 'password'], 'required', 
                 'on' => ['post'], 'message' => '{attribute} should not be empty',  ],
 
             [['first_name', 'middle_name', 'last_name',], 'match', 
@@ -51,6 +52,15 @@ class User extends ActiveRecord
                 'pattern' => "/^[^0-9.][a-z.]+[a-z0-9]+$/", 
                 'message' => "{attribute} should contain alphabets and periods", 
                 'on' => ['post', 'put'] ],
+            
+            [ ['password'], 'string', 'length' => [8, 23], 'on' => ['post', 'put'] ],
+            [ ['password'], 'filter', 'filter' => function ($value) {
+                // Generate hash and salt and store it in db
+                $this->salt = CryptoLib::generateSalt();
+                $value = CryptoLib::hash($value);
+                
+                return $value;
+            }, 'on' => ['post', 'put']],
             
             [['email'], 'email', 'on' => ['post', 'put'] ],
             
@@ -146,12 +156,13 @@ class User extends ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios['post'] = [ 'first_name', 'middle_name', 'last_name', 'user_name', 'email',
-                                'cell_phone', 'category', 'role', 'degree', 'npi', 'specialty', ];
+                                'cell_phone', 'category', 'role', 'degree', 'npi', 'specialty', 
+                                'password'];
         
         $scenarios['put'] = [ 'first_name', 'middle_name', 'last_name', 'user_name', 'email',
                                 'cell_phone', 'category', 'role', 'degree', 'npi', 'specialty',
                                 'notify', 'enable_two_step_verification', 'deactivate', 
-                                'time_zone', ];
+                                'time_zone', 'password'];
         return $scenarios;
         
     }
@@ -183,5 +194,8 @@ class User extends ActiveRecord
             ->viaTable('user_health_care_facility', ['user_id' => 'id']);
     }
     
+    public static function getUser($userName){
+        return self::find()->where(["user_name" => $userName])->one();
+    }
 }
 
