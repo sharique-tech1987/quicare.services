@@ -197,5 +197,13 @@ class User extends ActiveRecord
     public static function getUser($userName){
         return self::find()->where(["user_name" => $userName])->one();
     }
+    
+    public function fields() {
+        $fields = parent::fields();
+        
+        unset($fields['salt'], $fields['password']);
+        
+        return $fields;
+    }
 }
 
