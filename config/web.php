@@ -25,6 +25,7 @@ $config = [
                 // Country rule is only added for testing purpose
                 // Remove all its components when there is no need of it
                 require(__DIR__ . '/urlRules/loginUrlRule.php'),
+                require(__DIR__ . '/urlRules/logoutUrlRule.php'),
                 require(__DIR__ . '/urlRules/countryUrlRule.php'),
                 require(__DIR__ . '/urlRules/userUrlRule.php'),
                 require(__DIR__ . '/urlRules/groupUrlRule.php'),

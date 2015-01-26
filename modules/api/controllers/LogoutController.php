@@ -5,10 +5,9 @@ use yii\rest\Controller;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
 use app\modules\api\models\ServiceResult;
 
-
 use Yii;
 
-class LoginController extends Controller
+class LogoutController extends Controller
 {
     private $response;
     
@@ -40,9 +39,9 @@ class LoginController extends Controller
         
             $this->response->statusCode = 200;
             
-            $userName = isset($params["user_name"]) ? $params["user_name"] : null;
-            $password = isset($params["password"]) ? $params["password"] : null;
-            $this->response->data = AuthTokenCrud::create($userName, $password);
+            $token = isset($params["token"]) ? $params["token"] : null;
+            $expired = 't';
+            $this->response->data = AuthTokenCrud::update($token, $expired);
             
             
         } 

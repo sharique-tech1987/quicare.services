@@ -27,7 +27,7 @@ class AuthToken extends ActiveRecord
     {
         $scenarios = parent::scenarios();
         $scenarios['post'] = [ '!user_id', 'token',];
-        
+        $scenarios['put'] = [ 'expired',];
         
         return $scenarios;
         
@@ -36,7 +36,10 @@ class AuthToken extends ActiveRecord
     public function rules() {
         return [
             [ ['user_id', 'token'], 'required', 
-                'on' => ['post'], 'message' => '{attribute} should not be empty']
+                'on' => ['post', 'put'], 'message' => '{attribute} should not be empty'],
+            
+            [['expired'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
+                'on' => ['put'], "message" => "Please enter valid expired value"],
         ];
     }
     
