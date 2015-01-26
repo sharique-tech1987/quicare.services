@@ -48,7 +48,7 @@ class GroupCrud{
             $query = Group::find();
             
             $this->addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
-            $this->addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
+            $this->addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
 
             $this->addFilters($query, $recordFilter->filter);
 
@@ -72,10 +72,46 @@ class GroupCrud{
         if(isset($filters))
         {
             $filter_object = Json::decode($filters, true);
-            if(isset($filter_object['search_text'])){
+            $search_type = isset($filter_object['search_type']) ? 
+                $filter_object['search_type'] : null;
+            $search_by = isset($filter_object['search_by']) ? 
+                $filter_object['search_by'] : null;
+            
+            $search_text = isset($filter_object['search_text']) ?
+                $filter_object['search_text'] : null;
+            
+            if($search_type == "all_hg" && $search_by == "all"){
                 // Use query builder expressions for performance improvement
-                $query->where("name LIKE :name", 
-                        [":name" => "%{$filter_object['search_text']}%"]);
+//              This condition and else condition is same.
+                $query->orderBy(['updated_on' => SORT_DESC]);
+            }
+            else if($search_type == "all_hg" && $search_by == "hg_name" && $search_text){
+                $query->where("[[name]] LIKE :name")
+                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->addParams([":name" => "%{$search_text}%"]);
+            }
+            else if($search_type == "active_hg" && $search_by == "all"){
+                $query->andWhere(["category" => "A"])
+                      ->orderBy(['updated_on' => SORT_DESC]);
+            }
+            else if($search_type == "active_hg" && $search_by == "hg_name" && $search_text){
+                $query->where("[[name]] LIKE :name")
+                       ->andWhere(["category" => "A"])
+                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->addParams([":name" => "%{$search_text}%"]);
+            }
+            else if($search_type == "test_hg" && $search_by == "all" ){
+                $query->andWhere(["category" => "T"])
+                      ->orderBy(['updated_on' => SORT_DESC]);
+            }
+            else if($search_type == "test_hg" && $search_by == "hg_name"){
+                $query->where("[[name]] LIKE :name")
+                       ->andWhere(["category" => "T"])
+                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->addParams([":name" => "%{$search_text}%"]);
+            }
+            else{
+                $query->orderBy(['updated_on' => SORT_DESC]);
             }
         }
     }
@@ -87,7 +123,7 @@ class GroupCrud{
         }
     }
     
-    private function addOrderBy($query, $orderby, $sort){
+    private function addSortFilter($query, $orderby, $sort){
         if(isset($orderby) && isset($sort)){
             $orderby_exp = $orderby . " " . $sort;
             $query->orderBy($orderby_exp);
