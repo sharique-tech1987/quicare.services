@@ -5,6 +5,7 @@ namespace app\modules\api\v1\models\Group;
 use yii\db\ActiveRecord;
 use app\modules\api\v1\models\Facility\Facility;
 use app\modules\api\v1\models\User\User;
+use yii\helpers\Json;
 
 class Group extends ActiveRecord
 {
@@ -83,6 +84,68 @@ class Group extends ActiveRecord
     {
         return $this->hasMany(User::className(), ['id' => 'user_id'])
             ->viaTable('user_group', ['group_id' => 'id']);
+    }
+    
+    public static function addFilters($query, $filters){
+        if(isset($filters))
+        {
+            $filter_object = Json::decode($filters, true);
+            $search_type = isset($filter_object['search_type']) ? 
+                $filter_object['search_type'] : null;
+            $search_by = isset($filter_object['search_by']) ? 
+                $filter_object['search_by'] : null;
+            
+            $search_text = isset($filter_object['search_text']) ?
+                $filter_object['search_text'] : null;
+            
+            if($search_type == "all_hg" && $search_by == "all"){
+                // Use query builder expressions for performance improvement
+//              This condition and else condition is same.
+                $query->orderBy(['updated_on' => SORT_DESC]);
+            }
+            else if($search_type == "all_hg" && $search_by == "hg_name" && $search_text){
+                $query->where("[[name]] LIKE :name")
+                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->addParams([":name" => "%{$search_text}%"]);
+            }
+            else if($search_type == "active_hg" && $search_by == "all"){
+                $query->andWhere(["category" => "A"])
+                      ->orderBy(['updated_on' => SORT_DESC]);
+            }
+            else if($search_type == "active_hg" && $search_by == "hg_name" && $search_text){
+                $query->where("[[name]] LIKE :name")
+                       ->andWhere(["category" => "A"])
+                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->addParams([":name" => "%{$search_text}%"]);
+            }
+            else if($search_type == "test_hg" && $search_by == "all" ){
+                $query->andWhere(["category" => "T"])
+                      ->orderBy(['updated_on' => SORT_DESC]);
+            }
+            else if($search_type == "test_hg" && $search_by == "hg_name"){
+                $query->where("[[name]] LIKE :name")
+                       ->andWhere(["category" => "T"])
+                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->addParams([":name" => "%{$search_text}%"]);
+            }
+            else{
+                $query->orderBy(['updated_on' => SORT_DESC]);
+            }
+        }
+    }
+    
+    public static function addOffsetAndLimit($query, $page, $limit){
+        if(isset($page) && isset($limit)){
+            $offset = $limit * ($page-1);
+            $query->offset($offset)->limit($limit);
+        }
+    }
+    
+    public static function addSortFilter($query, $orderby, $sort){
+        if(isset($orderby) && isset($sort)){
+            $orderby_exp = $orderby . " " . $sort;
+            $query->orderBy($orderby_exp);
+        }
     }
 }
 
