@@ -211,12 +211,106 @@ class User extends ActiveRecord
         if(isset($filters))
         {
             $filter_object = Json::decode($filters, true);
-            if(isset($filter_object['search_text'])){
-                // Use query builder expressions for performance improvement
+            $search_type = isset($filter_object['search_type']) ? 
+                $filter_object['search_type'] : null;
+            $search_by = isset($filter_object['search_by']) ? 
+                $filter_object['search_by'] : null;
+            
+            $search_text = isset($filter_object['search_text']) ?
+                $filter_object['search_text'] : null;
+            
+            $userCategroy = isset($filter_object['search_category']) ?
+                $filter_object['search_category'] : null;
+            $userRole = isset($filter_object['search_role']) ?
+                $filter_object['search_role'] : null;
+            
+            $isReal = $search_type === "active_users" ? 'T' : 'F';
+            
+            if(isset($search_text) && $search_by == "hf_type"){
+                $search_text = explode(",", $search_text);
                 
-                $query->where("first_name LIKE :name", 
-                        [":name" => "%{$filter_object['search_text']}%"]);
             }
+            
+            if($search_type == "all_users" && $search_by == "all"){
+                // Use query builder expressions for performance improvement
+//              This condition and else condition is same.
+            }
+            else if($search_type == "all_users" && $search_by == "u_name" && $search_text){
+                $query->where("[[user_name]] LIKE :search_text");
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else if($search_type == "all_users" && $search_by == "u_fname" && $search_text ){
+                $query->where("[[first_name]] LIKE :search_text");
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else if($search_type == "all_users" && $search_by == "u_lname" && $search_text){
+                $query->where("[[last_name]] LIKE :search_text");
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else if($search_type == "all_users" && $search_by == "u_role" && 
+                $userCategroy){
+                if($userRole){
+                    $query->andWhere(["category" => $userCategroy, "role" => $userRole]);
+                }
+                else{
+                    $query->andWhere(["category" => $userCategroy]);
+                }
+                
+            }
+            else if($search_type == "all_users" && $search_by == "u_group" && $search_text ){
+                $query->innerJoinWith('groups', false)
+                    ->andWhere("[[group.name]] LIKE :search_text");
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else if($search_type == "all_users" && $search_by == "u_facility" && $search_text){
+                $query->innerJoinWith('facilities', false)
+                    ->andWhere("[[health_care_facility.name]] LIKE :search_text");
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+
+//          Active and Test Users
+            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "all"){
+                $query->andWhere(["isReal" => $isReal]);
+            }
+            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_name" && $search_text){
+                $query->where("[[user_name]] LIKE :search_text")
+                    ->andWhere(["isReal" => $isReal]);
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_fname" && $search_text ){
+                $query->where("[[first_name]] LIKE :search_text")
+                    ->andWhere(["isReal" => $isReal]);
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_lname" && $search_text){
+                $query->where("[[last_name]] LIKE :search_text")
+                    ->andWhere(["isReal" => $isReal]);
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_role" && 
+                $userCategroy){
+                if($userRole){
+                    $query->andWhere(["isReal" => $isReal, "category" => $userCategroy, 
+                        "role" => $userRole]);
+                }
+                else{
+                    $query->andWhere(["isReal" => $isReal, "category" => $userCategroy]);
+                }
+                
+            }
+            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_group" && $search_text ){
+                $query->innerJoinWith('groups', false)
+                    ->where(["user.isReal" => $isReal])
+                    ->andWhere("[[group.name]] LIKE :search_text");
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_facility" && $search_text){
+                $query->innerJoinWith('facilities', false)
+                    ->where(["user.isReal" => $isReal])
+                    ->andWhere("[[health_care_facility.name]] LIKE :search_text");
+                $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            
         }
     }
     
@@ -227,11 +321,17 @@ class User extends ActiveRecord
         }
     }
     
-    public static function addOrderBy($query, $orderby, $sort){
-        if(isset($orderby) && isset($sort)){
-            $orderby_exp = $orderby . " " . $sort;
-            $query->orderBy($orderby_exp);
+    public static function addSortFilter($query, $orderby, $sort){
+        if( !(isset($orderby) && isset($sort)) ) {
+            $orderby = 'user.updated_on';
+            $sort = SORT_DESC;
         }
+        else{
+            $orderby = 'user.' . $orderby;
+            $sort = strtoupper($sort) === 'ASC' ? SORT_ASC : SORT_DESC;
+        }
+        $query->orderBy([$orderby => $sort]);
+
     }
 }
 

@@ -195,7 +195,7 @@ class UserCrud{
             $query = User::find();
             
             User::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
-            User::addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
+            User::addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
 
             User::addFilters($query, $recordFilter->filter);
 
