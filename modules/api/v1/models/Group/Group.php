@@ -106,20 +106,24 @@ class Group extends ActiveRecord
                 $query->where("[[name]] LIKE :name");
                 $query->addParams([":name" => "%{$search_text}%"]);
             }
+            
+//          Active Groups
             else if($search_type == "active_hg" && $search_by == "all"){
-                $query->andWhere(["category" => "A"]);
+                $query->andWhere(["isReal" => "T"]);
             }
             else if($search_type == "active_hg" && $search_by == "hg_name" && $search_text){
                 $query->where("[[name]] LIKE :name")
-                       ->andWhere(["category" => "A"]);
+                       ->andWhere(["isReal" => "T"]);
                 $query->addParams([":name" => "%{$search_text}%"]);
             }
+
+//          Test Groups
             else if($search_type == "test_hg" && $search_by == "all" ){
-                $query->andWhere(["category" => "T"]);
+                $query->andWhere(["isReal" => "F"]);
             }
             else if($search_type == "test_hg" && $search_by == "hg_name"){
                 $query->where("[[name]] LIKE :name")
-                       ->andWhere(["category" => "T"]);
+                       ->andWhere(["isReal" => "F"]);
                 $query->addParams([":name" => "%{$search_text}%"]);
             }
             else{

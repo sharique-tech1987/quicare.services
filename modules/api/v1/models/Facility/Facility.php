@@ -175,40 +175,40 @@ class Facility extends ActiveRecord
 
 //          Active Healthcare Facilities
             else if($search_type == "active_hf" && $search_by == "all"){
-                $query->andWhere(["category" => "A"]);
+                $query->andWhere(["isReal" => "T"]);
             }
             else if($search_type == "active_hf" && $search_by == "hf_name" && $search_text){
                 $query->where("[[name]] LIKE :search_text")
-                       ->andWhere(["category" => "A"]);
+                       ->andWhere(["isReal" => "T"]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "active_hf" && $search_by == "hf_type" && $search_text){
                 $query->where(["type" => $search_text])
-                      ->andWhere(["category" => "A"]);
+                      ->andWhere(["isReal" => "T"]);
             }
             else if($search_type == "active_hf" && $search_by == "hg_name" && $search_text){
                 $query->innerJoinWith('groups', false)
-                    ->where(["health_care_facility.category" => "A"])
+                    ->where(["health_care_facility.isReal" => "T"])
                     ->andWhere("[[group.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             
 //          Test Healthcare Facilities
             else if($search_type == "test_hf" && $search_by == "all"){
-                $query->andWhere(["category" => "T"]);
+                $query->andWhere(["isReal" => "F"]);
             }
             else if($search_type == "test_hf" && $search_by == "hf_name" && $search_text){
                 $query->where("[[name]] LIKE :search_text")
-                       ->andWhere(["category" => "T"]);
+                       ->andWhere(["isReal" => "F"]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "test_hf" && $search_by == "hf_type" && $search_text){
                 $query->where(["type" => $search_text])
-                      ->andWhere(["category" => "T"]);
+                      ->andWhere(["isReal" => "F"]);
             }
             else if($search_type == "test_hf" && $search_by == "hg_name" && $search_text){
                 $query->innerJoinWith('groups', false)
-                    ->where(["health_care_facility.category" => "T"])
+                    ->where(["health_care_facility.isReal" => "F"])
                     ->andWhere("[[group.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }            
