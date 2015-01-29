@@ -129,12 +129,12 @@ class FacilityCrud{
             
             $query = Facility::find();
             
-            Facility::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
             Facility::addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
 
             Facility::addFilters($query, $recordFilter->filter);
             
             $record_count = $query->distinct()->count();
+            Facility::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
 
             $data = array("total_records" => $record_count, "records" => $query->all());
             $serviceResult = new ServiceResult(true, $data, $errors = array());

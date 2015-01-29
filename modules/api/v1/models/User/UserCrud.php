@@ -194,12 +194,13 @@ class UserCrud{
             
             $query = User::find();
             
-            User::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
+            
             User::addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
 
             User::addFilters($query, $recordFilter->filter);
 
-            $record_count = $query->count();
+            $record_count = $query->distinct()->count();
+            User::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
 
             $data = array("total_records" => $record_count, "records" => $query->all());
             $serviceResult = new ServiceResult(true, $data, $errors = array());

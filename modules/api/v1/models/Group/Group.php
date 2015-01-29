@@ -98,6 +98,9 @@ class Group extends ActiveRecord
             $search_text = isset($filter_object['search_text']) ?
                 $filter_object['search_text'] : null;
             
+            $isReal = $search_type === "active_hg" ? 'T' : 'F';
+            $validSearchTypeValues = array("active_hg", "test_hg");
+                        
             if($search_type == "all_hg" && $search_by == "all"){
                 // Use query builder expressions for performance improvement
 //              This condition and else condition is same.
@@ -108,24 +111,15 @@ class Group extends ActiveRecord
             }
             
 //          Active Groups
-            else if($search_type == "active_hg" && $search_by == "all"){
-                $query->andWhere(["isReal" => "T"]);
+            else if(in_array($search_type, $validSearchTypeValues) && $search_by == "all"){
+                $query->andWhere(["isReal" => $isReal]);
             }
-            else if($search_type == "active_hg" && $search_by == "hg_name" && $search_text){
+            else if(in_array($search_type, $validSearchTypeValues) && $search_by == "hg_name" && $search_text){
                 $query->where("[[name]] LIKE :name")
-                       ->andWhere(["isReal" => "T"]);
+                       ->andWhere(["isReal" => $isReal]);
                 $query->addParams([":name" => "%{$search_text}%"]);
             }
 
-//          Test Groups
-            else if($search_type == "test_hg" && $search_by == "all" ){
-                $query->andWhere(["isReal" => "F"]);
-            }
-            else if($search_type == "test_hg" && $search_by == "hg_name"){
-                $query->where("[[name]] LIKE :name")
-                       ->andWhere(["isReal" => "F"]);
-                $query->addParams([":name" => "%{$search_text}%"]);
-            }
             else{
             }
         }
