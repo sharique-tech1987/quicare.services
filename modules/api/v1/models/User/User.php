@@ -269,26 +269,30 @@ class User extends ActiveRecord
             }
 
 //          Active and Test Users
-            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "all"){
+            else if(in_array($search_type, array("active_users", "test_users")) && 
+                $search_by == "all"){
                 $query->andWhere(["isReal" => $isReal]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_name" && $search_text){
+            else if(in_array($search_type, array("active_users", "test_users")) && 
+                $search_by == "u_name" && $search_text){
                 $query->where("[[user_name]] LIKE :search_text")
                     ->andWhere(["isReal" => $isReal]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_fname" && $search_text ){
+            else if(in_array($search_type, array("active_users", "test_users")) 
+                && $search_by == "u_fname" && $search_text ){
                 $query->where("[[first_name]] LIKE :search_text")
                     ->andWhere(["isReal" => $isReal]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_lname" && $search_text){
+            else if(in_array($search_type, array("active_users", "test_users")) && 
+                $search_by == "u_lname" && $search_text){
                 $query->where("[[last_name]] LIKE :search_text")
                     ->andWhere(["isReal" => $isReal]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_role" && 
-                $userCategroy){
+            else if(in_array($search_type, array("active_users", "test_users")) && 
+                $search_by == "u_role" && $userCategroy){
                 if($userRole){
                     $query->andWhere(["isReal" => $isReal, "category" => $userCategroy, 
                         "role" => $userRole]);
@@ -298,13 +302,15 @@ class User extends ActiveRecord
                 }
                 
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_group" && $search_text ){
+            else if(in_array($search_type, array("active_users", "test_users")) && 
+                $search_by == "u_group" && $search_text ){
                 $query->innerJoinWith('groups', false)
                     ->where(["user.isReal" => $isReal])
                     ->andWhere("[[group.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && $search_by == "u_facility" && $search_text){
+            else if(in_array($search_type, array("active_users", "test_users")) && 
+                $search_by == "u_facility" && $search_text){
                 $query->innerJoinWith('facilities', false)
                     ->where(["user.isReal" => $isReal])
                     ->andWhere("[[health_care_facility.name]] LIKE :search_text");

@@ -134,7 +134,7 @@ class FacilityCrud{
 
             Facility::addFilters($query, $recordFilter->filter);
             
-            $record_count = $query->count();
+            $record_count = $query->distinct()->count();
 
             $data = array("total_records" => $record_count, "records" => $query->all());
             $serviceResult = new ServiceResult(true, $data, $errors = array());
@@ -142,7 +142,8 @@ class FacilityCrud{
             
         } 
         else {
-            $serviceResult = new ServiceResult(false, $data = array(), $errors = $recordFilter->getErrors());
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = $recordFilter->getErrors());
             return $serviceResult;
         }
     }
