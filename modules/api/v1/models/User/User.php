@@ -10,6 +10,7 @@ use app\modules\api\v1\models\UserRole\UserRole;
 use app\modules\api\v1\models\Group\Group;
 use app\modules\api\v1\models\Facility\Facility;
 use app\modules\api\components\CryptoLib;
+use yii\helpers\Json;
 
 class User extends ActiveRecord
 {
@@ -204,6 +205,33 @@ class User extends ActiveRecord
         unset($fields['salt'], $fields['password']);
         
         return $fields;
+    }
+    
+    public static function addFilters($query, $filters){
+        if(isset($filters))
+        {
+            $filter_object = Json::decode($filters, true);
+            if(isset($filter_object['search_text'])){
+                // Use query builder expressions for performance improvement
+                
+                $query->where("first_name LIKE :name", 
+                        [":name" => "%{$filter_object['search_text']}%"]);
+            }
+        }
+    }
+    
+    public static function addOffsetAndLimit($query, $page, $limit){
+        if(isset($page) && isset($limit)){
+            $offset = $limit * ($page-1);
+            $query->offset($offset)->limit($limit);
+        }
+    }
+    
+    public static function addOrderBy($query, $orderby, $sort){
+        if(isset($orderby) && isset($sort)){
+            $orderby_exp = $orderby . " " . $sort;
+            $query->orderBy($orderby_exp);
+        }
     }
 }
 

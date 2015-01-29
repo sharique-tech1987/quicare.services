@@ -9,8 +9,6 @@ use Yii;
 use app\modules\api\v1\models\UserFacility\UserFacility;
 use app\modules\api\v1\models\User\User;
 
-use yii\helpers\Json;
-
 class UserCrud{
     /*
      * param: User
@@ -190,44 +188,16 @@ class UserCrud{
         return $serviceResult;
     }
     
-    private function addFilters($query, $filters){
-        if(isset($filters))
-        {
-            $filter_object = Json::decode($filters, true);
-            if(isset($filter_object['search_text'])){
-                // Use query builder expressions for performance improvement
-                
-                $query->where("first_name LIKE :name", 
-                        [":name" => "%{$filter_object['search_text']}%"]);
-            }
-        }
-    }
-    
-    private function addOffsetAndLimit($query, $page, $limit){
-        if(isset($page) && isset($limit)){
-            $offset = $limit * ($page-1);
-            $query->offset($offset)->limit($limit);
-        }
-    }
-    
-    private function addOrderBy($query, $orderby, $sort){
-        if(isset($orderby) && isset($sort)){
-            $orderby_exp = $orderby . " " . $sort;
-            $query->orderBy($orderby_exp);
-        }
-    }
-    
-    
     public function readAll(RecordFilter $recordFilter){
         $serviceResult = null;
         if ($recordFilter->validate()) {
             
             $query = User::find();
             
-            $this->addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
-            $this->addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
+            User::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
+            User::addOrderBy($query, $recordFilter->orderby, $recordFilter->sort);
 
-            $this->addFilters($query, $recordFilter->filter);
+            User::addFilters($query, $recordFilter->filter);
 
             $record_count = $query->count();
 
