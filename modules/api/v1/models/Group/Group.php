@@ -101,35 +101,28 @@ class Group extends ActiveRecord
             if($search_type == "all_hg" && $search_by == "all"){
                 // Use query builder expressions for performance improvement
 //              This condition and else condition is same.
-                $query->orderBy(['updated_on' => SORT_DESC]);
             }
             else if($search_type == "all_hg" && $search_by == "hg_name" && $search_text){
-                $query->where("[[name]] LIKE :name")
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->where("[[name]] LIKE :name");
                 $query->addParams([":name" => "%{$search_text}%"]);
             }
             else if($search_type == "active_hg" && $search_by == "all"){
-                $query->andWhere(["category" => "A"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->andWhere(["category" => "A"]);
             }
             else if($search_type == "active_hg" && $search_by == "hg_name" && $search_text){
                 $query->where("[[name]] LIKE :name")
-                       ->andWhere(["category" => "A"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                       ->andWhere(["category" => "A"]);
                 $query->addParams([":name" => "%{$search_text}%"]);
             }
             else if($search_type == "test_hg" && $search_by == "all" ){
-                $query->andWhere(["category" => "T"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->andWhere(["category" => "T"]);
             }
             else if($search_type == "test_hg" && $search_by == "hg_name"){
                 $query->where("[[name]] LIKE :name")
-                       ->andWhere(["category" => "T"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                       ->andWhere(["category" => "T"]);
                 $query->addParams([":name" => "%{$search_text}%"]);
             }
             else{
-                $query->orderBy(['updated_on' => SORT_DESC]);
             }
         }
     }
@@ -142,10 +135,16 @@ class Group extends ActiveRecord
     }
     
     public static function addSortFilter($query, $orderby, $sort){
-        if(isset($orderby) && isset($sort)){
-            $orderby_exp = $orderby . " " . $sort;
-            $query->orderBy($orderby_exp);
+        if( !(isset($orderby) && isset($sort)) ) {
+            $orderby = 'group.updated_on';
+            $sort = SORT_DESC;
         }
+        else{
+            $orderby = 'group.' . $orderby;
+            $sort = strtoupper($sort) === 'ASC' ? SORT_ASC : SORT_DESC;
+        }
+        $query->orderBy([$orderby => $sort]);
+
     }
 }
 

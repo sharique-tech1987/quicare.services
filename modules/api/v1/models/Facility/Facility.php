@@ -159,69 +159,57 @@ class Facility extends ActiveRecord
             if($search_type == "all_hf" && $search_by == "all"){
                 // Use query builder expressions for performance improvement
 //              This condition and else condition is same.
-                $query->orderBy(['updated_on' => SORT_DESC]);
             }
             else if($search_type == "all_hf" && $search_by == "hf_name" && $search_text){
-                $query->where("[[name]] LIKE :search_text")
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->where("[[name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "all_hf" && $search_by == "hf_type" && $search_text ){
-                $query->where(["type" => $search_text])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->where(["type" => $search_text]);
             }
             else if($search_type == "all_hf" && $search_by == "hg_name" && $search_text){
                 $query->innerJoinWith('groups', false)
-                    ->andWhere("[[group.name]] LIKE :search_text")
-                    ->orderBy(['health_care_facility.updated_on' => SORT_DESC]);
+                    ->andWhere("[[group.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
 
 //          Active Healthcare Facilities
             else if($search_type == "active_hf" && $search_by == "all"){
-                $query->andWhere(["category" => "A"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->andWhere(["category" => "A"]);
             }
             else if($search_type == "active_hf" && $search_by == "hf_name" && $search_text){
                 $query->where("[[name]] LIKE :search_text")
-                       ->andWhere(["category" => "A"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                       ->andWhere(["category" => "A"]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "active_hf" && $search_by == "hf_type" && $search_text){
                 $query->where(["type" => $search_text])
-                      ->andWhere(["category" => "A"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                      ->andWhere(["category" => "A"]);
             }
             else if($search_type == "active_hf" && $search_by == "hg_name" && $search_text){
                 $query->innerJoinWith('groups', false)
                     ->where(["health_care_facility.category" => "A"])
-                    ->andWhere("[[group.name]] LIKE :search_text")
-                    ->orderBy(['health_care_facility.updated_on' => SORT_DESC]);
+                    ->andWhere("[[group.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             
 //          Test Healthcare Facilities
             else if($search_type == "test_hf" && $search_by == "all"){
-                $query->andWhere(["category" => "T"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                $query->andWhere(["category" => "T"]);
             }
             else if($search_type == "test_hf" && $search_by == "hf_name" && $search_text){
                 $query->where("[[name]] LIKE :search_text")
-                       ->andWhere(["category" => "T"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                       ->andWhere(["category" => "T"]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "test_hf" && $search_by == "hf_type" && $search_text){
                 $query->where(["type" => $search_text])
-                      ->andWhere(["category" => "T"])
-                      ->orderBy(['updated_on' => SORT_DESC]);
+                      ->andWhere(["category" => "T"]);
             }
             else if($search_type == "test_hf" && $search_by == "hg_name" && $search_text){
                 $query->innerJoinWith('groups', false)
                     ->where(["health_care_facility.category" => "T"])
-                    ->andWhere("[[group.name]] LIKE :search_text")
-                    ->orderBy(['health_care_facility.updated_on' => SORT_DESC]);
+                    ->andWhere("[[group.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }            
             
@@ -236,10 +224,16 @@ class Facility extends ActiveRecord
     }
     
     public static function addSortFilter($query, $orderby, $sort){
-        if(isset($orderby) && isset($sort)){
-            $orderby_exp = $orderby . " " . $sort;
-            $query->orderBy($orderby_exp);
+        if( !(isset($orderby) && isset($sort)) ) {
+            $orderby = 'health_care_facility.updated_on';
+            $sort = SORT_DESC;
         }
+        else{
+            $orderby = 'health_care_facility.' . $orderby;
+            $sort = strtoupper($sort) === 'ASC' ? SORT_ASC : SORT_DESC;
+        }
+        $query->orderBy([$orderby => $sort]);
+
     }
 }
 
