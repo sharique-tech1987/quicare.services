@@ -133,7 +133,9 @@ class Group extends ActiveRecord
     }
     
     public static function addSortFilter($query, $orderby, $sort){
-        if( !(isset($orderby) && isset($sort)) ) {
+        $groupTableCols = self::getTableSchema()->columnNames;
+        
+        if( !(isset($orderby) && isset($sort)) || (!in_array($orderby, $groupTableCols))  ) {
             $orderby = 'group.updated_on';
             $sort = SORT_DESC;
         }
@@ -143,6 +145,25 @@ class Group extends ActiveRecord
         }
         $query->orderBy([$orderby => $sort]);
 
+    }
+    
+    public function fields() {
+        return [
+            'name', 
+            'created' => 'created_on',
+            'updated' => 'updated_on',
+            
+        ];
+    }
+    
+    public function extraFields() {
+        return [
+            'id', 
+            'administrator',
+            'disabled' => 'deactivate',
+            'is_real' => 'isReal'
+            
+        ];
     }
 }
 

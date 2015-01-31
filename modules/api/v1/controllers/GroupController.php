@@ -30,8 +30,31 @@ class GroupController extends Controller
             $recordFilter = new RecordFilter();
 
             $recordFilter->attributes = $params;
+            
+            $result = $this->groupCrud->readAll($recordFilter, true);
+            
+//            $records = $result->data["records"];
+            
+            if(isset($params["export_csv"])){
+                $result = $result->data["records"];
+//                $this->response->headers->set('Content-Type: text/csv; charset=utf-8');
+//                $this->response->headers->set('Content-Disposition: attachment; filename=groups.csv');
+                header('Content-Type: text/csv; charset=utf-8');
+                header('Content-Disposition: attachment; filename=groups.csv');
 
-            $this->response->data = $this->groupCrud->readAll($recordFilter);
+                // create a file pointer connected to the output stream
+                $output = fopen('php://output', 'w');
+
+                // output the column headings
+                fputcsv($output, array('Group', 'Created', 'Updated', 'Affiliated Hospital'));
+                foreach ($result as $f) {
+                    fputcsv($output, $f);
+                }
+            }
+            
+            else{
+                $this->response->data = $result;
+            }
         } 
         catch (\Exception $ex) {
             $this->response->statusCode = 500;

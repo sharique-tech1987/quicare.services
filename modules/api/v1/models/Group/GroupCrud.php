@@ -40,11 +40,34 @@ class GroupCrud{
         return $serviceResult;
     }
     
-    public function readAll(RecordFilter $recordFilter){
+    public function verifyReadParams($facilities){
+        $checkFacilities = isset($facilities);
+        
+        if($checkFacilities && !is_bool($facilities) ){
+            throw new \Exception("Facilities should be true of false");
+        }
+        
+        
+    }
+    
+    public function readAll(RecordFilter $recordFilter, $affiliatedHospital = false){
+        $this->verifyReadParams($affiliatedHospital);
         $serviceResult = null;
         if ($recordFilter->validate()) {
             
             $query = Group::find();
+            
+            $filteredFields;
+            if (isset($recordFilter->fields)){
+                $filteredFields = array_filter(explode(',', $recordFilter->fields));
+            }
+            else{
+                $filteredFields = array();
+            }
+            
+            if($affiliatedHospital){
+                $query->with(['facilities']);
+            }
             
             Group::addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
 
@@ -52,12 +75,34 @@ class GroupCrud{
             
             $record_count = $query->distinct()->count();
             Group::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
+            
+            $result = $query->all();
+            
+            if($affiliatedHospital){
+                $resultArray = array();
+                foreach ($result as $value){
+                    $valueArray = $value->toArray($filteredFields, $filteredFields);
+                    if(sizeof($filteredFields)){
+                        if(in_array('facility', $filteredFields)){
+                            $valueArray['facility'] = $this->getHospitalsString($value->facilities);
+                        }
+                    }
+                    else{
+                        $valueArray['facility'] = $this->getHospitalsString($value->facilities);
+                    }
+                    array_push($resultArray, $valueArray);
+                }
+                
+                $result = $resultArray;
 
-            $data = array("total_records" => $record_count, "records" => $query->all());
+            }
+
+            $data = array("total_records" => $record_count, "records" => $result);
             $serviceResult = new ServiceResult(true, $data, $errors = array());
             return $serviceResult;
             
         } 
+        
         else {
             $serviceResult = new ServiceResult(false, $data = array(), 
                 $errors = $recordFilter->getErrors());
@@ -66,6 +111,17 @@ class GroupCrud{
         
     }
     
+    private function getHospitalsString($facilities){
+        return implode(",", array_filter(array_map(function($fac){
+            return strtolower($fac->type) === 'hl' ?  $fac->name : null; 
+        }, $facilities)) );
+    }
+
+
+
+
+
+
     public function read(RecordFilter $recordFilter, $findModel = true){
         $group = Group::findOne($recordFilter->id);
         if($group !== null ){
