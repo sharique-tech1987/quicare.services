@@ -188,11 +188,34 @@ class UserCrud{
         return $serviceResult;
     }
     
-    public function readAll(RecordFilter $recordFilter){
+    public function verifyReadParams($facilities){
+        $checkFacilities = isset($facilities);
+        
+        if($checkFacilities && !is_bool($facilities) ){
+            throw new \Exception("Facilities should be true of false");
+        }
+        
+        
+    }
+    
+    public function readAll(RecordFilter $recordFilter, $affiliatedFacilities = false){
+        $this->verifyReadParams($affiliatedFacilities);
         $serviceResult = null;
         if ($recordFilter->validate()) {
             
             $query = User::find();
+            
+            $filteredFields;
+            if (isset($recordFilter->fields)){
+                $filteredFields = array_filter(explode(',', $recordFilter->fields));
+            }
+            else{
+                $filteredFields = array();
+            }
+            
+            if($affiliatedFacilities){
+                $query->with(['facilities']);
+            }
             
             
             User::addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
@@ -201,8 +224,29 @@ class UserCrud{
 
             $record_count = $query->distinct()->count();
             User::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
+            
+            $result = $query->all();
+            
+            if($affiliatedFacilities){
+                $resultArray = array();
+                foreach ($result as $value){
+                    $valueArray = $value->toArray($filteredFields, $filteredFields);
+                    if(sizeof($filteredFields)){
+                        if(in_array('facility', $filteredFields)){
+                            $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
+                        }
+                    }
+                    else{
+                        $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
+                    }
+                    array_push($resultArray, $valueArray);
+                }
+                
+                $result = $resultArray;
 
-            $data = array("total_records" => $record_count, "records" => $query->all());
+            }
+
+            $data = array("total_records" => $record_count, "records" => $result);
             $serviceResult = new ServiceResult(true, $data, $errors = array());
             return $serviceResult;
             
@@ -230,6 +274,12 @@ class UserCrud{
         else{
             throw new \Exception("User is not exist");
         }
+    }
+    
+    private function getFacilitiesString($facilities){
+        return implode(",", array_filter(array_map(function($fac){
+            return $fac->name; 
+        }, $facilities)) );
     }
     
 }

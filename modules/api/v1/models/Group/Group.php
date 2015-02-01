@@ -149,6 +149,7 @@ class Group extends ActiveRecord
     
     public function fields() {
         return [
+            'id', 
             'name', 
             'created' => 'created_on',
             'updated' => 'updated_on',
@@ -158,7 +159,6 @@ class Group extends ActiveRecord
     
     public function extraFields() {
         return [
-            'id', 
             'administrator',
             'disabled' => 'deactivate',
             'is_real' => 'isReal'

@@ -199,14 +199,6 @@ class User extends ActiveRecord
         return self::find()->where(["user_name" => $userName])->one();
     }
     
-    public function fields() {
-        $fields = parent::fields();
-        
-        unset($fields['salt'], $fields['password']);
-        
-        return $fields;
-    }
-    
     public static function addFilters($query, $filters){
         if(isset($filters))
         {
@@ -328,7 +320,9 @@ class User extends ActiveRecord
     }
     
     public static function addSortFilter($query, $orderby, $sort){
-        if( !(isset($orderby) && isset($sort)) ) {
+        $userTableCols = self::getTableSchema()->columnNames;
+        
+        if( !(isset($orderby) && isset($sort)) || (!in_array($orderby, $userTableCols))  ) {
             $orderby = 'user.updated_on';
             $sort = SORT_DESC;
         }
@@ -338,6 +332,36 @@ class User extends ActiveRecord
         }
         $query->orderBy([$orderby => $sort]);
 
+    }
+    
+    public function fields() {
+        return [
+            'id',
+            'first_name',
+            'last_name',
+            'user_name',
+            'category',
+            'role',
+            'created' => 'created_on',
+            'updated' => 'updated_on',
+        ];
+    }
+    
+    public function extraFields() {
+        return [
+            'middle_name',
+            'email',
+            'cell_phone',
+            'degree',
+            'npi',
+            'specialty',
+            'notify',
+            'enable_two_step_verification',
+            'disable' => 'deactivate',
+            'time_zone',
+            'is_real' => 'isReal'   
+            
+        ];
     }
 }
 

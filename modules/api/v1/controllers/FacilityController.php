@@ -32,8 +32,18 @@ class FacilityController extends Controller
             $recordFilter = new RecordFilter();
 
             $recordFilter->attributes = $params;
-
-            $this->response->data = $this->facilityCrud->readAll($recordFilter);
+            
+            $result = $this->facilityCrud->readAll($recordFilter);
+            
+            if(isset($params["export_csv"])){
+                $result = $result->data["records"];
+                $this->downloadCSV($result, 'facilities');
+                
+            }
+            
+            else{
+                $this->response->data = $result;
+            }
         } 
         catch (\Exception $ex) {
             $this->response->statusCode = 500;
@@ -189,6 +199,25 @@ class FacilityController extends Controller
         return $facilityGroups;
     }
     
+    private function downloadCSV($data, $fileName){
+        $validFields = ['name' => 'name', 'type' => 'type', 
+            'created' => 'created', 'updated' => 'updated'];
+        if(sizeof(array_filter(array_intersect_key($validFields, $data[0]))) != 4){
+            throw new \Exception('Data could not contain required fields for csv');
+        }
+        
+        header('Content-Type: text/csv; charset=utf-8');
+        header("Content-Disposition: attachment; filename=$fileName.csv");
+
+        // create a file pointer connected to the output stream
+        $output = fopen('php://output', 'w');
+
+        // output the column headings
+        fputcsv($output, array('Healthcare Facility Name', 'Facility Type', 'Created', 'Updated'));
+        foreach ($data as $r) {
+            fputcsv($output, array($r['name'], $r['type'], $r['created'], $r['updated']));
+        }
+    }
     
     
     

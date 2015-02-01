@@ -33,8 +33,18 @@ class UserController extends Controller
             $recordFilter = new RecordFilter();
 
             $recordFilter->attributes = $params;
+            
+            $result = $this->userCrud->readAll($recordFilter, true);
+            
+            if(isset($params["export_csv"])){
+                $result = $result->data["records"];
+                $this->downloadCSV($result, 'users');
 
-            $this->response->data = $this->userCrud->readAll($recordFilter);
+            }
+            
+            else{
+                $this->response->data = $result;
+            }
         } 
         catch (\Exception $ex) {
             $this->response->statusCode = 500;
@@ -210,7 +220,30 @@ class UserController extends Controller
         return $userfacilities;
     }
     
-    
+    private function downloadCSV($data, $fileName){
+        $validFields = ['user_name' => 'user_name', 'first_name' => 'first_name',
+            'last_name' => 'last_name', 'category' => 'category', 'role' => 'role',
+            'facility' => 'facility', 
+            'created' => 'created', 'updated' => 'updated'];
+        if(sizeof(array_filter(array_intersect_key($validFields, $data[0]))) != 8){
+            throw new \Exception('Data could not contain required fields for csv');
+        }
+        
+        header('Content-Type: text/csv; charset=utf-8');
+        header("Content-Disposition: attachment; filename=$fileName.csv");
+
+        // create a file pointer connected to the output stream
+        $output = fopen('php://output', 'w');
+
+        // output the column headings
+        fputcsv($output, array('User Name', 'First Name', 'Last Name', 'Category', 
+                               'Role', 'Facility', 'Created', 'Updated'));
+        foreach ($data as $r) {
+            fputcsv($output, array($r['user_name'], $r['first_name'], $r['last_name'], 
+                $r['category'], $r['role'], $r['facility'], 
+                $r['created'], $r['updated']));
+        }
+    }
     
     
 }

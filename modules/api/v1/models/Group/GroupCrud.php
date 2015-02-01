@@ -84,11 +84,11 @@ class GroupCrud{
                     $valueArray = $value->toArray($filteredFields, $filteredFields);
                     if(sizeof($filteredFields)){
                         if(in_array('facility', $filteredFields)){
-                            $valueArray['facility'] = $this->getHospitalsString($value->facilities);
+                            $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
                         }
                     }
                     else{
-                        $valueArray['facility'] = $this->getHospitalsString($value->facilities);
+                        $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
                     }
                     array_push($resultArray, $valueArray);
                 }
@@ -111,7 +111,7 @@ class GroupCrud{
         
     }
     
-    private function getHospitalsString($facilities){
+    private function getFacilitiesString($facilities){
         return implode(",", array_filter(array_map(function($fac){
             return strtolower($fac->type) === 'hl' ?  $fac->name : null; 
         }, $facilities)) );

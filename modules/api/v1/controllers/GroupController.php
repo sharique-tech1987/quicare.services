@@ -33,23 +33,10 @@ class GroupController extends Controller
             
             $result = $this->groupCrud->readAll($recordFilter, true);
             
-//            $records = $result->data["records"];
-            
             if(isset($params["export_csv"])){
                 $result = $result->data["records"];
-//                $this->response->headers->set('Content-Type: text/csv; charset=utf-8');
-//                $this->response->headers->set('Content-Disposition: attachment; filename=groups.csv');
-                header('Content-Type: text/csv; charset=utf-8');
-                header('Content-Disposition: attachment; filename=groups.csv');
+                $this->downloadCSV($result, 'groups');
 
-                // create a file pointer connected to the output stream
-                $output = fopen('php://output', 'w');
-
-                // output the column headings
-                fputcsv($output, array('Group', 'Created', 'Updated', 'Affiliated Hospital'));
-                foreach ($result as $f) {
-                    fputcsv($output, $f);
-                }
             }
             
             else{
@@ -149,6 +136,25 @@ class GroupController extends Controller
         }
         return $params;
     }
-    
+ 
+    private function downloadCSV($data, $fileName){
+        $validFields = ['name' => 'name', 'facility' => 'facility', 
+            'created' => 'created', 'updated' => 'updated'];
+        if(sizeof(array_filter(array_intersect_key($validFields, $data[0]))) != 4){
+            throw new \Exception('Data could not contain required fields for csv');
+        }
+        
+        header('Content-Type: text/csv; charset=utf-8');
+        header("Content-Disposition: attachment; filename=$fileName.csv");
+
+        // create a file pointer connected to the output stream
+        $output = fopen('php://output', 'w');
+
+        // output the column headings
+        fputcsv($output, array('Group Name', 'Affiliated Hospital', 'Created', 'Updated'));
+        foreach ($data as $r) {
+            fputcsv($output, array($r['name'], $r['facility'], $r['created'], $r['updated']));
+        }
+    }
     
 }
