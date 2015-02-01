@@ -228,7 +228,9 @@ class Facility extends ActiveRecord
     }
     
     public static function addSortFilter($query, $orderby, $sort){
-        if( !(isset($orderby) && isset($sort)) ) {
+        $facilityTableCols = self::getTableSchema()->columnNames;
+        
+        if( !(isset($orderby) && isset($sort)) || (!in_array($orderby, $facilityTableCols)) ) {
             $orderby = 'health_care_facility.updated_on';
             $sort = SORT_DESC;
         }
@@ -238,6 +240,37 @@ class Facility extends ActiveRecord
         }
         $query->orderBy([$orderby => $sort]);
 
+    }
+    
+    public function fields() {
+        return [
+            'id',
+            'name', 
+            'type',
+            'created' => 'created_on',
+            'updated' => 'updated_on',
+        ];
+    }
+    
+    public function extraFields() {
+        return [
+            'address1',
+            'address2',
+            'city',
+            'zip_code',
+            'state',
+            'npi',
+            'phone',
+            'email',
+            'representative_name',
+            'representative_contact_number',
+            'representative_email',
+            'designated_representative',
+            'default_group',
+            'disabled' => 'deactivate',
+            'is_real' => 'isReal'   
+            
+        ];
     }
 }
 

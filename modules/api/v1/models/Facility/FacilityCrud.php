@@ -129,14 +129,33 @@ class FacilityCrud{
             
             $query = Facility::find();
             
+            $filteredFields;
+            if (isset($recordFilter->fields)){
+                $filteredFields = array_filter(explode(',', $recordFilter->fields));
+            }
+            else{
+                $filteredFields = array();
+            }
+            
             Facility::addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
 
             Facility::addFilters($query, $recordFilter->filter);
             
             $record_count = $query->distinct()->count();
             Facility::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
+            
+            $result = $query->all();
+            
+            $resultArray = array();
+            foreach ($result as $value){
+                $valueArray = $value->toArray($filteredFields, $filteredFields);
+                array_push($resultArray, $valueArray);
+            }
+            
+            $result = $resultArray;
+            
 
-            $data = array("total_records" => $record_count, "records" => $query->all());
+            $data = array("total_records" => $record_count, "records" => $result);
             $serviceResult = new ServiceResult(true, $data, $errors = array());
             return $serviceResult;
             
