@@ -81,6 +81,7 @@ class GroupController extends Controller
             date_default_timezone_set("UTC");
 
             $this->response->statusCode = 200;
+            $params = $this->trimParams($params);
 
             $group = new Group();
             $group->scenario= 'post';
@@ -105,6 +106,7 @@ class GroupController extends Controller
             date_default_timezone_set("UTC");
 
             $this->response->statusCode = 200;
+            $params = $this->trimParams($params);
             
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;
@@ -133,6 +135,10 @@ class GroupController extends Controller
     private function trimParams($params){
         if(isset($params["deactivate"])){
             $params["deactivate"] = strtoupper(trim($params["deactivate"]));
+        }
+        
+        if(isset($params["isReal"])){
+            $params["isReal"] = strtoupper(trim($params["isReal"]));
         }
         return $params;
     }

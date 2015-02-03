@@ -32,23 +32,25 @@ class Group extends ActiveRecord
     public function rules()
     {
         return [
-            [['name'], 'required', 'on' => ['post'], 
-                'message' => 'Please enter a unique hospital group name' ],
+            [['name', 'isReal'], 'required', 'on' => ['post','put'], 
+                'message' => '{attribute} required' ],
             [['name'], 'unique', 
                 'message' => 'Please enter a unique hospital group name', 'on' => ['post', 'put'] ],
             // Use only one validation rule to validate number and user existance
             [['administrator'], 'integer', 'on' => ['post', 'put'] ],
             [['administrator'], 'isUserExist', 'on' => ['post', 'put']],
+            [['isReal'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
+                'on' => ['post', 'put'], "message" => "Please enter valid {attribute} value"],
             [['deactivate'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
-                'on' => ['put'], "message" => "Please enter valid deactivate value"],
+                'on' => ['put'], "message" => "Please enter valid {attribute} value"],
         ];
     }
     
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios['post'] = ['name', 'administrator'];
-        $scenarios['put'] = ['name', 'administrator', 'deactivate'];
+        $scenarios['post'] = ['name', 'administrator', 'isReal'];
+        $scenarios['put'] = ['name', 'administrator', 'deactivate', 'isReal'];
         return $scenarios;
         
     }
@@ -98,29 +100,37 @@ class Group extends ActiveRecord
             $search_text = isset($filter_object['search_text']) ?
                 $filter_object['search_text'] : null;
             
-            $isReal = $search_type === "active_hg" ? 'T' : 'F';
-            $validSearchTypeValues = array("active_hg", "test_hg");
-                        
+            $search_category = isset($filter_object['search_category']) ?
+                $filter_object['search_category'] : null;
+            
+            $isReal = $search_category === "test" ? 'F' : 'T';
+            
+            $deactivate = $search_type === "deactive_hg" ? 'T' : 'F';
+            $validSearchTypeValues = array("active_hg", "deactive_hg");
+            
+            $query->where(["isReal" => $isReal]);
+            
             if($search_type == "all_hg" && $search_by == "all"){
                 // Use query builder expressions for performance improvement
 //              This condition and else condition is same.
             }
             else if($search_type == "all_hg" && $search_by == "hg_name" && $search_text){
-                $query->where("[[name]] LIKE :name");
+                $query->andWhere("[[name]] LIKE :name");
                 $query->addParams([":name" => "%{$search_text}%"]);
             }
             
-//          Active Groups
+//          Active Groups / Inactive Groups
             else if(in_array($search_type, $validSearchTypeValues) && $search_by == "all"){
-                $query->andWhere(["isReal" => $isReal]);
+                $query->andWhere(["deactivate" => $deactivate]);
             }
             else if(in_array($search_type, $validSearchTypeValues) && $search_by == "hg_name" && $search_text){
-                $query->where("[[name]] LIKE :name")
-                       ->andWhere(["isReal" => $isReal]);
+                $query->andWhere("[[name]] LIKE :name")
+                      ->andWhere(["deactivate" => $deactivate]);
                 $query->addParams([":name" => "%{$search_text}%"]);
             }
 
             else{
+                $query->andWhere(["deactivate" => 'F']);
             }
         }
     }
