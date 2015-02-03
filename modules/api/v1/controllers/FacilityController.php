@@ -147,6 +147,15 @@ class FacilityController extends Controller
         if(isset($params["deactivate"])){
             $params["deactivate"] = strtoupper(trim($params["deactivate"]));
         }
+        
+        if(isset($params["state"])){
+            $params["state"] = strtoupper(trim($params["state"]));
+        }
+        
+        if(isset($params["type"])){
+            $params["type"] = strtoupper(trim($params["type"]));
+        }
+        
         if(isset($params["representative_name"])){
             $params["representative_name"] = trim($params["representative_name"]);
         }
@@ -175,13 +184,17 @@ class FacilityController extends Controller
         if(isset($params["zip_code"])){
             $params["zip_code"] = trim($params["zip_code"]);
         }
+        
+        if(isset($params["isReal"])){
+            $params["isReal"] = strtoupper(trim($params["isReal"]));
+        }
     
         return $params;
     }
     
     private function getFacilityGroup($params){
         $facilityGroups = null;
-
+//      Refactor this and return array only
         if (isset($params["group_id"]) && is_int($params["group_id"])){
             $facilityGroups = new FacilityGroup();
             $facilityGroups->attributes = $params;

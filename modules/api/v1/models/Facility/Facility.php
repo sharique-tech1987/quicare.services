@@ -37,8 +37,9 @@ class Facility extends ActiveRecord
         return [ 
             [['name', 'address1', 'city', 'zip_code', 'state',  
                             'type',  'npi', 'phone', 'email', 'representative_name',  
-                            'representative_contact_number', 'representative_email' ], 'required', 
-                'on' => ['post'], 'message' => '{attribute} should not be empty',  ],
+                            'representative_contact_number', 'representative_email', 'isReal' ], 
+                'required', 'on' => ['post', 'put'], 
+                'message' => '{attribute} should not be empty',  ],
             [['name',  'npi'],  'unique', 'on' => ['post', 'put'], 
                 'message' => '{attribute} should be unique' ],
             [['email', 'representative_email' ], 'email', 'on' => ['post', 'put'] ],
@@ -63,6 +64,9 @@ class Facility extends ActiveRecord
             [['designated_representative'], 'hasValidRepresentative'],
             [['deactivate'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
                 'on' => ['put'], "message" => "Please enter valid deactivate value"],
+            [['isReal'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
+                'on' => ['post', 'put'], "message" => "Please enter valid {attribute} value"],
+            
         ];
     }
     
@@ -103,12 +107,12 @@ class Facility extends ActiveRecord
         $scenarios['post'] = ['name', 'address1', 'address2', 'city', 'zip_code', 'state',  
                             'type', 'npi', 'phone', 'email', 'representative_name',  
                             'representative_contact_number',  'representative_email',  
-                            'designated_representative', 'default_group' ];
+                            'designated_representative', 'default_group', 'isReal' ];
         
         $scenarios['put'] = ['name', 'address1', 'address2', 'city', 'zip_code', 'state',  
                             'type', 'npi', 'phone', 'email', 'representative_name',  
                             'representative_contact_number',  'representative_email',  
-                            'designated_representative', 'default_group', 'deactivate' ];
+                            'designated_representative', 'default_group', 'deactivate', 'isReal' ];
         return $scenarios;
         
     }
