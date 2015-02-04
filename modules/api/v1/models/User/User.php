@@ -213,32 +213,35 @@ class User extends ActiveRecord
             $search_text = isset($filter_object['search_text']) ?
                 $filter_object['search_text'] : null;
             
-            $userCategroy = isset($filter_object['search_category']) ?
-                $filter_object['search_category'] : null;
+            $userCategroy = isset($filter_object['search_sub_category']) ?
+                $filter_object['search_sub_category'] : null;
             $userRole = isset($filter_object['search_role']) ?
                 $filter_object['search_role'] : null;
             
-            $isReal = $search_type === "active_users" ? 'T' : 'F';
+            $search_main_category = isset($filter_object['search_main_category']) ?
+                $filter_object['search_main_category'] : null;
             
-            if(isset($search_text) && $search_by == "hf_type"){
-                $search_text = explode(",", $search_text);
-                
-            }
+            $isReal = $search_main_category === "test" ? 'F' : 'T';
+            
+            $deactivate = $search_type === "deactive_users" ? 'T' : 'F';
+            $validSearchTypeValues = array("active_users", "deactive_users");
+            
+            $query->where(["user.isReal" => $isReal]);
             
             if($search_type == "all_users" && $search_by == "all"){
                 // Use query builder expressions for performance improvement
 //              This condition and else condition is same.
             }
             else if($search_type == "all_users" && $search_by == "u_name" && $search_text){
-                $query->where("[[user_name]] LIKE :search_text");
+                $query->andWhere("[[user_name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "all_users" && $search_by == "u_fname" && $search_text ){
-                $query->where("[[first_name]] LIKE :search_text");
+                $query->andWhere("[[first_name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "all_users" && $search_by == "u_lname" && $search_text){
-                $query->where("[[last_name]] LIKE :search_text");
+                $query->andWhere("[[last_name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "all_users" && $search_by == "u_role" && 
@@ -263,52 +266,56 @@ class User extends ActiveRecord
             }
 
 //          Active and Test Users
-            else if(in_array($search_type, array("active_users", "test_users")) && 
+            else if(in_array($search_type, $validSearchTypeValues) && 
                 $search_by == "all"){
-                $query->andWhere(["isReal" => $isReal]);
+                $query->andWhere(["deactivate" => $deactivate]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && 
+            else if(in_array($search_type, $validSearchTypeValues) && 
                 $search_by == "u_name" && $search_text){
-                $query->where("[[user_name]] LIKE :search_text")
-                    ->andWhere(["isReal" => $isReal]);
+                $query->andWhere("[[user_name]] LIKE :search_text")
+                      ->andWhere(["deactivate" => $deactivate]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) 
+            else if(in_array($search_type, $validSearchTypeValues) 
                 && $search_by == "u_fname" && $search_text ){
-                $query->where("[[first_name]] LIKE :search_text")
-                    ->andWhere(["isReal" => $isReal]);
+                $query->andWhere("[[first_name]] LIKE :search_text")
+                      ->andWhere(["deactivate" => $deactivate]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && 
+            else if(in_array($search_type, $validSearchTypeValues) && 
                 $search_by == "u_lname" && $search_text){
-                $query->where("[[last_name]] LIKE :search_text")
-                    ->andWhere(["isReal" => $isReal]);
+                $query->andWhere("[[last_name]] LIKE :search_text")
+                      ->andWhere(["deactivate" => $deactivate]);
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && 
+            else if(in_array($search_type, $validSearchTypeValues) && 
                 $search_by == "u_role" && $userCategroy){
                 if($userRole){
-                    $query->andWhere(["isReal" => $isReal, "category" => $userCategroy, 
-                        "role" => $userRole]);
+                    $query->andWhere(["deactivate" => $deactivate,
+                        "category" => $userCategroy, "role" => $userRole]);
                 }
                 else{
-                    $query->andWhere(["isReal" => $isReal, "category" => $userCategroy]);
+                    $query->andWhere(["deactivate" => $deactivate,
+                        "category" => $userCategroy]);
                 }
                 
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && 
+            else if(in_array($search_type, $validSearchTypeValues) && 
                 $search_by == "u_group" && $search_text ){
                 $query->innerJoinWith('groups', false)
-                    ->where(["user.isReal" => $isReal])
+                    ->andWhere(["user.deactivate" => $deactivate])
                     ->andWhere("[[group.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
-            else if(in_array($search_type, array("active_users", "test_users")) && 
+            else if(in_array($search_type, $validSearchTypeValues) && 
                 $search_by == "u_facility" && $search_text){
                 $query->innerJoinWith('facilities', false)
-                    ->where(["user.isReal" => $isReal])
+                    ->andWhere(["user.deactivate" => $deactivate])
                     ->andWhere("[[health_care_facility.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else{
+                $query->andWhere(["user.deactivate" => 'F']);
             }
             
         }
