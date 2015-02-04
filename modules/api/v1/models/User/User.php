@@ -368,7 +368,8 @@ class User extends ActiveRecord
             'enable_two_step_verification',
             'disable' => 'deactivate',
             'time_zone',
-            'is_real' => 'isReal'   
+            'is_real' => 'isReal',
+            'deactivated_on'
             
         ];
     }

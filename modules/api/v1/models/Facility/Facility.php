@@ -264,7 +264,8 @@ class Facility extends ActiveRecord
             'designated_representative',
             'default_group',
             'disabled' => 'deactivate',
-            'is_real' => 'isReal'   
+            'is_real' => 'isReal',
+            'deactivated_on'
             
         ];
     }

@@ -171,8 +171,8 @@ class Group extends ActiveRecord
         return [
             'administrator',
             'disabled' => 'deactivate',
-            'is_real' => 'isReal'
-            
+            'is_real' => 'isReal',
+            'deactivated_on'
         ];
     }
 }
