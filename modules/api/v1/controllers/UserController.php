@@ -150,6 +150,10 @@ class UserController extends Controller
             $params["deactivate"] = strtoupper(trim($params["deactivate"]));
         }
         
+        if(isset($params["isReal"])){
+            $params["isReal"] = strtoupper(trim($params["isReal"]));
+        }
+        
         if(isset($params["npi"])){
             $params["npi"] = trim($params["npi"]);
         }

@@ -38,8 +38,8 @@ class User extends ActiveRecord
         
         return [ 
             [[ 'first_name', 'last_name', 'user_name', 'email',
-                'cell_phone', 'category', 'role', 'password'], 'required', 
-                'on' => ['post'], 'message' => '{attribute} should not be empty',  ],
+                'cell_phone', 'category', 'role', 'password', 'isReal'], 'required', 
+                'on' => ['post', 'put'], 'message' => '{attribute} should not be empty',  ],
 
             [['first_name', 'middle_name', 'last_name',], 'match', 
                 'pattern' => "/[^A-Za-z\s-'.,]/", 
@@ -100,6 +100,8 @@ class User extends ActiveRecord
             
             [['specialty'], 'hasValidSpecialty', 'on' => ['post', 'put'] ],
             
+            [['isReal'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
+                'on' => ['post', 'put'], "message" => "Please enter valid {attribute} value"],
             
         ];
     }
@@ -158,12 +160,12 @@ class User extends ActiveRecord
         $scenarios = parent::scenarios();
         $scenarios['post'] = [ 'first_name', 'middle_name', 'last_name', 'user_name', 'email',
                                 'cell_phone', 'category', 'role', 'degree', 'npi', 'specialty', 
-                                'password'];
+                                'password', 'isReal'];
         
         $scenarios['put'] = [ 'first_name', 'middle_name', 'last_name', 'user_name', 'email',
                                 'cell_phone', 'category', 'role', 'degree', 'npi', 'specialty',
                                 'notify', 'enable_two_step_verification', 'deactivate', 
-                                'time_zone', 'password'];
+                                'time_zone', 'password', 'isReal'];
         return $scenarios;
         
     }
