@@ -5,6 +5,9 @@ namespace app\modules\api\v1\models\Group;
 use app\modules\api\v1\models\Group\Group;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
+use Yii;
+use app\modules\api\v1\models\UserGroup\UserGroup;
+use app\modules\api\v1\models\User\User;
 
 class GroupCrud{
     
@@ -25,19 +28,61 @@ class GroupCrud{
     }
     
     public function update(Group $group){
+        $transaction = Yii::$app->db->beginTransaction();
+        
         $isSaved = $group->save();
         $serviceResult = null;
-        
+        $errors = array();
         if ($isSaved) {
+            if(strtoupper($group->deactivate) === 'T'){
+                $group_users = $group->getUsers()->
+                    select(["user.id", "user.deactivate", 
+                        "user.enable_two_step_verification"])->all();
+                $groups_user_ids = $this->getUserIdsFromUser($group_users);
+                if(sizeof($groups_user_ids)){
+                    $filteredUserIds = $this->getUserIdsFromUserGroup(UserGroup::filterUsersExistInMultipleGroups($groups_user_ids));
+                    foreach ($group_users as $u){
+                        if(in_array($u->id, $filteredUserIds)){
+                            $u->deactivate = 'T';
+                            $u->enable_two_step_verification = 'F';
+                            $isSaved = $u->save();
+                            if(!$isSaved){
+    //                        Collect Errors
+                                $errors = $u->getErrors();
+                                break;
+                            }
+                        }
+                    }
+
+                }
+
+            }
+        }
+        else{
+//            Collect errors
+                $errors = $group->getErrors();
+        }
+        if ($isSaved) {
+            $transaction->commit();
             $data = array("message" => "Record has been updated");
             $serviceResult = new ServiceResult(true, $data, $errors = array());
         } 
         else{
-            $serviceResult = new ServiceResult(false, $data = array(), 
-                $errors = $group->getErrors());
+            $transaction->rollBack();
+            $serviceResult = new ServiceResult(false, $data = array(), $errors);
         }
         
         return $serviceResult;
+    }
+    
+    private function getUserIdsFromUser($group_users){
+        return array_map(function($users){return $users->id;}, $group_users);
+    }
+    
+    private function getUserIdsFromUserGroup($groups_user_ids){
+        
+        return array_map(function($u){return $u['user_id'];}, $groups_user_ids);
+        
     }
     
     public function verifyReadParams($facilities){
@@ -117,11 +162,6 @@ class GroupCrud{
         }, $facilities)) );
     }
 
-
-
-
-
-
     public function read(RecordFilter $recordFilter, $findModel = true){
         $group = Group::findOne($recordFilter->id);
         if($group !== null ){
@@ -139,4 +179,8 @@ class GroupCrud{
             throw new \Exception("Group is not exist");
         }   
     }
+    
+    
+    
+    
 }

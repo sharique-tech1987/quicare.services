@@ -46,4 +46,10 @@ class UserGroup extends ActiveRecord{
         self::deleteAll('user_id = :id', ['id' => $user_id]);
     }
     
+    public static function filterUsersExistInMultipleGroups($user_ids){
+        return self::find()->where(["user_id" => $user_ids])->asArray()
+           ->groupBy(["user_id"])
+           ->having("count(user_id) < 2")->all();
+    }
+    
 }

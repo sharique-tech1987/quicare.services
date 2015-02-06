@@ -32,13 +32,18 @@ class Group extends ActiveRecord
     public function rules()
     {
         return [
+            [['name', 'administrator', 'deactivate', 'isReal'], 'trim', 'on' => ['post','put']],
+            [['deactivate', 'isReal'], 'filter', 'filter' => 'strtoupper', 'skipOnArray' => true,
+                'on' => ['post','put']],
+            
             [['name', 'isReal'], 'required', 'on' => ['post','put'], 
                 'message' => '{attribute} required' ],
             [['name'], 'unique', 
                 'message' => 'Please enter a unique hospital group name', 'on' => ['post', 'put'] ],
             // Use only one validation rule to validate number and user existance
-            [['administrator'], 'integer', 'on' => ['post', 'put'] ],
-            [['administrator'], 'isUserExist', 'on' => ['post', 'put']],
+            [['administrator'], 'exist',  'targetClass' => User::className(), 
+                'targetAttribute' => 'id', 'filter'=>["category" => "HL", "role" => "PN"],
+                'message' => 'User id not exist or user is not a hospital user'],
             [['isReal'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
                 'on' => ['post', 'put'], "message" => "Please enter valid {attribute} value"],
             [['deactivate'], 'in', 'range' => ['F', 'T'], 'strict' => true, 

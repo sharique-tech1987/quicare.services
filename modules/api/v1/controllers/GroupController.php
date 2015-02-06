@@ -81,11 +81,11 @@ class GroupController extends Controller
             date_default_timezone_set("UTC");
 
             $this->response->statusCode = 200;
-            $params = $this->trimParams($params);
+//            $params = $this->trimParams($params);
 
             $group = new Group();
             $group->scenario= 'post';
-            $group->attributes = $params;
+            $group->attributes = array_filter($params);
                 
         $this->response->data = $this->groupCrud->create($group);
             
@@ -112,9 +112,9 @@ class GroupController extends Controller
             $recordFilter->id = $id;
             
             $group = $this->groupCrud->read($recordFilter);
-            $params = $this->trimParams($params);
+//            $params = $this->trimParams($params);
             $group->scenario = 'put';
-            $group->attributes = $params;
+            $group->attributes = array_filter($params);
             
             $this->response->data = $this->groupCrud->update($group);
         } catch (\Exception $ex) {
