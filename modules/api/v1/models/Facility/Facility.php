@@ -265,8 +265,6 @@ class Facility extends ActiveRecord
             'default_group',
             'disabled' => 'deactivate',
             'is_real' => 'isReal',
-            'deactivated_on'
-            
         ];
     }
 }

@@ -177,7 +177,6 @@ class Group extends ActiveRecord
             'administrator',
             'disabled' => 'deactivate',
             'is_real' => 'isReal',
-            'deactivated_on'
         ];
     }
 }
