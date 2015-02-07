@@ -169,7 +169,14 @@ class GroupCrud{
                 return $group;
             }
             else{
-                $group_array = $group->toArray();
+                $filteredFields;
+                if (isset($recordFilter->fields)){
+                    $filteredFields = array_filter(explode(',', $recordFilter->fields));
+                }
+                else{
+                    $filteredFields = array();
+                }
+                $group_array = $group->toArray($filteredFields, $filteredFields);
                 $group_array["facilities"] = $group->facilities;
                 $group_array["users"] = $group->users;
                 return $group_array;

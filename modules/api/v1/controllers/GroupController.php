@@ -55,9 +55,11 @@ class GroupController extends Controller
 	
 	public function actionView($id){
         try {
+            $params = Yii::$app->request->get();
             $this->response->statusCode = 200;
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;
+            $recordFilter->attributes = $params;
             
             $group = $this->groupCrud->read($recordFilter, $findModel = false);
             
