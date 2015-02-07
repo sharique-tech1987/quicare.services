@@ -28,7 +28,13 @@ class Degree extends ActiveRecord
                         [":name" => $degreeCode])->exists();
     }
     
-    
+    public function fields() {
+        return [
+            'name' => 'full_name',
+            'value' => 'short_name',
+            
+        ];
+    }
     
 }
 

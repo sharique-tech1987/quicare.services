@@ -29,7 +29,20 @@ class UserRole extends ActiveRecord
         
     }
     
+    public function fields() {
+        return [
+            'name' => 'full_name',
+            'value' => 'short_name',
+            
+        ];
+    }
     
+    public function extraFields() {
+        return [
+            'category' => 'category_short_name'
+            
+        ];
+    }
     
 }
 

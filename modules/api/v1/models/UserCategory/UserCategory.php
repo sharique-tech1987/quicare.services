@@ -23,5 +23,12 @@ class UserCategory extends ActiveRecord
         return ['short_name'];
     }
     
+    public function fields() {
+        return [
+            'name' => 'full_name',
+            'value' => 'short_name',
+            
+        ];
+    }
 }
 

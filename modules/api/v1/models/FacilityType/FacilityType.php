@@ -27,7 +27,13 @@ class FacilityType extends ActiveRecord
         return self::find()->where([ "short_name" => $facilityTypeCode ])->exists();
     }
     
-    
+    public function fields() {
+        return [
+            'name' => 'full_name',
+            'value' => 'short_name',
+            
+        ];
+    }
     
 }
 
