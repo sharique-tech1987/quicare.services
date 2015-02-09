@@ -2,14 +2,12 @@
 
 namespace app\modules\api\v1\models\User;
 
-use app\modules\api\models\AppQueries;
 use yii\db\ActiveRecord;
 use \app\modules\api\v1\models\Degree\Degree;
 use app\modules\api\v1\models\Specialty\Specialty;
 use app\modules\api\v1\models\UserRole\UserRole;
 use app\modules\api\v1\models\Group\Group;
 use app\modules\api\v1\models\Facility\Facility;
-use app\modules\api\components\CryptoLib;
 use yii\helpers\Json;
 
 class User extends ActiveRecord
@@ -37,8 +35,9 @@ class User extends ActiveRecord
     public function rules() {
         
         return [ 
+            
             [[ 'first_name', 'last_name', 'user_name', 'email',
-                'cell_phone', 'category', 'role', 'password', 'isReal'], 'required', 
+                'cell_phone', 'category', 'role', 'isReal'], 'required', 
                 'on' => ['post', 'put'], 'message' => '{attribute} should not be empty',  ],
 
             [['first_name', 'middle_name', 'last_name',], 'match', 
@@ -54,15 +53,6 @@ class User extends ActiveRecord
                 'message' => "{attribute} should contain alphabets and periods", 
                 'on' => ['post', 'put'] ],
             
-            [ ['password'], 'string', 'length' => [8, 23], 'on' => ['post', 'put'] ],
-            [ ['password'], 'filter', 'filter' => function ($value) {
-                // Generate hash and salt and store it in db
-                $this->salt = CryptoLib::generateSalt();
-                $value = CryptoLib::hash($value);
-                
-                return $value;
-            }, 'on' => ['post', 'put']],
-            
             [['email'], 'email', 'on' => ['post', 'put'] ],
             
             [[ 'npi', 'cell_phone'], 
@@ -75,7 +65,6 @@ class User extends ActiveRecord
                 'on' => ['post', 'put'] ],
             
             [['category'], 'hasValidCategoryAndRole', 'on' => ['post', 'put'] ],
-//            [['role'], 'hasValidRole', 'on' => ['post', 'put'] ],
             
             [['notify', 'enable_two_step_verification', 'deactivate'], 
                 'in', 'range' => ['F', 'T'], 'strict' => true, 
@@ -108,7 +97,7 @@ class User extends ActiveRecord
     
     public function isNpiNeeded($attribute,$params){
         if (!in_array($this->role, ["PN", "RE", "PT", "BR", "SN"])){
-            $this->addError($attribute, "This user role doesn't need npi.");
+            $this->npi = null;
         }
     }
     
@@ -134,7 +123,7 @@ class User extends ActiveRecord
             }
         }
         else{
-            $this->addError($attribute, "This user role doesn't need degree.");
+            $this->degree = null;
         }
     }
     
@@ -151,7 +140,7 @@ class User extends ActiveRecord
             }
         }
         else{
-            $this->addError($attribute, "This user role doesn't need specialty.");
+            $this->specialty = null;
         }
     }
     
@@ -160,12 +149,12 @@ class User extends ActiveRecord
         $scenarios = parent::scenarios();
         $scenarios['post'] = [ 'first_name', 'middle_name', 'last_name', 'user_name', 'email',
                                 'cell_phone', 'category', 'role', 'degree', 'npi', 'specialty', 
-                                'password', 'isReal'];
+                                'isReal'];
         
         $scenarios['put'] = [ 'first_name', 'middle_name', 'last_name', 'user_name', 'email',
                                 'cell_phone', 'category', 'role', 'degree', 'npi', 'specialty',
                                 'notify', 'enable_two_step_verification', 'deactivate', 
-                                'time_zone', 'password', 'isReal'];
+                                'time_zone', 'isReal'];
         return $scenarios;
         
     }
@@ -369,8 +358,6 @@ class User extends ActiveRecord
             'disable' => 'deactivate',
             'time_zone',
             'is_real' => 'isReal',
-            'deactivated_on'
-            
         ];
     }
 }

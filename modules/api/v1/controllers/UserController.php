@@ -8,6 +8,7 @@ use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\v1\models\UserGroup\UserGroup;
 use app\modules\api\v1\models\UserFacility\UserFacility;
+use app\modules\api\components\CryptoLib;
 
 use Yii;
 
@@ -105,6 +106,17 @@ class UserController extends Controller
         
         
     }
+    private function generatePassword($password){
+        $result = array();
+        if(strlen($password) < 8 || strlen($password) > 23){
+            $result["error"] = "Password has at least 8 characters or at most 23 characters";
+        }
+        else{
+            $result['salt'] = CryptoLib::generateSalt();
+            $result['hash'] = CryptoLib::hash($password);
+        }
+        return $result;
+    }
     
     public function actionUpdate($id){
         try {
@@ -113,14 +125,30 @@ class UserController extends Controller
 
             $this->response->statusCode = 200;
             
+            $saltAndHash = null;
+            if(isset($params['password'])){
+                $saltAndHash = $this->generatePassword($params['password']);
+                if(isset($saltAndHash) && array_key_exists('error', $saltAndHash)){
+                    $this->response->data = new ServiceResult(false, $data = array(), 
+                    $errors = $saltAndHash['error']);
+                    return;
+                }
+            }
+            
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;
             
             $user = $this->userCrud->read($recordFilter);
+                
             $user->scenario = 'put';
             $params = $this->trimParams($params);
             $user->attributes = $params;
-            
+            if(isset($saltAndHash) && array_key_exists('salt', $saltAndHash) 
+                && array_key_exists('hash', $saltAndHash)){
+                $user->salt = $saltAndHash['salt'];
+                $user->password = $saltAndHash['hash'];
+            }
+
             $userGroups = $this->getUserGroup($params);
             $userFacilities = $this->getUserFacilities($params);
 
@@ -152,6 +180,14 @@ class UserController extends Controller
         
         if(isset($params["isReal"])){
             $params["isReal"] = strtoupper(trim($params["isReal"]));
+        }
+        
+        if(isset($params["enable_two_step_verification"])){
+            $params["enable_two_step_verification"] = strtoupper(trim($params["enable_two_step_verification"]));
+        }
+        
+        if(isset($params["notify"])){
+            $params["notify"] = strtoupper(trim($params["notify"]));
         }
         
         if(isset($params["npi"])){

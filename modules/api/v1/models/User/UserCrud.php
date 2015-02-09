@@ -130,14 +130,19 @@ class UserCrud{
         $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
         
         $transaction = Yii::$app->db->beginTransaction();
+        if(strtoupper($user->deactivate) === 'T'){
+           $user->enable_two_step_verification = 'F'; 
+        }
+        
         $isSaved = $user->save();
+        UserGroup::deleteUsersGroups($user->id);
+        UserFacility::deleteUsersFacilities($user->id);
         
 //      Errors collection  
         $errors = array();
         
         if ($isSaved) {
             if (isset($userGroups)){
-                UserGroup::deleteUsersGroups($user->id);
                 foreach ($userGroups as $ug) {
                     $ug->user_id = $user->id;
                     $isSaved = $ug->save();
@@ -151,7 +156,6 @@ class UserCrud{
             }
 //          if no errors in previous operation then proceed  
             if ( (sizeof($errors) == 0) && isset($userFacilities) ){
-                UserFacility::deleteUsersFacilities($user->id);
                 foreach ($userFacilities as $uf) {
                     $uf->user_id = $user->id;
                     $isSaved = $uf->save();
@@ -176,7 +180,7 @@ class UserCrud{
         
         if ($isSaved) {
             $transaction->commit();
-            $data = array("id" => $user->id);
+            $data = array("message" => "Record has been updated");
             $serviceResult = new ServiceResult(true, $data, $errors = array());
         } 
         else{
