@@ -47,4 +47,18 @@ class UserFacility extends ActiveRecord{
         self::deleteAll('user_id = :id', ['id' => $user_id]);
     }
     
+    public function getFacility()
+    {
+        // UserFacility has_one Facility via Facility.id -> facility_id
+        return $this->hasOne(Facility::className(), ['id' => 'facility_id']);
+    }
+    
+    public static function filterUsersExistInMultipleHospitals($userIds){
+        return self::find()->innerJoinWith('facility', false)
+            ->where(["health_care_facility.type" => "HL", 
+                    "user_health_care_facility.user_id" => $userIds])
+            ->groupBy(["user_health_care_facility.user_id"])
+            ->having("count(user_health_care_facility.user_id) < 2")
+            ->all();
+    }
 }

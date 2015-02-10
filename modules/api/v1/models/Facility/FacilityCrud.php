@@ -6,8 +6,13 @@ use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use Yii;
 use app\modules\api\v1\models\FacilityGroup\FacilityGroup;
+use app\modules\api\v1\models\UserFacility\UserFacility;
+
 
 class FacilityCrud{
+    
+    //Create verify params for create and update.
+    //Facility groups should not be null.
     
     public function create($facility, $facilityGroups){
         $transaction = Yii::$app->db->beginTransaction();
@@ -69,7 +74,8 @@ class FacilityCrud{
         return $serviceResult;
     }
     
-    public function update($facility, $facilityGroups){
+//    public function update($facility, $facilityGroups){
+    public function update(Facility $facility, $facilityGroups){
         $transaction = Yii::$app->db->beginTransaction();
         $isSaved = $facility->save();
         
@@ -77,27 +83,72 @@ class FacilityCrud{
         $errors = array();
         
         if ($isSaved) {
-            if (isset($facilityGroups)){
-                FacilityGroup::deleteFacilityGroups($facility->id);
-                if (is_array($facilityGroups)){
-                    foreach ($facilityGroups as $fg) {
-                        $fg->facility_id = $facility->id;
-                        $isSaved = $fg->save();
-                        if(!$isSaved){
-//                        Collect Errors
-                            $errors = $fg->getErrors();
-                            break;
+            if(strtoupper($facility->deactivate) === 'T'){
+                $facilityUsersToDeactive = $facility->getActiveUsers()
+                    ->select(["user.id", "user.deactivate", 
+                        "user.enable_two_step_verification", 
+                        "user.category", "user.role"])->all();
+                $usersToDeactivateIds = sizeof($facilityUsersToDeactive) > 0 ? 
+                    $this->getUserIdsFromUser($facilityUsersToDeactive) : array();
+                if(sizeof($usersToDeactivateIds)){
+                    
+                    if(strtoupper($facility->type) === "HL"){
+                        $filteredUserIds = $this->getUserIdsFromUserFacility(UserFacility::filterUsersExistInMultipleHospitals($usersToDeactivateIds));
+                        foreach ($facilityUsersToDeactive as $u){
+                        if(in_array($u->id, $filteredUserIds) && 
+                            !($u->category == "AS" && $u->role == "QT") ){
+                                $u->deactivate = 'T';
+                                $u->enable_two_step_verification = 'F';
+                                $isSaved = $u->save();
+                                if(!$isSaved){
+        //                        Collect Errors
+                                    $errors = $u->getErrors();
+                                    break;
+                                }
+                            }
+                        }
+                        if(sizeof($errors) == 0){
+                            $groupsToDeactivate = $facility->getActiveGroups()
+                                ->select(["group.id", "group.deactivate" ])->all();
+                            foreach ($groupsToDeactivate as $g){
+                                $g->deactivate = 'T';
+                                $isSaved = $g->save();
+                                if(!$isSaved){
+        //                        Collect Errors
+                                    $errors = $g->getErrors();
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
-                else{
-                    $facilityGroups->facility_id = $facility->id;
-                    $isSaved = $facilityGroups->save();
-                    if(!$isSaved){
-//                        Collect Errors
-                        $errors = $facilityGroups->getErrors();
+                
+            }
+            
+            // This should be in else block
+            else{
+                if (isset($facilityGroups)){
+                    FacilityGroup::deleteFacilityGroups($facility->id);
+                    if (is_array($facilityGroups)){
+                        foreach ($facilityGroups as $fg) {
+                            $fg->facility_id = $facility->id;
+                            $isSaved = $fg->save();
+                            if(!$isSaved){
+    //                        Collect Errors
+                                $errors = $fg->getErrors();
+                                break;
+                            }
+                        }
                     }
-                    
+                    else{
+                        $facilityGroups->facility_id = $facility->id;
+                        $isSaved = $facilityGroups->save();
+                        if(!$isSaved){
+    //                        Collect Errors
+                            $errors = $facilityGroups->getErrors();
+                        }
+
+                    }
                 }
             }
         }
@@ -108,6 +159,8 @@ class FacilityCrud{
         
         
         $serviceResult = null;
+        
+//        $transaction->rollBack();
         
         if ($isSaved) {
             $transaction->commit();
@@ -186,4 +239,13 @@ class FacilityCrud{
         }
     }
     
+    private function getUserIdsFromUser($facilityUsers){
+        return array_map(function($user){return $user->id;}, $facilityUsers);
+    }
+    
+    private function getUserIdsFromUserFacility($facilityUserIds){
+        
+        return array_map(function($u){return $u['user_id'];}, $facilityUserIds);
+        
+    }
 }

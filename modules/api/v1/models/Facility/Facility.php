@@ -267,5 +267,19 @@ class Facility extends ActiveRecord
             'is_real' => 'isReal',
         ];
     }
+    
+    public function getActiveUsers()
+    {
+        return $this->hasMany(User::className(), ['id' => 'user_id'])
+            ->viaTable('user_health_care_facility', ['facility_id' => 'id'])
+            ->where(["user.deactivate" => "F"]);
+    }
+    
+    public function getActiveGroups()
+    {
+        return $this->hasMany(Group::className(), ['id' => 'group_id'])
+            ->viaTable('health_care_facility_group', ['facility_id' => 'id'])
+            ->where(["group.deactivate" => "F"]);
+    }
 }
 
