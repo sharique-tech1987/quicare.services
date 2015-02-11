@@ -83,6 +83,7 @@ class FacilityCrud{
         $errors = array();
         
         if ($isSaved) {
+//            Refactor this deactivate logic
             if(strtoupper($facility->deactivate) === 'T'){
                 $facilityUsersToDeactive = $facility->getActiveUsers(false)
                     ->select(["user.id", "user.deactivate", 
@@ -99,6 +100,7 @@ class FacilityCrud{
                             filterUsersExistInMultipleHospitals($usersToDeactivateIds));
                         foreach ($facilityUsersToDeactive as $u){
                         if(in_array($u->id, $filteredUserIds) ){
+//                            Create deactivate scenario
                                 $u->deactivate = 'T';
                                 $u->enable_two_step_verification = 'F';
                                 $isSaved = $u->save();

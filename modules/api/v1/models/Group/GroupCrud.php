@@ -34,6 +34,7 @@ class GroupCrud{
         $serviceResult = null;
         $errors = array();
         if ($isSaved) {
+//            Refactor this deactivate logic            
             if(strtoupper($group->deactivate) === 'T'){
                 $groupUsers = $group->getActiveUsers()
                     ->select(["user.id", "user.deactivate", 
@@ -45,6 +46,7 @@ class GroupCrud{
                         UserGroup::filterUsersExistInMultipleGroups($groupUserIds));
                     foreach ($groupUsers as $u){
                         if(in_array($u->id, $filteredUserIds)){
+//                            Create deactivate scenario
                             $u->deactivate = 'T';
                             $u->enable_two_step_verification = 'F';
                             $isSaved = $u->save();
