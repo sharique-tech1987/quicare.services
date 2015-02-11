@@ -36,8 +36,9 @@ class UserGroup extends ActiveRecord{
         return [ 
             [['user_id', 'group_id' ], 'required', 
                  'message' => '{attribute} required',  ],
-            [['group_id'], 'exist',  'targetClass' => Group::className(), 'targetAttribute' => 'id', 
-                'message' => 'Foreign key violation. Group id does not exist']
+            [['group_id'], 'exist',  'targetClass' => Group::className(), 
+                'targetAttribute' => 'id', 'filter' => ["deactivate" => "F"],
+                'message' => 'Group does not exist or deactivated']
             
         ];
     }
