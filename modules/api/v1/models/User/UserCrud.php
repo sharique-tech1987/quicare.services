@@ -94,6 +94,13 @@ class UserCrud{
 //          if no errors in previous operation then proceed  
             if ( (sizeof($errors) == 0) && isset($userFacilities) ){
                 foreach ($userFacilities as $uf) {
+                    if($user->category === "HL"){
+                        $uf->scenario = "hospital";
+                    }
+                    else if(in_array ($user->category, array("CC", "FT", "ET")) &&
+                            !($user->category === "CC" && $user->role === "SN")   ){
+                        $uf->scenario = "clinic";
+                    }
                     $uf->user_id = $user->id;
                     $isSaved = $uf->save();
                     if(!$isSaved){

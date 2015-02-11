@@ -27,7 +27,9 @@ class UserFacility extends ActiveRecord{
     
     public function scenarios() {
         return [
-            'default' => ['facility_id', '!user_id']
+            'default' => ['facility_id', '!user_id'],
+            'clinic' => ['facility_id', '!user_id'],
+            'hospital' => ['facility_id', '!user_id']
         ];
     }
     
@@ -36,12 +38,23 @@ class UserFacility extends ActiveRecord{
         return [ 
             [['user_id', 'facility_id' ], 'required', 
                  'message' => '{attribute} required',  ],
+        
             [['facility_id'], 'exist',  'targetClass' => Facility::className(), 
-                'targetAttribute' => 'id', 
-                'message' => 'Foreign key violation. Facility id does not exist']
+                'targetAttribute' => 'id', 'on' => ['default', 'clinic', 'hospital'], 
+                'filter'=> function ($query){
+                    $query->andWhere(["deactivate" => "F"]);
+                    if($this->scenario === "hospital") { $query->andWhere(["type" => "HL"]); }
+                    else if($this->scenario === "clinic") { $query->andWhere(["type" => array("CC", "FT", "ET")]); }
+                },
+                'message' => 'Facility does not exist or Facility deactivated or '
+                . 'User with this role can\'t associate to this facility '],
+            
+
             
         ];
     }
+    
+    
     
     public static function deleteUsersFacilities($user_id){
         self::deleteAll('user_id = :id', ['id' => $user_id]);

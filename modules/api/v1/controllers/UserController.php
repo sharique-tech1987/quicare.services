@@ -106,6 +106,7 @@ class UserController extends Controller
         
         
     }
+    
     private function generatePassword($password){
         $result = array();
         if(strlen($password) < 8 || strlen($password) > 23){
