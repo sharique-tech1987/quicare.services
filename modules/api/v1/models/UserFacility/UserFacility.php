@@ -54,8 +54,24 @@ class UserFacility extends ActiveRecord{
     }
     
     public static function filterUsersExistInMultipleHospitals($userIds){
+        /*
+         * Filter users who are exist in multiple hospitals
+         */
         return self::find()->innerJoinWith('facility', false)
             ->where(["health_care_facility.type" => "HL", 
+                    "user_health_care_facility.user_id" => $userIds])
+            ->groupBy(["user_health_care_facility.user_id"])
+            ->having("count(user_health_care_facility.user_id) < 2")
+            ->all();
+    }
+    
+    public static function filterUsersExistInMultipleClinics($userIds){
+        /*
+         * Filter users who are exist in multiple Clinics, FSEDs and EDs
+         */
+        
+        return self::find()->innerJoinWith('facility', false)
+            ->where(["health_care_facility.type" => array("CC", "ET", "FT"), 
                     "user_health_care_facility.user_id" => $userIds])
             ->groupBy(["user_health_care_facility.user_id"])
             ->having("count(user_health_care_facility.user_id) < 2")

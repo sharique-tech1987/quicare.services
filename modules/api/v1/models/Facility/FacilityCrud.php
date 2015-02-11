@@ -84,19 +84,21 @@ class FacilityCrud{
         
         if ($isSaved) {
             if(strtoupper($facility->deactivate) === 'T'){
-                $facilityUsersToDeactive = $facility->getActiveUsers()
+                $facilityUsersToDeactive = $facility->getActiveUsers(false)
                     ->select(["user.id", "user.deactivate", 
                         "user.enable_two_step_verification", 
-                        "user.category", "user.role"])->all();
+                        "user.category", "user.role"])
+                    ->all();
                 $usersToDeactivateIds = sizeof($facilityUsersToDeactive) > 0 ? 
                     $this->getUserIdsFromUser($facilityUsersToDeactive) : array();
                 if(sizeof($usersToDeactivateIds)){
                     
                     if(strtoupper($facility->type) === "HL"){
-                        $filteredUserIds = $this->getUserIdsFromUserFacility(UserFacility::filterUsersExistInMultipleHospitals($usersToDeactivateIds));
+                        $filteredUserIds = $this->getUserIdsFromUserFacility(
+                            UserFacility::
+                            filterUsersExistInMultipleHospitals($usersToDeactivateIds));
                         foreach ($facilityUsersToDeactive as $u){
-                        if(in_array($u->id, $filteredUserIds) && 
-                            !($u->category == "AS" && $u->role == "QT") ){
+                        if(in_array($u->id, $filteredUserIds) ){
                                 $u->deactivate = 'T';
                                 $u->enable_two_step_verification = 'F';
                                 $isSaved = $u->save();
@@ -120,6 +122,25 @@ class FacilityCrud{
                                 }
                             }
                         }
+                    }
+                    
+                    else{
+                        $filteredUserIds = $this->getUserIdsFromUserFacility(
+                            UserFacility::
+                            filterUsersExistInMultipleClinics($usersToDeactivateIds));
+                        foreach ($facilityUsersToDeactive as $u){
+                        if(in_array($u->id, $filteredUserIds) ){
+                                $u->deactivate = 'T';
+                                $u->enable_two_step_verification = 'F';
+                                $isSaved = $u->save();
+                                if(!$isSaved){
+        //                        Collect Errors
+                                    $errors = $u->getErrors();
+                                    break;
+                                }
+                            }
+                        }
+                        
                     }
                 }
                 
@@ -159,8 +180,6 @@ class FacilityCrud{
         
         
         $serviceResult = null;
-        
-//        $transaction->rollBack();
         
         if ($isSaved) {
             $transaction->commit();

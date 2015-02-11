@@ -268,11 +268,17 @@ class Facility extends ActiveRecord
         ];
     }
     
-    public function getActiveUsers()
+    public function getActiveUsers($filterAll = true)
     {
-        return $this->hasMany(User::className(), ['id' => 'user_id'])
-            ->viaTable('user_health_care_facility', ['facility_id' => 'id'])
-            ->where(["user.deactivate" => "F"]);
+        $query = $this->hasMany(User::className(), ['id' => 'user_id'])
+            ->viaTable('user_health_care_facility', ['facility_id' => 'id']);
+        if($filterAll){
+            $query->where(["and", "user.deactivate='F'"]);
+        }
+        else{
+            $query->where(["and", "user.category!='AS'", "user.category!='HR'", "user.deactivate='F'"]);
+        }
+        return $query;
     }
     
     public function getActiveGroups()
