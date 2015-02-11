@@ -35,13 +35,15 @@ class GroupCrud{
         $errors = array();
         if ($isSaved) {
             if(strtoupper($group->deactivate) === 'T'){
-                $group_users = $group->getUsers()->
-                    select(["user.id", "user.deactivate", 
+                $groupUsers = $group->getActiveUsers()
+                    ->select(["user.id", "user.deactivate", 
                         "user.enable_two_step_verification"])->all();
-                $groups_user_ids = $this->getUserIdsFromUser($group_users);
-                if(sizeof($groups_user_ids)){
-                    $filteredUserIds = $this->getUserIdsFromUserGroup(UserGroup::filterUsersExistInMultipleGroups($groups_user_ids));
-                    foreach ($group_users as $u){
+                $groupUserIds = sizeof($groupUsers) > 0 ?
+                    $this->getUserIdsFromUser($groupUsers) : array();
+                if(sizeof($groupUserIds)){
+                    $filteredUserIds = $this->getUserIdsFromUserGroup(
+                        UserGroup::filterUsersExistInMultipleGroups($groupUserIds));
+                    foreach ($groupUsers as $u){
                         if(in_array($u->id, $filteredUserIds)){
                             $u->deactivate = 'T';
                             $u->enable_two_step_verification = 'F';
@@ -75,13 +77,13 @@ class GroupCrud{
         return $serviceResult;
     }
     
-    private function getUserIdsFromUser($group_users){
-        return array_map(function($users){return $users->id;}, $group_users);
+    private function getUserIdsFromUser($groupUsers){
+        return array_map(function($users){return $users->id;}, $groupUsers);
     }
     
-    private function getUserIdsFromUserGroup($groups_user_ids){
+    private function getUserIdsFromUserGroup($groupUsers){
         
-        return array_map(function($u){return $u['user_id'];}, $groups_user_ids);
+        return array_map(function($u){return $u['user_id'];}, $groupUsers);
         
     }
     

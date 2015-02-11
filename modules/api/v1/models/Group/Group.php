@@ -179,5 +179,12 @@ class Group extends ActiveRecord
             'is_real' => 'isReal',
         ];
     }
+    
+    public function getActiveUsers()
+    {
+        return $this->hasMany(User::className(), ['id' => 'user_id'])
+            ->viaTable('user_group', ['group_id' => 'id'])
+            ->where(["user.deactivate" => "F"]);
+    }
 }
 
