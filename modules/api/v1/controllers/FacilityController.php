@@ -7,6 +7,7 @@ use app\modules\api\v1\models\Facility\Facility;
 use app\modules\api\v1\models\FacilityGroup\FacilityGroup;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
+use app\modules\api\models\AuthToken\AuthTokenCrud;
 
 use Yii;
 
@@ -21,6 +22,32 @@ class FacilityController extends Controller
         $this->response = Yii::$app->response;
         $this->response->format = \yii\web\Response::FORMAT_JSON;
         $this->response->headers->set('Content-type', 'application/json; charset=utf-8');
+    }
+    
+    public function beforeAction($action){
+        
+        if (parent::beforeAction($action)) {
+            $authHeader = Yii::$app->request->headers->get('Authorization');
+            $checkAuthData = $this->isValidAuthData($authHeader);
+            
+            if($checkAuthData["success"]){
+                return $checkAuthData["success"];
+            }
+            else{
+                $this->response->statusCode = 500;
+                $serviceResult = new ServiceResult($checkAuthData["success"], $data = array(), 
+                    $errors = array("exception" => $checkAuthData["message"]));
+                $this->response->data = $serviceResult;
+                return $checkAuthData["success"];
+            }
+            
+        } else {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => "Unknown exception"));
+            $this->response->data = $serviceResult;
+            return false;
+        }
     }
     
     public function actionIndex(){
@@ -232,6 +259,20 @@ class FacilityController extends Controller
         }
     }
     
-    
+    private function isValidAuthData($authHeader){
+        if(!isset($authHeader)){
+                return array("success" => false, "message" => "Authorization header not found");
+            }
+        else {
+            $token = sizeof(explode('Basic', $authHeader)) >= 2 ? 
+                trim(explode('Basic', $authHeader)[1]) : null;
+            if(AuthTokenCrud::read($token) === null){
+                return array("success" => false, "message" => "Not a valid token");
+            }
+            else{
+                return array("success" => true, "message" => "");
+            }
+        }
+    }
     
 }

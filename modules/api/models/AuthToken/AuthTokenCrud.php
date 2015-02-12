@@ -105,6 +105,11 @@ class AuthTokenCrud{
             
     }
     
+    public static function read($token){
+        return AuthToken::findOne(['token' => $token, 'expired' => 'F']);
+        
+    }
+    
     
 }
 
