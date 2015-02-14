@@ -87,9 +87,11 @@ class UserController extends Controller
 	
 	public function actionView($id){
         try {
+            $params = Yii::$app->request->get();
             $this->response->statusCode = 200;
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;
+            $recordFilter->attributes = $params;
             
             $user = $this->userCrud->read($recordFilter, $findModel = false);
             $serviceResult = new ServiceResult(true, 

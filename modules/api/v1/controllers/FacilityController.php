@@ -85,9 +85,11 @@ class FacilityController extends Controller
 	
 	public function actionView($id){
         try {
+            $params = Yii::$app->request->get();
             $this->response->statusCode = 200;
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;
+            $recordFilter->attributes = $params;
             
             $facility = $this->facilityCrud->read($recordFilter, $findModel = false);
             $serviceResult = new ServiceResult(true, 
@@ -140,7 +142,7 @@ class FacilityController extends Controller
             
             $recordFilter = new RecordFilter();
             $recordFilter->id = $id;
-            
+                        
             $facility = $this->facilityCrud->read($recordFilter);
             $facility->scenario = 'put';
             $params = $this->trimParams($params);
