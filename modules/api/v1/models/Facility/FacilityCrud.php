@@ -248,7 +248,14 @@ class FacilityCrud{
                 return $facility;
             }
             else{
-                $facility_array = $facility->toArray();
+                $filteredFields;
+                if (isset($recordFilter->fields)){
+                    $filteredFields = array_filter(explode(',', $recordFilter->fields));
+                }
+                else{
+                    $filteredFields = array();
+                }
+                $facility_array = $facility->toArray($filteredFields, $filteredFields);
                 $facility_array["groups"] = $facility->groups;
                 $facility_array["users"] = $facility->users;
                 return $facility_array;

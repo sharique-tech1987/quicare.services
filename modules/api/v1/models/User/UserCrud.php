@@ -282,7 +282,14 @@ class UserCrud{
                 return $user;
             }
             else{
-                $user_array = $user->toArray();
+                $filteredFields;
+                if (isset($recordFilter->fields)){
+                    $filteredFields = array_filter(explode(',', $recordFilter->fields));
+                }
+                else{
+                    $filteredFields = array();
+                }
+                $user_array = $user->toArray($filteredFields, $filteredFields);
                 $user_array["groups"] = $user->groups;
                 $user_array["facilities"] = $user->facilities;
                 return $user_array;
