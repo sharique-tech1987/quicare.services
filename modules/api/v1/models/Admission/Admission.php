@@ -39,14 +39,26 @@ class Admission extends ActiveRecord
                 'patient_gender', 'patient_dob', 'hospital', 'group'], 
                 'required', 'on' => ['post']],
             
+            [['patient_first_name', 'patient_last_name'], 'match', 
+                'pattern' => "/^[A-Za-z\s-'.,]+$/", 
+                'message' => "{attribute} should contain alphabets and (-'.,) set "
+                . "of characters", 
+                'on' => ['post'] ],
+            
             [['zip_code'], 'compare', 'compareValue' => 0, 'operator' => '>', 
                 'on' => ['post'], "message" => "Please enter a valid 5 "
                 . "digit zip code of the healthcare facility"],
             [ ['zip_code'], 'string', 'length' => [5, 5], 'on' => ['post'] ],
             
+            [['patient_ssn'], 'compare', 'compareValue' => 0, 'operator' => '>', 
+                'on' => ['post'], "message" => "Please enter a valid 9 "
+                . "digit ssn"],
+            [ ['patient_ssn'], 'string', 'length' => [9, 9], 'on' => ['post'] ],
+            
             [['patient_dob'], 'isValidDob', 'on' => ['post']],
             
-            
+            [['patient_gender'], 'in', 'range' => ['M', 'F'], 'strict' => true, 
+                'on' => ['post'], "message" => "Please enter valid {attribute} value"],
             
             
         ];
@@ -72,8 +84,8 @@ class Admission extends ActiveRecord
     public function scenarios()
     {
         $scenarios = parent::scenarios();
-        $scenarios['post'] = ['transaction_number', 'patient_first_name', 'patient_last_name', 'patient_ssn',
-                            'patient_dob', 'patient_gender',
+        $scenarios['post'] = ['transaction_number', 'patient_first_name', 'patient_last_name', 
+                            'patient_ssn','patient_dob', 'patient_gender',
                             'hospital', 'group', 'address1', 'address2', 'city', 'state',
                             'zip_code', 'patient_email', 'patient_contact_number'];
         return $scenarios;

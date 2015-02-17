@@ -10,16 +10,17 @@ use Yii;
 
 class AdmissionCrud{
     
-    private function verifyCreateOrUpdateParams(Admission $admission, $facility){
+    private function verifyCreateOrUpdateParams(Admission $admission, $facility, $facilityGroupIds){
         if(!isset($admission)){
             throw new \Exception("Admission should not be null");
         }
-        if(isset($admission->hospital)){
-            if($facility->deactivate === "T" && $facility->type === "HL"){
-                throw new \Exception("Selected facility should be activated hospital");
-            }
-                
-            
+        
+        if($facility->deactivate === "T" && $facility->type === "HL"){
+            throw new \Exception("Selected facility should be activated hospital");
+        }
+        
+        if(!in_array($admission->group, $facilityGroupIds)){
+            throw new \Exception("Selected group should exist in hospital");
         }
     }
     
@@ -27,7 +28,9 @@ class AdmissionCrud{
         $recordFilter = new RecordFilter();
         $recordFilter->id = $admission->hospital;
         $facility = FacilityCrud::read($recordFilter, true);
-        $this->verifyCreateOrUpdateParams($admission, $facility);
+        $facilityGroups = $facility->groups;
+        $facilityGroupIds = $this->getGroupsIds($facilityGroups);
+        $this->verifyCreateOrUpdateParams($admission, $facility, $facilityGroupIds);
         
         
         $admission->transaction_number = $this->generateTransactionNumber($facility->npi);
@@ -66,7 +69,11 @@ class AdmissionCrud{
     }
     
     
-    
+    private function getGroupsIds($facilityGroups){
+        
+        return array_map(function($g){return $g->id;}, $facilityGroups);
+        
+    }
     
     
 }

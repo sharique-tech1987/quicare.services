@@ -41,8 +41,8 @@ class User extends ActiveRecord
                 'on' => ['post', 'put'], 'message' => '{attribute} should not be empty',  ],
 
             [['first_name', 'middle_name', 'last_name',], 'match', 
-                'pattern' => "/[^A-Za-z\s-'.,]/", 
-                'not' => true, 'message' => "{attribute} should contain alphabets and (-'.,) set "
+                'pattern' => "/^[A-Za-z\s-'.,]+$/", 
+                'message' => "{attribute} should contain alphabets and (-'.,) set "
                 . "of characters", 
                 'on' => ['post', 'put'] ],
             
