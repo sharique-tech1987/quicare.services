@@ -241,7 +241,7 @@ class FacilityCrud{
         }
     }
     
-    public function read(RecordFilter $recordFilter, $findModel = true){
+    public static function read(RecordFilter $recordFilter, $findModel = true){
         $facility = Facility::findOne($recordFilter->id);
         if($facility !== null ){
             if($findModel){

@@ -13,7 +13,6 @@ $config = [
         
     ],
     'components' => [
-	
 		'urlManager' => [
 			'enablePrettyUrl' => true,
 			'enableStrictParsing' => true,
@@ -36,6 +35,7 @@ $config = [
                 require(__DIR__ . '/urlRules/userRoleUrlRule.php'),
                 require(__DIR__ . '/urlRules/facilityTypeUrlRule.php'),
                 require(__DIR__ . '/urlRules/stateUrlRule.php'),
+                require(__DIR__ . '/urlRules/admissionUrlRule.php'),
                 
                 
                 

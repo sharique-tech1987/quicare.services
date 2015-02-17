@@ -2,53 +2,52 @@
 namespace app\modules\api\v1\controllers;
 
 use yii\rest\Controller;
-use app\modules\api\v1\models\Facility\FacilityCrud;
-use app\modules\api\v1\models\Facility\Facility;
-use app\modules\api\v1\models\FacilityGroup\FacilityGroup;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
+use app\modules\api\v1\models\Admission\Admission;
+use app\modules\api\v1\models\Admission\AdmissionCrud;
 
 use Yii;
 
-class FacilityController extends Controller
+class AdmissionController extends Controller
 {
     private $response;
-    private $facilityCrud;
+    private $crud;
     
     public function init() {
         parent::init();
-        $this->facilityCrud = new FacilityCrud();
+        $this->crud = new AdmissionCrud();
         $this->response = Yii::$app->response;
         $this->response->format = \yii\web\Response::FORMAT_JSON;
         $this->response->headers->set('Content-type', 'application/json; charset=utf-8');
     }
     
-    public function beforeAction($action){
-        
-        if (parent::beforeAction($action)) {
-            $authHeader = Yii::$app->request->headers->get('Authorization');
-            $checkAuthData = $this->isValidAuthData($authHeader);
-            
-            if($checkAuthData["success"]){
-                return $checkAuthData["success"];
-            }
-            else{
-                $this->response->statusCode = 500;
-                $serviceResult = new ServiceResult($checkAuthData["success"], $data = array(), 
-                    $errors = array("exception" => $checkAuthData["message"]));
-                $this->response->data = $serviceResult;
-                return $checkAuthData["success"];
-            }
-            
-        } else {
-            $this->response->statusCode = 500;
-            $serviceResult = new ServiceResult(false, $data = array(), 
-                $errors = array("exception" => "Unknown exception"));
-            $this->response->data = $serviceResult;
-            return false;
-        }
-    }
+//    public function beforeAction($action){
+//        
+//        if (parent::beforeAction($action)) {
+//            $authHeader = Yii::$app->request->headers->get('Authorization');
+//            $checkAuthData = $this->isValidAuthData($authHeader);
+//            
+//            if($checkAuthData["success"]){
+//                return $checkAuthData["success"];
+//            }
+//            else{
+//                $this->response->statusCode = 500;
+//                $serviceResult = new ServiceResult($checkAuthData["success"], $data = array(), 
+//                    $errors = array("exception" => $checkAuthData["message"]));
+//                $this->response->data = $serviceResult;
+//                return $checkAuthData["success"];
+//            }
+//            
+//        } else {
+//            $this->response->statusCode = 500;
+//            $serviceResult = new ServiceResult(false, $data = array(), 
+//                $errors = array("exception" => "Unknown exception"));
+//            $this->response->data = $serviceResult;
+//            return false;
+//        }
+//    }
     
     public function actionIndex(){
         try {
@@ -60,7 +59,7 @@ class FacilityController extends Controller
 
             $recordFilter->attributes = $params;
             
-            $result = $this->facilityCrud->readAll($recordFilter);
+            $result = $this->crud->readAll($recordFilter);
             
             if(isset($params["export_csv"])){
                 $result = $result->data["records"];
@@ -114,13 +113,11 @@ class FacilityController extends Controller
             $this->response->statusCode = 200;
             $params = $this->trimParams($params);
 
-            $facility = new Facility();
-            $facility->scenario = 'post';
-            $facility->attributes = $params;
+            $admission = new Admission();
+            $admission->scenario = 'post';
+            $admission->attributes = $params;
 
-            $facilityGroups = $this->getFacilityGroup($params);
-
-            $this->response->data = $this->facilityCrud->create($facility, $facilityGroups);
+            $this->response->data = $this->crud->create($admission);
             
         } 
         catch (\Exception $ex) {
@@ -150,7 +147,7 @@ class FacilityController extends Controller
             
             $facilityGroups = $this->getFacilityGroup($params);
 
-            $this->response->data = $this->facilityCrud->update($facility, $facilityGroups);
+            $this->response->data = $this->crud->update($facility, $facilityGroups);
                 
             
             
