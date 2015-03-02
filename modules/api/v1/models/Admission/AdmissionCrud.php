@@ -15,25 +15,25 @@ class AdmissionCrud{
             throw new \Exception("Admission should not be null");
         }
         
-        if($facility->deactivate === "T" && $facility->type === "HL"){
+        if($facility->deactivate === "T" || $facility->type !== "HL"){
             throw new \Exception("Selected facility should be activated hospital");
         }
         
         if(!in_array($admission->group, $facilityGroupIds)){
-            throw new \Exception("Selected group should exist in hospital");
+            throw new \Exception("Selected group should activated and exist in hospital");
         }
     }
     
     public function create(Admission $admission){
         $recordFilter = new RecordFilter();
-        $recordFilter->id = $admission->hospital;
+        $recordFilter->id = $admission->sent_to_facility;
         $facility = FacilityCrud::read($recordFilter, true);
-        $facilityGroups = $facility->groups;
+        $facilityGroups = $facility->getActiveGroups()->all();
         $facilityGroupIds = $this->getGroupsIds($facilityGroups);
         $this->verifyCreateOrUpdateParams($admission, $facility, $facilityGroupIds);
         
         
-        $admission->transaction_number = $this->generateTransactionNumber($facility->npi);
+        $admission->transaction_number = $this->generateTransactionNumber();
         
         $isSaved = $admission->save();
         $serviceResult = null;
@@ -51,19 +51,19 @@ class AdmissionCrud{
     }
     
     
-    private function generateTransactionNumber($npi){
+    private function generateTransactionNumber(){
         $todayDate = date("mdY");
-        $admission = Admission::getLastTransactionId($npi . $todayDate);
+        $admission = Admission::getLastTransactionId($todayDate);
         
         if(sizeof($admission)){
             $transactionIdArray = explode("_", $admission->transaction_number)[1];
             $newTransactionCount = (int)$transactionIdArray + 1;
             $newTransactionCountPadded = sprintf("%02s", $newTransactionCount);
-            return $npi . $todayDate . "_". $newTransactionCountPadded;
+            return $todayDate . "_". $newTransactionCountPadded;
             
         }
         else{
-            return $npi . $todayDate . "_01";
+            return $todayDate . "_01";
         }
         
     }

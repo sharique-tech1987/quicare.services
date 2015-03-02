@@ -38,9 +38,6 @@ class UserCrud{
                 !( $checkUserGroup && $checkUserFacilities)  ){
                 throw new \Exception("User should have groups and facilities");
             }
-//            else if( !( ($user->category == "HL" && $user->role == "PN") || 
-//                  ($user->category == "CC" && $user->role == "SN") ) && 
-//                $user->category != "AS" && $user->category != "HR"  ){
             else if( !( ($user->category == "HL" && $user->role == "PN") || 
                   ($user->category == "CC" && $user->role == "SN") || 
                   ($user->category == "HR") || 
@@ -54,8 +51,6 @@ class UserCrud{
                 }
                 
             }
-//            else if( ($user->category == "AS" || $user->category == "HR") 
-//                && ($checkUserGroup || $checkUserFacilities)  ){
             else if( ( ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) || 
                 $user->category == "HR") 
                 && ($checkUserGroup || $checkUserFacilities)  ){

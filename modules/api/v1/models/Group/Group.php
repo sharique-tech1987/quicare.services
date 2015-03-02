@@ -43,7 +43,8 @@ class Group extends ActiveRecord
             // Use only one validation rule to validate number and user existance
             [['administrator'], 'exist',  'targetClass' => User::className(), 
                 'targetAttribute' => 'id', 'filter'=>["category" => "HL", "role" => "PN"],
-                'message' => 'User id not exist or user is not a hospital user'],
+                'message' => 'User id not exist or user is not a hospital user', 
+                'on' => ['post', 'put']],
             [['isReal'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
                 'on' => ['post', 'put'], "message" => "Please enter valid {attribute} value"],
             [['deactivate'], 'in', 'range' => ['F', 'T'], 'strict' => true, 

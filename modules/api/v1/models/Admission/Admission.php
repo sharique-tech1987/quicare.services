@@ -4,6 +4,8 @@ namespace app\modules\api\v1\models\Admission;
 
 use yii\db\ActiveRecord;
 use yii\helpers\Json;
+use app\modules\api\v1\models\Facility\Facility;
+use app\modules\api\v1\models\User\User;
 
 class Admission extends ActiveRecord
 {
@@ -36,8 +38,24 @@ class Admission extends ActiveRecord
 
         return [
             [['transaction_number', 'patient_first_name', 'patient_last_name', 
-                'patient_gender', 'patient_dob', 'hospital', 'group'], 
+                'patient_gender', 'patient_dob', 'sent_to_facility', 'group',
+                'sent_by_facility', 'sent_by_user'], 
                 'required', 'on' => ['post']],
+            
+            [['sent_by_facility'], 'exist',  'targetClass' => Facility::className(), 
+                'targetAttribute' => 'id', 'filter'=>["type" => ["CC", "FT", "ET"], 
+                                                      "deactivate" => "F"],
+                'message' => 'Facility not exist or facility is not able to send admission', 
+                'on' => ['post', 'put']],
+            
+            [['sent_by_user'], 'exist',  'targetClass' => User::className(), 
+                'targetAttribute' => 'id', 'filter'=>function($query){
+                    $query->andWhere("(category IN ('CC', 'ET', 'FT') "
+                            . "AND role IN ('RE', 'PT', 'PN', 'SF', 'SN')) OR category = 'HR' AND role = 'HR' "
+                            . "AND deactivate = 'F' ");
+                },
+                'message' => 'User not exist or user is not able to send admission', 
+                'on' => ['post', 'put']],
             
             [['patient_first_name', 'patient_last_name'], 'match', 
                 'pattern' => "/^[A-Za-z\s-'.,]+$/", 
@@ -86,8 +104,9 @@ class Admission extends ActiveRecord
         $scenarios = parent::scenarios();
         $scenarios['post'] = ['transaction_number', 'patient_first_name', 'patient_last_name', 
                             'patient_ssn','patient_dob', 'patient_gender',
-                            'hospital', 'group', 'address1', 'address2', 'city', 'state',
-                            'zip_code', 'patient_email', 'patient_contact_number'];
+                            'sent_to_facility', 'group', 'address1', 'address2', 'city', 'state',
+                            'zip_code', 'patient_email', 'patient_contact_number', 
+                            'sent_by_facility', 'sent_by_user', 'on_behalf_of'];
         return $scenarios;
         
     }
