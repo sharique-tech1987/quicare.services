@@ -6,6 +6,7 @@ use yii\db\ActiveRecord;
 use yii\helpers\Json;
 use app\modules\api\v1\models\Facility\Facility;
 use app\modules\api\v1\models\User\User;
+use app\modules\api\v1\models\Group\Group;
 
 class Admission extends ActiveRecord
 {
@@ -132,6 +133,22 @@ class Admission extends ActiveRecord
             ->orderBy(["created_on" => SORT_DESC])
             ->one();
 
+    }
+    
+    public function getSentToFacility(){
+        return $this->hasOne(Facility::className(), ['id' => 'sent_to_facility']);
+    }
+    
+    public function getSentByFacility(){
+        return $this->hasOne(Facility::className(), ['id' => 'sent_by_facility']);
+    }
+
+    public function getSentByUser() {
+        return $this->hasOne(User::className(), ['id' => 'sent_by_user']);
+    }
+
+    public function getGroup() {
+        return $this->hasOne(Group::className(), ['id' => 'group']);
     }
 
 }

@@ -82,7 +82,7 @@ class AdmissionController extends Controller
     }
 	
 	
-	public function actionView($id){
+    public function actionView($id){
         try {
             $params = Yii::$app->request->get();
             $this->response->statusCode = 200;
@@ -90,9 +90,9 @@ class AdmissionController extends Controller
             $recordFilter->id = $id;
             $recordFilter->attributes = $params;
             
-            $facility = FacilityCrud::read($recordFilter, $findModel = false);
+            $admission = AdmissionCrud::read($recordFilter, $findModel = false);
             $serviceResult = new ServiceResult(true, 
-                $data = $facility , 
+                $data = $admission , 
                 $errors = array()); 
             $this->response->data = $serviceResult;
             
@@ -105,7 +105,7 @@ class AdmissionController extends Controller
         }
 	}
 	
-	public function actionCreate(){
+    public function actionCreate(){
         try {
             $params = Yii::$app->request->post();
             date_default_timezone_set("UTC");

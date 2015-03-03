@@ -75,5 +75,35 @@ class AdmissionCrud{
         
     }
     
+    public static function read(RecordFilter $recordFilter, $findModel = true){
+        $admission = Admission::findOne($recordFilter->id);
+        if($admission !== null ){
+            if($findModel){
+                return $admission;
+            }
+            else{
+                $filteredFields;
+                if (isset($recordFilter->fields)){
+                    $filteredFields = array_filter(explode(',', $recordFilter->fields));
+                }
+                else{
+                    $filteredFields = array();
+                }
+                $admissionArray = $admission->toArray($filteredFields, $filteredFields);
+                $admissionArray["sent_to_facility"] = $admission->getSentToFacility()->all();
+                $admissionArray["sent_by_facility"] = $admission->getSentByFacility()->all();
+                $admissionArray["sent_by_user"] = $admission->getSentByUser()->all();
+                $admissionArray["group"] = $admission->getGroup()->all();
+                
+//                $admissionArray["users"] = $admission->users;
+                return $admissionArray;
+            }
+            
+        }
+        else{
+            throw new \Exception("Admission is not exist");
+        }
+    }
+    
     
 }
