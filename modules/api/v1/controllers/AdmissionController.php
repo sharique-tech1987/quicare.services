@@ -14,6 +14,7 @@ class AdmissionController extends Controller
 {
     private $response;
     private $crud;
+    private $authUser;
     
     public function init() {
         parent::init();
@@ -23,31 +24,31 @@ class AdmissionController extends Controller
         $this->response->headers->set('Content-type', 'application/json; charset=utf-8');
     }
     
-//    public function beforeAction($action){
-//        
-//        if (parent::beforeAction($action)) {
-//            $authHeader = Yii::$app->request->headers->get('Authorization');
-//            $checkAuthData = $this->isValidAuthData($authHeader);
-//            
-//            if($checkAuthData["success"]){
-//                return $checkAuthData["success"];
-//            }
-//            else{
-//                $this->response->statusCode = 500;
-//                $serviceResult = new ServiceResult($checkAuthData["success"], $data = array(), 
-//                    $errors = array("exception" => $checkAuthData["message"]));
-//                $this->response->data = $serviceResult;
-//                return $checkAuthData["success"];
-//            }
-//            
-//        } else {
-//            $this->response->statusCode = 500;
-//            $serviceResult = new ServiceResult(false, $data = array(), 
-//                $errors = array("exception" => "Unknown exception"));
-//            $this->response->data = $serviceResult;
-//            return false;
-//        }
-//    }
+    public function beforeAction($action){
+        
+        if (parent::beforeAction($action)) {
+            $authHeader = Yii::$app->request->headers->get('Authorization');
+            $checkAuthData = $this->isValidAuthData($authHeader);
+            
+            if($checkAuthData["success"]){
+                return $checkAuthData["success"];
+            }
+            else{
+                $this->response->statusCode = 500;
+                $serviceResult = new ServiceResult($checkAuthData["success"], $data = array(), 
+                    $errors = array("exception" => $checkAuthData["message"]));
+                $this->response->data = $serviceResult;
+                return $checkAuthData["success"];
+            }
+            
+        } else {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => "Unknown exception"));
+            $this->response->data = $serviceResult;
+            return false;
+        }
+    }
     
     public function actionIndex(){
         try {
@@ -103,7 +104,7 @@ class AdmissionController extends Controller
                 $errors = array("exception" => $ex->getMessage()));
             $this->response->data = $serviceResult;
         }
-	}
+    }
 	
     public function actionCreate(){
         try {
@@ -265,10 +266,12 @@ class AdmissionController extends Controller
         else {
             $token = sizeof(explode('Basic', $authHeader)) >= 2 ? 
                 trim(explode('Basic', $authHeader)[1]) : null;
-            if(AuthTokenCrud::read($token) === null){
+            $user = AuthTokenCrud::read($token);
+            if($user === null){
                 return array("success" => false, "message" => "Not a valid token");
             }
             else{
+                $this->authUser = $user;
                 return array("success" => true, "message" => "");
             }
         }

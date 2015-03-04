@@ -3,6 +3,7 @@
 namespace app\modules\api\models\AuthToken;
 
 use yii\db\ActiveRecord;
+use app\modules\api\v1\models\User\User;
 
 class AuthToken extends ActiveRecord
 {
@@ -57,7 +58,9 @@ class AuthToken extends ActiveRecord
         }
     }
     
-    
+    public function getUser() {
+        return $this->hasOne(User::className(), ['id' => 'user_id']);
+    }
     
 }
 

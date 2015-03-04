@@ -15,6 +15,7 @@ class FacilityController extends Controller
 {
     private $response;
     private $facilityCrud;
+    private $authUser;
     
     public function init() {
         parent::init();
@@ -83,7 +84,7 @@ class FacilityController extends Controller
     }
 	
 	
-	public function actionView($id){
+    public function actionView($id){
         try {
             $params = Yii::$app->request->get();
             $this->response->statusCode = 200;
@@ -106,7 +107,7 @@ class FacilityController extends Controller
         }
 	}
 	
-	public function actionCreate(){
+    public function actionCreate(){
         try {
             $params = Yii::$app->request->post();
             date_default_timezone_set("UTC");
@@ -268,10 +269,12 @@ class FacilityController extends Controller
         else {
             $token = sizeof(explode('Basic', $authHeader)) >= 2 ? 
                 trim(explode('Basic', $authHeader)[1]) : null;
-            if(AuthTokenCrud::read($token) === null){
+            $user = AuthTokenCrud::read($token);
+            if($user === null){
                 return array("success" => false, "message" => "Not a valid token");
             }
             else{
+                $this->authUser = $user;
                 return array("success" => true, "message" => "");
             }
         }

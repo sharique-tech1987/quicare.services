@@ -17,7 +17,8 @@ class UserController extends Controller
 {
     private $response;
     private $userCrud;
-    
+    private $authUser;
+
     public function init() {
         parent::init();
         $this->userCrud = new UserCrud();
@@ -322,10 +323,12 @@ class UserController extends Controller
         else {
             $token = sizeof(explode('Basic', $authHeader)) >= 2 ? 
                 trim(explode('Basic', $authHeader)[1]) : null;
-            if(AuthTokenCrud::read($token) === null){
+            $user = AuthTokenCrud::read($token);
+            if($user === null){
                 return array("success" => false, "message" => "Not a valid token");
             }
             else{
+                $this->authUser = $user;
                 return array("success" => true, "message" => "");
             }
         }

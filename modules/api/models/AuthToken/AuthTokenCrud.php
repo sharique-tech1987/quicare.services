@@ -106,8 +106,15 @@ class AuthTokenCrud{
     }
     
     public static function read($token){
-        return AuthToken::findOne(['token' => $token, 'expired' => 'F']);
+        $authToken = AuthToken::findOne(['token' => $token, 'expired' => 'F']);
         
+        if($authToken === null){
+            return $authToken;
+        }
+        else{
+            return $authToken->user->toArray();
+            
+        }
     }
     
     

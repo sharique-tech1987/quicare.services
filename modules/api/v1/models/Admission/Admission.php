@@ -150,6 +150,36 @@ class Admission extends ActiveRecord
     public function getGroup() {
         return $this->hasOne(Group::className(), ['id' => 'group']);
     }
+    
+    public static function addFilters($query, $filters){
+        if(isset($filters))
+        {
+//      Code for searching admission record
+            
+        }
+    }
+    
+    public static function addOffsetAndLimit($query, $page, $limit){
+        if(isset($page) && isset($limit)){
+            $offset = $limit * ($page-1);
+            $query->offset($offset)->limit($limit);
+        }
+    }
+    
+    public static function addSortFilter($query, $orderby, $sort){
+        $admissionTableCols = self::getTableSchema()->columnNames;
+        
+        if( !(isset($orderby) && isset($sort)) || (!in_array($orderby, $admissionTableCols)) ) {
+            $orderby = 'admission.updated_on';
+            $sort = SORT_DESC;
+        }
+        else{
+            $orderby = 'admission.' . $orderby;
+            $sort = strtoupper($sort) === 'ASC' ? SORT_ASC : SORT_DESC;
+        }
+        $query->orderBy([$orderby => $sort]);
+
+    }
 
 }
 

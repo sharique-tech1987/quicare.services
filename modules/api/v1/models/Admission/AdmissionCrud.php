@@ -104,6 +104,49 @@ class AdmissionCrud{
             throw new \Exception("Admission is not exist");
         }
     }
-    
-    
+
+    public function readAll(RecordFilter $recordFilter){
+        $serviceResult = null;
+        if ($recordFilter->validate()) {
+            
+            $query = Admission::find();
+            
+            $filteredFields;
+            if (isset($recordFilter->fields)){
+                $filteredFields = array_filter(explode(',', $recordFilter->fields));
+            }
+            else{
+                $filteredFields = array();
+            }
+            
+            Admission::addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
+
+            Admission::addFilters($query, $recordFilter->filter);
+            
+            $record_count = $query->distinct()->count();
+            Admission::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
+            
+            $result = $query->all();
+            
+            $resultArray = array();
+            foreach ($result as $value){
+                $valueArray = $value->toArray($filteredFields, $filteredFields);
+                array_push($resultArray, $valueArray);
+            }
+            
+            $result = $resultArray;
+            
+
+            $data = array("total_records" => $record_count, "records" => $result);
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
+            return $serviceResult;
+            
+        } 
+        else {
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = $recordFilter->getErrors());
+            return $serviceResult;
+        }
+    }
+
 }
