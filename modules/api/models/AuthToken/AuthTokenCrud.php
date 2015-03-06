@@ -52,7 +52,8 @@ class AuthTokenCrud{
         $serviceResult = null;
         
         if ($isSaved) {
-            $data = array("auth_token" => $authToken->token, "user_name" => $user->user_name);
+            $data = array("auth_token" => $authToken->token, "user_name" => $user->user_name, 
+                "id" => $user->id);
             $serviceResult = new ServiceResult(true, $data, $errors = array());
         } 
         else{
