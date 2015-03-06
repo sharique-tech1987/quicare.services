@@ -37,6 +37,7 @@ $config = [
                 require(__DIR__ . '/urlRules/stateUrlRule.php'),
                 require(__DIR__ . '/urlRules/admissionUrlRule.php'),
                 require(__DIR__ . '/urlRules/setPasswordUrlRule.php'),
+                require(__DIR__ . '/urlRules/userMenuUrlRule.php'), 
                             
                 
                 
