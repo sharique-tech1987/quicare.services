@@ -302,4 +302,38 @@ class UserCrud{
         }, $facilities)) );
     }
     
+    public function updateUserPassword($user){
+        $isSaved = false;
+        $errors = array();
+        $transaction = Yii::$app->db->beginTransaction();
+        if(strtoupper($user->deactivate) !== 'T'){
+           $isSaved = $user->save();
+           if(!$isSaved){
+//              Collect Errors
+                $errors = $user->getErrors();
+           }
+           
+        }
+        else{
+            $errors["deactivate"] = "Cannot update user. It is already deactivated";
+        }
+        
+        $serviceResult = null;
+        
+        if ($isSaved) {
+            $transaction->commit();
+            $data = array("message" => "Record has been updated");
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
+        } 
+        else{
+            $transaction->rollBack();
+            $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+
+        }
+
+        return $serviceResult;
+        
+        
+    }
+    
 }

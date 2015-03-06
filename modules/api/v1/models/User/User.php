@@ -155,6 +155,8 @@ class User extends ActiveRecord
                                 'cell_phone', 'category', 'role', 'degree', 'npi', 'specialty',
                                 'notify', 'enable_two_step_verification', 'deactivate', 
                                 'time_zone', 'isReal'];
+        
+        $scenarios['initUser'] = ['password'];
         return $scenarios;
         
     }
