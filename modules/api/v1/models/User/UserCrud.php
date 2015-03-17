@@ -21,42 +21,52 @@ class UserCrud{
          * Function checks for valid params and throws exception if it has not valid params
          * E.g. Check if user is hospital physician it has groups and facilities
          */
+        $errors = array();
         $checkUserGroup = isset($userGroups);
         $checkUserFacilities = isset($userFacilities);
         
         if($checkUserGroup && !(is_array($userGroups) && !empty($userGroups)) ){
-            throw new \Exception("Groups should be array");
+            $errors['groups'] = ['Groups should be array'];
+            //throw new \Exception("Groups should be array");
         }
         if($checkUserFacilities && !(is_array($userFacilities) && !empty($userFacilities)) ){
-            throw new \Exception("Facilities should be array");
+            $errors['facilities'] = ['Facilities should be array'];
+//            throw new \Exception("Facilities should be array");
         }
         
-        
-        if( (isset($user->category) && isset($user->role)) ){
-            if( ( ($user->category == "HL" && $user->role == "PN") || 
-                  ($user->category == "CC" && $user->role == "SN") ) && 
-                !( $checkUserGroup && $checkUserFacilities)  ){
-                throw new \Exception("User should have groups and facilities");
-            }
-            else if( !( ($user->category == "HL" && $user->role == "PN") || 
-                  ($user->category == "CC" && $user->role == "SN") || 
-                  ($user->category == "HR") || 
-                ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) ) ){
-                
-                if(!$checkUserFacilities){
-                    throw new \Exception("User should have facilities");
+        if (sizeof($errors) == 0) {
+            if( (isset($user->category) && isset($user->role)) ){
+                if( ( ($user->category == "HL" && $user->role == "PN") || 
+                      ($user->category == "CC" && $user->role == "SN") ) && 
+                    !( $checkUserGroup && $checkUserFacilities)  ){
+                    $errors['groups'] = ["User should have groups and facilities"];
+    //                throw new \Exception("User should have groups and facilities");
                 }
-                else if($checkUserGroup){
-                    throw new \Exception("User should not have groups");
+                else if( !( ($user->category == "HL" && $user->role == "PN") || 
+                      ($user->category == "CC" && $user->role == "SN") || 
+                      ($user->category == "HR") || 
+                    ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) ) ){
+
+                    if(!$checkUserFacilities){
+                        $errors['facilities'] = ["User should have facilities"];
+    //                    throw new \Exception("User should have facilities");
+                    }
+                    else if($checkUserGroup){
+                        $errors['groups'] = ["User should not have groups"];
+    //                    throw new \Exception("User should not have groups");
+                    }
+
                 }
-                
-            }
-            else if( ( ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) || 
-                $user->category == "HR") 
-                && ($checkUserGroup || $checkUserFacilities)  ){
-                throw new \Exception("User should not have groups and facilities");
+                else if( ( ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) || 
+                    $user->category == "HR") 
+                    && ($checkUserGroup || $checkUserFacilities)  ){
+                        $errors['groups'] = ["User should not have groups and facilities"];
+    //                throw new \Exception("User should not have groups and facilities");
+                }
             }
         }
+        
+        return $errors;
         
     }
     
@@ -65,59 +75,68 @@ class UserCrud{
          * $userGroups is not mandatory for all users
          * $userFacilities is not mandatory for all users
          */
-        $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
+//        $errors = array();
+        $errors = $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
         
         $transaction = Yii::$app->db->beginTransaction();
-        $isSaved = $user->save();
+        $validate = $user->validate();
         
-//      Errors collection  
-        $errors = array();
-        
-        if ($isSaved) {
-            if (isset($userGroups)){
-                foreach ($userGroups as $ug) {
-                    $ug->user_id = $user->id;
-                    $isSaved = $ug->save();
-                    if(!$isSaved){
-//                        Collect Errors
-                        $errors = $ug->getErrors();
-                        break;
+        if((sizeof($errors) == 0) && $validate)
+        {
+            $isSaved = $user->save();
+
+    //      Errors collection  
+            
+            if ($isSaved) {
+                if (isset($userGroups)){
+                    foreach ($userGroups as $ug) {
+                        $ug->user_id = $user->id;
+                        $isSaved = $ug->save();
+                        if(!$isSaved){
+    //                        Collect Errors
+                            $errors = $ug->getErrors();
+                            break;
+                        }
                     }
+
+                }
+    //          if no errors in previous operation then proceed  
+                if ( (sizeof($errors) == 0) && isset($userFacilities) ){
+                    foreach ($userFacilities as $uf) {
+                        if($user->category === "HL"){
+                            $uf->scenario = "hospital";
+                        }
+                        else if(in_array ($user->category, array("CC", "FT", "ET")) &&
+                                !($user->category === "CC" && $user->role === "SN")   ){
+                            $uf->scenario = "clinic";
+                        }
+                        $uf->user_id = $user->id;
+                        $isSaved = $uf->save();
+                        if(!$isSaved){
+    //                        Collect Errors
+                            $errors = $uf->getErrors();
+                            break;
+                        }
+                    }
+
                 }
 
-            }
-//          if no errors in previous operation then proceed  
-            if ( (sizeof($errors) == 0) && isset($userFacilities) ){
-                foreach ($userFacilities as $uf) {
-                    if($user->category === "HL"){
-                        $uf->scenario = "hospital";
-                    }
-                    else if(in_array ($user->category, array("CC", "FT", "ET")) &&
-                            !($user->category === "CC" && $user->role === "SN")   ){
-                        $uf->scenario = "clinic";
-                    }
-                    $uf->user_id = $user->id;
-                    $isSaved = $uf->save();
-                    if(!$isSaved){
-//                        Collect Errors
-                        $errors = $uf->getErrors();
-                        break;
-                    }
-                }
 
             }
-
+            else {
+    //            Collect errors
+                    $errors = $user->getErrors();
+            }
+        }
+        else{
+            $userErrors = $user->getErrors();
+            $errors = array_merge($errors,$userErrors);
             
         }
-        else {
-//            Collect errors
-                $errors = $user->getErrors();
-        }
-        
         
         $serviceResult = null;
         
-        if ($isSaved) {
+        if ((sizeof($errors) == 0)) {
             $transaction->commit();
             $data = array("id" => $user->id);
             $serviceResult = new ServiceResult(true, $data, $errors = array());
