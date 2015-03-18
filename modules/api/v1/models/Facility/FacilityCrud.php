@@ -14,144 +14,28 @@ class FacilityCrud{
     //Create verify params for create and update.
     //Facility groups should not be null.
     
-    public function create($facility, $facilityGroups){
-        $transaction = Yii::$app->db->beginTransaction();
-        $isSaved = $facility->save();
-        
-//      Errors collection  
+    public function verifyCreateOrUpdateParams($facility, $facilityGroups) {
         $errors = array();
+        $checkFacilityGroup = isset($facilityGroups);
         
-        if ($isSaved) {
-            if (isset($facilityGroups)){
-                if (is_array($facilityGroups)){
-                    foreach ($facilityGroups as $fg) {
-                        $fg->facility_id = $facility->id;
-                        $isSaved = $fg->save();
-                        if(!$isSaved){
-//                        Collect Errors
-                            $errors = $fg->getErrors();
-                            break;
-                        }
-                    }
-                }
-                else{
-                    $facilityGroups->facility_id = $facility->id;
-                    $isSaved = $facilityGroups->save();
-                    if(!$isSaved){
-//                        Collect Errors
-                        $errors = $facilityGroups->getErrors();
-                    }
-                    
-                }
-            }
-            else{
-                // Facility Groups is not set
-                $isSaved = false;
-                $errors["facility_groups"] = "Facility groups should not be null";
-                
-            }
-            
-        }
-        else {
-//            Collect errors
-                $errors = $facility->getErrors();
+        if(!$checkFacilityGroup || !is_array($facilityGroups) ||  empty($facilityGroups) ){
+            $errors['groups'] = ['Groups should be array'];
         }
         
-        
-        $serviceResult = null;
-        
-        if ($isSaved) {
-            $transaction->commit();
-            $data = array("id" => $facility->id);
-            $serviceResult = new ServiceResult(true, $data, $errors = array());
-        } 
-        else{
-            $transaction->rollBack();
-            $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
-
-        }
-        
-        return $serviceResult;
+        return $errors;
     }
     
-//    public function update($facility, $facilityGroups){
-    public function update(Facility $facility, $facilityGroups){
-        $transaction = Yii::$app->db->beginTransaction();
-        $isSaved = $facility->save();
-        
+    public function create($facility, $facilityGroups){
 //      Errors collection  
-        $errors = array();
+        $errors = $this->verifyCreateOrUpdateParams($facility, $facilityGroups);
+        $transaction = Yii::$app->db->beginTransaction();
+        $validate = $facility->validate();
         
-        if ($isSaved) {
-//            Refactor this deactivate logic
-            if(strtoupper($facility->deactivate) === 'T'){
-                $facilityUsersToDeactive = $facility->getActiveUsers(false)
-                    ->select(["user.id", "user.deactivate", 
-                        "user.enable_two_step_verification", 
-                        "user.category", "user.role"])
-                    ->all();
-                $usersToDeactivateIds = sizeof($facilityUsersToDeactive) > 0 ? 
-                    $this->getUserIdsFromUser($facilityUsersToDeactive) : array();
-                if(sizeof($usersToDeactivateIds)){
-                    
-                    if(strtoupper($facility->type) === "HL"){
-                        $filteredUserIds = $this->getUserIdsFromUserFacility(
-                            UserFacility::
-                            filterUsersExistInMultipleHospitals($usersToDeactivateIds));
-                        foreach ($facilityUsersToDeactive as $u){
-                        if(in_array($u->id, $filteredUserIds) ){
-//                            Create deactivate scenario
-                                $u->deactivate = 'T';
-                                $u->enable_two_step_verification = 'F';
-                                $isSaved = $u->save();
-                                if(!$isSaved){
-        //                        Collect Errors
-                                    $errors = $u->getErrors();
-                                    break;
-                                }
-                            }
-                        }
-                        if(sizeof($errors) == 0){
-                            $groupsToDeactivate = $facility->getActiveGroups()
-                                ->select(["group.id", "group.deactivate" ])->all();
-                            foreach ($groupsToDeactivate as $g){
-                                $g->deactivate = 'T';
-                                $isSaved = $g->save();
-                                if(!$isSaved){
-        //                        Collect Errors
-                                    $errors = $g->getErrors();
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    
-                    else{
-                        $filteredUserIds = $this->getUserIdsFromUserFacility(
-                            UserFacility::
-                            filterUsersExistInMultipleClinics($usersToDeactivateIds));
-                        foreach ($facilityUsersToDeactive as $u){
-                        if(in_array($u->id, $filteredUserIds) ){
-                                $u->deactivate = 'T';
-                                $u->enable_two_step_verification = 'F';
-                                $isSaved = $u->save();
-                                if(!$isSaved){
-        //                        Collect Errors
-                                    $errors = $u->getErrors();
-                                    break;
-                                }
-                            }
-                        }
-                        
-                    }
-                }
-                
-            }
-            
-            // This should be in else block
-            else{
+        if((sizeof($errors) == 0) && $validate)
+        {
+            $isSaved = $facility->save();
+            if ($isSaved) {
                 if (isset($facilityGroups)){
-                    FacilityGroup::deleteFacilityGroups($facility->id);
                     if (is_array($facilityGroups)){
                         foreach ($facilityGroups as $fg) {
                             $fg->facility_id = $facility->id;
@@ -173,17 +57,154 @@ class FacilityCrud{
 
                     }
                 }
+                else{
+                    // Facility Groups is not set
+                    $isSaved = false;
+                    $errors["facility_groups"] = "Facility groups should not be null";
+
+                }
+
+            }
+            else {
+    //            Collect errors
+                    $errors = $facility->getErrors();
             }
         }
-        else {
-//            Collect errors
-                $errors = $facility->getErrors();
+        else{
+            $facilityErrors = $facility->getErrors();
+            $errors = array_merge($errors,$facilityErrors);
+            
+        }
+        
+        $serviceResult = null;
+        
+        if ((sizeof($errors) == 0)) {
+            $transaction->commit();
+            $data = array("id" => $facility->id);
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
+        } 
+        else{
+            $transaction->rollBack();
+            $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+
+        }
+        
+        return $serviceResult;
+    }
+    
+//    public function update($facility, $facilityGroups){
+    public function update(Facility $facility, $facilityGroups){
+        $errors = $this->verifyCreateOrUpdateParams($facility, $facilityGroups);
+        $transaction = Yii::$app->db->beginTransaction();
+        $validate = $facility->validate();
+        
+        if((sizeof($errors) == 0) && $validate)
+        {
+            $isSaved = $facility->save();
+
+            if ($isSaved) {
+    //            Refactor this deactivate logic
+                if(strtoupper($facility->deactivate) === 'T'){
+                    $facilityUsersToDeactive = $facility->getActiveUsers(false)
+                        ->select(["user.id", "user.deactivate", 
+                            "user.enable_two_step_verification", 
+                            "user.category", "user.role"])
+                        ->all();
+                    $usersToDeactivateIds = sizeof($facilityUsersToDeactive) > 0 ? 
+                        $this->getUserIdsFromUser($facilityUsersToDeactive) : array();
+                    if(sizeof($usersToDeactivateIds)){
+
+                        if(strtoupper($facility->type) === "HL"){
+                            $filteredUserIds = $this->getUserIdsFromUserFacility(
+                                UserFacility::
+                                filterUsersExistInMultipleHospitals($usersToDeactivateIds));
+                            foreach ($facilityUsersToDeactive as $u){
+                            if(in_array($u->id, $filteredUserIds) ){
+    //                            Create deactivate scenario
+                                    $u->deactivate = 'T';
+                                    $u->enable_two_step_verification = 'F';
+                                    $isSaved = $u->save();
+                                    if(!$isSaved){
+            //                        Collect Errors
+                                        $errors = $u->getErrors();
+                                        break;
+                                    }
+                                }
+                            }
+                            if(sizeof($errors) == 0){
+                                $groupsToDeactivate = $facility->getActiveGroups()
+                                    ->select(["group.id", "group.deactivate" ])->all();
+                                foreach ($groupsToDeactivate as $g){
+                                    $g->deactivate = 'T';
+                                    $isSaved = $g->save();
+                                    if(!$isSaved){
+            //                        Collect Errors
+                                        $errors = $g->getErrors();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        else{
+                            $filteredUserIds = $this->getUserIdsFromUserFacility(
+                                UserFacility::
+                                filterUsersExistInMultipleClinics($usersToDeactivateIds));
+                            foreach ($facilityUsersToDeactive as $u){
+                            if(in_array($u->id, $filteredUserIds) ){
+                                    $u->deactivate = 'T';
+                                    $u->enable_two_step_verification = 'F';
+                                    $isSaved = $u->save();
+                                    if(!$isSaved){
+            //                        Collect Errors
+                                        $errors = $u->getErrors();
+                                        break;
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+
+                }
+
+                // This should be in else block
+                else{
+                    if (isset($facilityGroups)){
+                        FacilityGroup::deleteFacilityGroups($facility->id);
+                        if (is_array($facilityGroups)){
+                            foreach ($facilityGroups as $fg) {
+                                $fg->facility_id = $facility->id;
+                                $isSaved = $fg->save();
+                                if(!$isSaved){
+        //                        Collect Errors
+                                    $errors = $fg->getErrors();
+                                    break;
+                                }
+                            }
+                        }
+                        else{
+                            $facilityGroups->facility_id = $facility->id;
+                            $isSaved = $facilityGroups->save();
+                            if(!$isSaved){
+        //                        Collect Errors
+                                $errors = $facilityGroups->getErrors();
+                            }
+
+                        }
+                    }
+                }
+            }
+            else {
+        //            Collect errors
+                        $errors = $facility->getErrors();
+                }
         }
         
         
         $serviceResult = null;
         
-        if ($isSaved) {
+        if ((sizeof($errors) == 0)) {
             $transaction->commit();
             $data = array("message" => "Record has been updated");
             $serviceResult = new ServiceResult(true, $data, $errors = array());
@@ -276,4 +297,7 @@ class FacilityCrud{
         return array_map(function($u){return $u['user_id'];}, $facilityUserIds);
         
     }
+
+    
+
 }

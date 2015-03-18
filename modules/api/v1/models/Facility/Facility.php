@@ -43,17 +43,24 @@ class Facility extends ActiveRecord
             [['name',  'npi'],  'unique', 'on' => ['post', 'put'], 
                 'message' => '{attribute} should be unique' ],
             [['email', 'representative_email' ], 'email', 'on' => ['post', 'put'] ],
+            
+            [['zip_code'], 'integer',  
+                'on' => ['post', 'put'], "message" => "Please enter a valid 5 digit zip code "
+                . "of the healthcare facility"  ],
             [['zip_code'], 'compare', 'compareValue' => 0, 'operator' => '>', 
                 'on' => ['post', 'put'], "message" => "Please enter a valid 5 "
                 . "digit zip code of the healthcare facility"],
             [ ['zip_code'], 'string', 'length' => [5, 5], 'on' => ['post', 'put'] ],
             [['npi', 'phone', 'representative_contact_number'], 
+                'integer',  
+                'on' => ['post', 'put'], "message" => "{attribute} should be 10 digits"  ],
+            [['npi', 'phone', 'representative_contact_number'], 
                 'compare', 'compareValue' => 0, 'operator' => '>', 
                 'on' => ['post', 'put'], "message" => "{attribute} should be 10 digits"  ],
             [['npi', 'phone', 'representative_contact_number'], 
                 'string', 'length' => [10, 10], 'on' => ['post', 'put']  ],
-            [['city'], 'match', 'pattern' => '/[^A-Za-z]/' 
-                , 'not' => true, 'message' => "Please enter alphabets only", 
+            [['city'], 'match', 'pattern' => '/^[A-Za-z\s.]+$/' ,  
+                'message' => "Please enter alphabets only", 
                 'on' => ['post', 'put'] ],
             [['state'], 'hasValidState', 'on' => ['post', 'put'] ],
             [['type'], 'hasValidFacilityType', 'on' => ['post', 'put'] ],

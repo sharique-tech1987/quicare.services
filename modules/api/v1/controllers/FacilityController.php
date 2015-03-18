@@ -225,20 +225,19 @@ class FacilityController extends Controller
     private function getFacilityGroup($params){
         $facilityGroups = null;
 //      Refactor this and return array only
-        if (isset($params["group_id"]) && is_int($params["group_id"])){
-            $facilityGroups = new FacilityGroup();
-            $facilityGroups->attributes = $params;
-        }
-        else if(isset($params["group_id"]) && is_array($params["group_id"])){
+        if(isset($params["group_id"]) && 
+            ( is_int($params["group_id"]) || is_array($params["group_id"]) ) ){
             $facilityGroups = array();
-            $groups_ids = $params["group_id"];
+            $groups_ids = is_int($params["group_id"]) ? array($params["group_id"]) :
+                                                        $params["group_id"];
+            
             foreach ($groups_ids as $value) {
                     $tempFgObject = new FacilityGroup();
                     $tempFgObject->group_id = $value;
                     array_push($facilityGroups, $tempFgObject);
                 }
         }
-        
+      
         return $facilityGroups;
     }
     

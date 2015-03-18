@@ -66,7 +66,7 @@ class GroupCrud{
 //            Collect errors
                 $errors = $group->getErrors();
         }
-        if ($isSaved) {
+        if (sizeof($errors) == 0) {
             $transaction->commit();
             $data = array("message" => "Record has been updated");
             $serviceResult = new ServiceResult(true, $data, $errors = array());
