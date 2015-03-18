@@ -270,7 +270,7 @@ class Facility extends ActiveRecord
             'representative_email',
             'designated_representative',
             'default_group',
-            'disabled' => 'deactivate',
+            'deactivate',
             'isReal',
         ];
     }

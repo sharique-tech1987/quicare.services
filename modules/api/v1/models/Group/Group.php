@@ -176,7 +176,7 @@ class Group extends ActiveRecord
     public function extraFields() {
         return [
             'administrator',
-            'disabled' => 'deactivate',
+            'deactivate',
             'isReal',
         ];
     }

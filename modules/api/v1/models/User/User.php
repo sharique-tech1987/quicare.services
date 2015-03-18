@@ -357,7 +357,7 @@ class User extends ActiveRecord
             'specialty',
             'notify',
             'enable_two_step_verification',
-            'disable' => 'deactivate',
+            'deactivate',
             'time_zone',
             'isReal',
         ];
