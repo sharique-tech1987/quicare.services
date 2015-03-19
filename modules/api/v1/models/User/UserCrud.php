@@ -75,7 +75,6 @@ class UserCrud{
          * $userGroups is not mandatory for all users
          * $userFacilities is not mandatory for all users
          */
-//        $errors = array();
         $errors = $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
         
         $transaction = Yii::$app->db->beginTransaction();
@@ -155,58 +154,68 @@ class UserCrud{
          * $userGroups is not mandatory for all users
          * $userFacilities is not mandatory for all users
          */
-        $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
+        $errors = $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
         
         $transaction = Yii::$app->db->beginTransaction();
         if(strtoupper($user->deactivate) === 'T'){
            $user->enable_two_step_verification = 'F'; 
         }
         
-        $isSaved = $user->save();
-        UserGroup::deleteUsersGroups($user->id);
-        UserFacility::deleteUsersFacilities($user->id);
+        $validate = $user->validate();
         
-//      Errors collection  
-        $errors = array();
-        
-        if ($isSaved) {
-            if (isset($userGroups)){
-                foreach ($userGroups as $ug) {
-                    $ug->user_id = $user->id;
-                    $isSaved = $ug->save();
-                    if(!$isSaved){
-//                        Collect Errors
-                        $errors = $ug->getErrors();
-                        break;
+        if((sizeof($errors) == 0) && $validate)
+        {
+            $isSaved = $user->save();
+            UserGroup::deleteUsersGroups($user->id);
+            UserFacility::deleteUsersFacilities($user->id);
+
+    //      Errors collection  
+    //        $errors = array();
+
+            if ($isSaved) {
+                if (isset($userGroups)){
+                    foreach ($userGroups as $ug) {
+                        $ug->user_id = $user->id;
+                        $isSaved = $ug->save();
+                        if(!$isSaved){
+    //                        Collect Errors
+                            $errors = $ug->getErrors();
+                            break;
+                        }
                     }
+
+                }
+    //          if no errors in previous operation then proceed  
+                if ( (sizeof($errors) == 0) && isset($userFacilities) ){
+                    foreach ($userFacilities as $uf) {
+                        $uf->user_id = $user->id;
+                        $isSaved = $uf->save();
+                        if(!$isSaved){
+    //                        Collect Errors
+                            $errors = $uf->getErrors();
+                            break;
+                        }
+                    }
+
                 }
 
-            }
-//          if no errors in previous operation then proceed  
-            if ( (sizeof($errors) == 0) && isset($userFacilities) ){
-                foreach ($userFacilities as $uf) {
-                    $uf->user_id = $user->id;
-                    $isSaved = $uf->save();
-                    if(!$isSaved){
-//                        Collect Errors
-                        $errors = $uf->getErrors();
-                        break;
-                    }
-                }
 
             }
-
-            
+            else {
+    //            Collect errors
+                    $errors = $user->getErrors();
+            }
         }
-        else {
-//            Collect errors
-                $errors = $user->getErrors();
+        else{
+            $userErrors = $user->getErrors();
+            $errors = array_merge($errors,$userErrors);
+            
         }
         
         
         $serviceResult = null;
         
-        if ($isSaved) {
+        if ((sizeof($errors) == 0)) {
             $transaction->commit();
             $data = array("message" => "Record has been updated");
             $serviceResult = new ServiceResult(true, $data, $errors = array());
