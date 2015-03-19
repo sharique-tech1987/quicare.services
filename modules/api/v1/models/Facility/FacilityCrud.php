@@ -7,6 +7,7 @@ use app\modules\api\models\RecordFilter;
 use Yii;
 use app\modules\api\v1\models\FacilityGroup\FacilityGroup;
 use app\modules\api\v1\models\UserFacility\UserFacility;
+use app\modules\api\models\AppEnums;
 
 
 class FacilityCrud{
@@ -243,6 +244,7 @@ class FacilityCrud{
             
             $resultArray = array();
             foreach ($result as $value){
+                $value->type = AppEnums::getFacilityText($value->type);
                 $valueArray = $value->toArray($filteredFields, $filteredFields);
                 array_push($resultArray, $valueArray);
             }

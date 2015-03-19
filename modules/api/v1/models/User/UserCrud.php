@@ -8,6 +8,7 @@ use app\modules\api\v1\models\UserGroup\UserGroup;
 use Yii;
 use app\modules\api\v1\models\UserFacility\UserFacility;
 use app\modules\api\v1\models\User\User;
+use app\modules\api\models\AppEnums;
 
 class UserCrud{
     /*
@@ -271,12 +272,14 @@ class UserCrud{
             if($affiliatedFacilities){
                 $resultArray = array();
                 foreach ($result as $value){
-                    $valueArray = $value->toArray($filteredFields, $filteredFields);
-                    if(sizeof($filteredFields)){
-                        if(in_array('facility', $filteredFields)){
-                            $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
-                        }
+                    $value->category = AppEnums::getCategoryText($value->category);
+                    $value->role = AppEnums::getRoleText($value->role);
+                    $valueArray = $value->toArray($filteredFields, $filteredFields);                    
+//                    if(sizeof($filteredFields)){
+                    if(in_array('facility', $filteredFields)){
+                        $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
                     }
+//                    }
                     else{
                         $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
                     }
