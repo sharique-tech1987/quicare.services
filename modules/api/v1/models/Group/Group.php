@@ -109,20 +109,30 @@ class Group extends ActiveRecord
             $search_category = isset($filter_object['search_category']) ?
                 $filter_object['search_category'] : null;
             
-            $isReal = $search_category === "test" ? 'F' : 'T';
+            $search_op = isset($filter_object['search_op']) ?
+                strtolower($filter_object['search_op']) : null;
             
             $deactivate = $search_type === "deactive_hg" ? 'T' : 'F';
             $validSearchTypeValues = array("active_hg", "deactive_hg");
             
-            $query->where(["isReal" => $isReal]);
+            if($search_category !== null){
+                $isReal = $search_category === "test" ? 'F' : 'T';
+                $query->where(["isReal" => $isReal]);
+            }
             
             if($search_type == "all_hg" && $search_by == "all"){
                 // Use query builder expressions for performance improvement
 //              This condition and else condition is same.
             }
             else if($search_type == "all_hg" && $search_by == "hg_name" && $search_text){
-                $query->andWhere("[[name]] LIKE :name");
-                $query->addParams([":name" => "%{$search_text}%"]);
+                if($search_op === 'equal'){
+                    $query->andWhere(["name" => $search_text]);
+                }
+                else{
+                    $query->andWhere("[[name]] LIKE :name");
+                    $query->addParams([":name" => "%{$search_text}%"]);
+                }
+                
             }
             
 //          Active Groups / Inactive Groups
@@ -130,9 +140,14 @@ class Group extends ActiveRecord
                 $query->andWhere(["deactivate" => $deactivate]);
             }
             else if(in_array($search_type, $validSearchTypeValues) && $search_by == "hg_name" && $search_text){
-                $query->andWhere("[[name]] LIKE :name")
-                      ->andWhere(["deactivate" => $deactivate]);
-                $query->addParams([":name" => "%{$search_text}%"]);
+                $query->andWhere(["deactivate" => $deactivate]);
+                if($search_op === 'equal'){
+                    $query->andWhere(["name" => $search_text]);
+                }
+                else{
+                    $query->andWhere("[[name]] LIKE :name");
+                    $query->addParams([":name" => "%{$search_text}%"]);
+                }
             }
 
             else{
