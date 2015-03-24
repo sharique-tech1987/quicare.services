@@ -64,8 +64,8 @@ class Facility extends ActiveRecord
                 'on' => ['post', 'put'] ],
             [['state'], 'hasValidState', 'on' => ['post', 'put'] ],
             [['type'], 'hasValidFacilityType', 'on' => ['post', 'put'] ],
-            [['representative_name'], 'match', 'pattern' => "/[^A-Za-z\s-'.,]/", 
-                'not' => true, 'message' => "Please enter a representative's "
+            [['representative_name'], 'match', 'pattern' => "/^[A-Za-z\s-'.,]+$/", 
+                'message' => "Please enter a representative's "
                 . "name at the healthcare facility", 
                 'on' => ['post', 'put'] ],
             [['designated_representative'], 'hasValidRepresentative'],
@@ -201,6 +201,9 @@ class Facility extends ActiveRecord
                 $query->innerJoinWith('groups', false)
                     ->andWhere("[[group.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
+            }
+            else if($search_type == "all_hf" && $search_by == "npi" && $search_text){
+                $query->andWhere(["npi" => $search_text]);
             }
 
 //          Active Healthcare Facilities / In active Healthcare Facilities
