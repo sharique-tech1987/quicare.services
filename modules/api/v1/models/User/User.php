@@ -264,6 +264,9 @@ class User extends ActiveRecord
                     ->andWhere("[[health_care_facility.name]] LIKE :search_text");
                 $query->addParams([":search_text" => "%{$search_text}%"]);
             }
+            else if($search_type == "all_users" && $search_by == "npi" && $search_text){
+                $query->andWhere(["npi" => $search_text]);
+            }
 
 //          Active and Test Users
             else if(in_array($search_type, $validSearchTypeValues) && 
