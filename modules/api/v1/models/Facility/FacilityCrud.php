@@ -20,7 +20,7 @@ class FacilityCrud{
         $checkFacilityGroup = isset($facilityGroups);
         
         if(!$checkFacilityGroup || !is_array($facilityGroups) ||  empty($facilityGroups) ){
-            $errors['groups'] = ['Groups should be array'];
+            $errors['groups'] = ['You cannot leave this field blank'];
         }
         
         return $errors;

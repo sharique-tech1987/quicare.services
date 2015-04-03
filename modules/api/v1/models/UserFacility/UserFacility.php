@@ -38,7 +38,7 @@ class UserFacility extends ActiveRecord{
         return [ 
             [['user_id', 'facility_id' ], 'required', 
                  'message' => '{attribute} required',  ],
-        
+//          Apply integer rule for user_id and facility_id     
             [['facility_id'], 'exist',  'targetClass' => Facility::className(), 
                 'targetAttribute' => 'id', 'on' => ['default', 'clinic', 'hospital'], 
                 'filter'=> function ($query){

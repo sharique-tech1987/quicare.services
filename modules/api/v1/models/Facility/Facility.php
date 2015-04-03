@@ -39,7 +39,7 @@ class Facility extends ActiveRecord
                             'type',  'npi', 'phone', 'email', 'representative_name',  
                             'representative_contact_number', 'representative_email', 'isReal' ], 
                 'required', 'on' => ['post', 'put'], 
-                'message' => '{attribute} should not be empty',  ],
+                'message' => 'You cannot leave this field blank',  ],
             [['name',  'npi'],  'unique', 'on' => ['post', 'put'], 
                 'message' => '{attribute} should be unique' ],
             [['email', 'representative_email' ], 'email', 'on' => ['post', 'put'] ],

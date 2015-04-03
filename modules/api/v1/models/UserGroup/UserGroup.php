@@ -34,6 +34,7 @@ class UserGroup extends ActiveRecord{
     public function rules() {
         
         return [ 
+//          Apply integer rule for user_id and group_id
             [['user_id', 'group_id' ], 'required', 
                  'message' => '{attribute} required',  ],
             [['group_id'], 'exist',  'targetClass' => Group::className(), 

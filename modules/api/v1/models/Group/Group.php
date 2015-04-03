@@ -37,7 +37,7 @@ class Group extends ActiveRecord
                 'on' => ['post','put']],
             
             [['name', 'isReal'], 'required', 'on' => ['post','put'], 
-                'message' => '{attribute} required' ],
+                'message' => 'You cannot leave this field blank' ],
             [['name'], 'unique', 
                 'message' => 'Please enter a unique hospital group name', 'on' => ['post', 'put'] ],
             // Use only one validation rule to validate number and user existance
