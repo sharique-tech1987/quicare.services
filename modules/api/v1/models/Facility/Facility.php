@@ -59,7 +59,7 @@ class Facility extends ActiveRecord
                 'on' => ['post', 'put'], "message" => "{attribute} should be 10 digits"  ],
             [['npi', 'phone', 'representative_contact_number'], 
                 'string', 'length' => [10, 10], 'on' => ['post', 'put']  ],
-            [['city'], 'match', 'pattern' => '/^[A-Za-z\s.]+$/' ,  
+            [['city'], 'match', 'pattern' => '/^[A-Za-z\s.,0-9]+$/' ,  
                 'message' => "Please enter alphabets only", 
                 'on' => ['post', 'put'] ],
             [['state'], 'hasValidState', 'on' => ['post', 'put'] ],
