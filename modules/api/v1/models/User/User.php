@@ -38,7 +38,7 @@ class User extends ActiveRecord
             
             [[ 'first_name', 'last_name', 'user_name', 'email',
                 'cell_phone', 'category', 'role', 'isReal'], 'required', 
-                'on' => ['post', 'put'], 'message' => '{attribute} should not be empty',  ],
+                'on' => ['post', 'put'], 'message' => 'You cannot leave this field blank',  ],
 
             [['first_name', 'middle_name', 'last_name',], 'match', 
                 'pattern' => "/^[A-Za-z\s-'.,]+$/", 
@@ -73,7 +73,7 @@ class User extends ActiveRecord
             [['npi', 'degree'], 'required', 'when' => function($model) {
                 return in_array($this->role, ["PN", "RE", "PT", "BR", "SN"]) ;
             }, 
-                'on' => ['post', 'put'], 'message' => "{attribute} required"],
+                'on' => ['post', 'put'], 'message' => "You cannot leave this field blank"],
                 
             [['degree'], 'hasValidDegree', 'on' => ['post', 'put'] ],
             
@@ -81,10 +81,10 @@ class User extends ActiveRecord
             
             [['specialty'], 'required', 'when' => function($model) {
                 return ( ($this->category == "HL" && $this->role == "PN") || 
-                         ($this->category == "CC" && $this->role == "SN") );
+                         ($this->category == "CC" && ($this->role == "SN" || $this->role == "PN")) );
 
             }, 
-                'message' => "{attribute} required",
+                'message' => "You cannot leave this field blank",
                 'on' => ['post', 'put'] ],
             
             [['specialty'], 'hasValidSpecialty', 'on' => ['post', 'put'] ],

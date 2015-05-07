@@ -27,20 +27,20 @@ class UserCrud{
         $checkUserFacilities = isset($userFacilities);
         
         if($checkUserGroup && !(is_array($userGroups) && !empty($userGroups)) ){
-            $errors['groups'] = ['Groups should be array'];
+            $errors['groups'] = ['You cannot leave this field blank'];
             //throw new \Exception("Groups should be array");
         }
         if($checkUserFacilities && !(is_array($userFacilities) && !empty($userFacilities)) ){
-            $errors['facilities'] = ['Facilities should be array'];
+            $errors['facilities'] = ['You cannot leave this field blank'];
 //            throw new \Exception("Facilities should be array");
         }
-        
         if (sizeof($errors) == 0) {
             if( (isset($user->category) && isset($user->role)) ){
                 if( ( ($user->category == "HL" && $user->role == "PN") || 
                       ($user->category == "CC" && $user->role == "SN") ) && 
                     !( $checkUserGroup && $checkUserFacilities)  ){
-                    $errors['groups'] = ["User should have groups and facilities"];
+                    $errors['groups'] = ["User should have groups"];
+                    $errors['facilities'] = ['User should have facilities'];
     //                throw new \Exception("User should have groups and facilities");
                 }
                 else if( !( ($user->category == "HL" && $user->role == "PN") || 
@@ -61,7 +61,8 @@ class UserCrud{
                 else if( ( ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) || 
                     $user->category == "HR") 
                     && ($checkUserGroup || $checkUserFacilities)  ){
-                        $errors['groups'] = ["User should not have groups and facilities"];
+                        $errors['groups'] = ["User should not have groups"];
+                        $errors['facilities'] = ["User should not have facilities"];
     //                throw new \Exception("User should not have groups and facilities");
                 }
             }
