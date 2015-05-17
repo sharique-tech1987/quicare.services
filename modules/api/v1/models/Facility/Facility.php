@@ -68,20 +68,22 @@ class Facility extends ActiveRecord
                 'message' => "Please enter a representative's "
                 . "name at the healthcare facility", 
                 'on' => ['post', 'put'] ],
-            [['designated_representative'], 'hasValidRepresentative'],
             [['deactivate'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
                 'on' => ['put'], "message" => "Please enter valid deactivate value"],
             [['isReal'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
                 'on' => ['post', 'put'], "message" => "Please enter valid {attribute} value"],
             
+            [['designated_representative'], 'hasValidRepresentative', 'on' => ['post', 'put'] ],
+            
         ];
     }
     
     public function hasValidRepresentative($attribute,$params){
-        /*
-         * Designated Quicare representative record should exist in user table
-         * Check this field only when facility type is clinic, fsed, ed
-         */
+        $value = $this->$attribute;
+        if(!User::isSubAdmin($value)){
+            $this->designated_representative = null; 
+        }
+        
     }
     
     public function hasValidState($attribute,$params){

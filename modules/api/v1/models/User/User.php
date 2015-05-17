@@ -379,5 +379,11 @@ class User extends ActiveRecord
             'isReal',
         ];
     }
+    
+    public static function isSubAdmin($userId){
+        return self::find()->where(["id" => $userId, 
+            "deactivate" => "F", 
+            'category' => 'AS', 'role' => 'SR'])->exists();
+    }
 }
 
