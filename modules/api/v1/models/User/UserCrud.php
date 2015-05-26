@@ -275,12 +275,12 @@ class UserCrud{
                 foreach ($result as $value){
                     $value->category = AppEnums::getCategoryText($value->category);
                     $value->role = AppEnums::getRoleText($value->role);
-                    $valueArray = $value->toArray($filteredFields, $filteredFields);                    
-//                    if(sizeof($filteredFields)){
-                    if(in_array('facility', $filteredFields)){
-                        $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
+                    $valueArray = $value->toArray($filteredFields, $filteredFields);    
+                    if(sizeof($filteredFields)){
+                        if(in_array('facility', $filteredFields)){
+                            $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
+                        }
                     }
-//                    }
                     else{
                         $valueArray['facility'] = $this->getFacilitiesString($value->facilities);
                     }
