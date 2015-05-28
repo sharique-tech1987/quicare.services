@@ -6,44 +6,16 @@ use yii\db\Query;
 
 class AppQueries {
     
-    
-    static function findState($short_name){
+    static function getHospitalGroupsQuery(){
         /*
-         * Find state by short name
-         * Params:
-         * short_name : string
-         * Return value: array
+         * Get distinct groups query which are taken by hospitals
          */
         
-        $query = new Query();
-        $query->select('short_name')
-        ->from('state')
-        ->where('short_name = :short_name');
-        
-        $query->addParams([':short_name' => $short_name]);
-        
-        $rows = $query->one();
-        return $rows;
+        return (new Query())->select(['hcgf.group_id'])
+              ->distinct()
+              ->from(['health_care_facility_group hcgf'])
+              ->innerJoin(['health_care_facility hcf'], '`hcgf`.`facility_id` = `hcf`.`id`')
+              ->where(['hcf.type' => 'HL']);
     }
-    
-    static function findFacilityType($short_name){
-        /*
-         * Find state by short name
-         * Params:
-         * short_name : string
-         * Return value: array
-         */
-        
-        $query = new Query();
-        $query->select('short_name')
-        ->from('health_care_facility_type')
-        ->where('short_name = :short_name');
-        
-        $query->addParams([':short_name' => $short_name]);
-        
-        $rows = $query->one();
-        return $rows;
-    }
-    
     
 }

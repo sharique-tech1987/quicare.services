@@ -6,6 +6,7 @@ use yii\db\ActiveRecord;
 use app\modules\api\v1\models\Facility\Facility;
 use app\modules\api\v1\models\User\User;
 use yii\helpers\Json;
+use app\modules\api\models\AppQueries;
 
 class Group extends ActiveRecord
 {
@@ -138,6 +139,11 @@ class Group extends ActiveRecord
 //          Active Groups / Inactive Groups
             else if(in_array($search_type, $validSearchTypeValues) && $search_by == "all"){
                 $query->andWhere(["deactivate" => $deactivate]);
+            }
+            else if(in_array($search_type, $validSearchTypeValues) && $search_by == "hg_unused"){
+                $hospitalGroupsQuery = AppQueries::getHospitalGroupsQuery();
+                $query->andWhere(['not in', 'id', $hospitalGroupsQuery])
+                      ->andWhere(["deactivate" => $deactivate]);
             }
             else if(in_array($search_type, $validSearchTypeValues) && $search_by == "hg_name" && $search_text){
                 $query->andWhere(["deactivate" => $deactivate]);
