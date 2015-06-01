@@ -43,10 +43,14 @@ class UserCrud{
                     $errors['facilities'] = ['User should have facilities'];
     //                throw new \Exception("User should have groups and facilities");
                 }
+//                else if( !( ($user->category == "HL" && $user->role == "PN") || 
+//                      ($user->category == "CC" && $user->role == "SN") || 
+//                      ($user->category == "HR") || 
+//                    ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) ) ){
                 else if( !( ($user->category == "HL" && $user->role == "PN") || 
                       ($user->category == "CC" && $user->role == "SN") || 
                       ($user->category == "HR") || 
-                    ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) ) ){
+                    ($user->category == "AS" ) ) ){
 
                     if(!$checkUserFacilities){
                         $errors['facilities'] = ["User should have facilities"];
@@ -58,8 +62,9 @@ class UserCrud{
                     }
 
                 }
-                else if( ( ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) || 
-                    $user->category == "HR") 
+//                else if( ( ($user->category == "AS" &&  in_array($user->role, array("SR", "AR")) ) || 
+//                    $user->category == "HR") 
+                else if( ( ($user->category == "AS" ) || $user->category == "HR") 
                     && ($checkUserGroup || $checkUserFacilities)  ){
                         $errors['groups'] = ["User should not have groups"];
                         $errors['facilities'] = ["User should not have facilities"];

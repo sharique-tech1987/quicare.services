@@ -380,10 +380,12 @@ class User extends ActiveRecord
         ];
     }
     
-    public static function isSubAdmin($userId){
-        return self::find()->where(["id" => $userId, 
-            "deactivate" => "F", 
-            'category' => 'AS', 'role' => 'SR'])->exists();
+    public static function isSalesReprestative($userId){
+        return self::find()->where(["id" => $userId, "deactivate" => "F", 'category' => 'AS'])
+                ->andWhere(["OR", "role='SR'", "role='QT'"])
+                ->exists();
+        
+            
     }
 }
 

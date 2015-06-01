@@ -73,15 +73,15 @@ class Facility extends ActiveRecord
             [['isReal'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
                 'on' => ['post', 'put'], "message" => "Please enter valid {attribute} value"],
             
-            [['designated_representative'], 'hasValidRepresentative', 'on' => ['post', 'put'] ],
+            [['quicare_representative'], 'hasValidRepresentative', 'on' => ['post', 'put'] ],
             
         ];
     }
     
     public function hasValidRepresentative($attribute,$params){
         $value = $this->$attribute;
-        if(!User::isSubAdmin($value)){
-            $this->designated_representative = null; 
+        if(!User::isSalesReprestative($value)){
+            $this->quicare_representative = null; 
         }
         
     }
@@ -116,12 +116,12 @@ class Facility extends ActiveRecord
         $scenarios['post'] = ['name', 'address1', 'address2', 'city', 'zip_code', 'state',  
                             'type', 'npi', 'phone', 'email', 'representative_name',  
                             'representative_contact_number',  'representative_email',  
-                            'designated_representative', 'default_group', 'isReal' ];
+                            'quicare_representative', 'default_group', 'isReal' ];
         
         $scenarios['put'] = ['name', 'address1', 'address2', 'city', 'zip_code', 'state',  
                             'type', 'npi', 'phone', 'email', 'representative_name',  
                             'representative_contact_number',  'representative_email',  
-                            'designated_representative', 'default_group', 'deactivate', 'isReal' ];
+                            'quicare_representative', 'default_group', 'deactivate', 'isReal' ];
         return $scenarios;
         
     }
@@ -287,7 +287,7 @@ class Facility extends ActiveRecord
             'representative_name',
             'representative_contact_number',
             'representative_email',
-            'designated_representative',
+            'quicare_representative',
             'default_group',
             'deactivate',
             'isReal',
