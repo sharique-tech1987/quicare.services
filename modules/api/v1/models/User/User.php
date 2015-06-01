@@ -121,6 +121,19 @@ class User extends ActiveRecord
             if(!Degree::isDegreeExist($value)){
                 $this->addError($attribute, "Please enter valid degree");
             }
+            else if( in_array($this->role, ["PN", "SN"]) && !($value == "DO" || $value == "MD")  ){
+                $this->addError($attribute, "Please enter valid degree");
+            }
+            else if( $this->role == "BR" && !($value == "NP" || $value == "PA")  ){
+                $this->addError($attribute, "Please enter valid degree");
+            }
+            else if( $this->role == "RE" && !($value == "NP")  ){
+                $this->addError($attribute, "Please enter valid degree");
+            }
+            else if( $this->role == "PT" && !($value == "PA") ){
+                $this->addError($attribute, "Please enter valid degree");
+            }
+            
         }
         else{
             $this->degree = null;
