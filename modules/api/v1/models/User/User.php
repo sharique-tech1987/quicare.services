@@ -146,7 +146,7 @@ class User extends ActiveRecord
          */
         
         if( ($this->category == "HL" && $this->role == "PN") || 
-            ($this->category == "CC" && $this->role == "SN") ){
+            ($this->category == "CC" && ($this->role == "SN" || $this->role == "PN") ) ){
             $value = $this->$attribute;
             if(!Specialty::isSpecialtyExist($value)){
                 $this->addError($attribute, "Please enter valid specialty");
