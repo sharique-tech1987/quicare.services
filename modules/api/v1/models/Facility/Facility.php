@@ -178,7 +178,7 @@ class Facility extends ActiveRecord
                 $query->where(["health_care_facility.isReal" => $isReal]);
             }
             
-            if(isset($search_text) && $search_by == "hf_type"){
+            if(isset($search_text) && ($search_by == "hf_type" || $search_by == "hg_name")){
                 $search_text = explode(",", $search_text);
                 
             }
@@ -201,8 +201,9 @@ class Facility extends ActiveRecord
             }
             else if($search_type == "all_hf" && $search_by == "hg_name" && $search_text){
                 $query->innerJoinWith('groups', false)
-                    ->andWhere("[[group.name]] LIKE :search_text");
-                $query->addParams([":search_text" => "%{$search_text}%"]);
+                    ->andWhere(["group.name" => $search_text]);
+//                    ->andWhere("[[group.name]] LIKE :search_text");
+//                $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "all_hf" && $search_by == "npi" && $search_text){
                 $query->andWhere(["npi" => $search_text]);
@@ -230,9 +231,9 @@ class Facility extends ActiveRecord
             }
             else if(in_array($search_type, $validSearchTypeValues) && $search_by == "hg_name" && $search_text){
                 $query->innerJoinWith('groups', false)
-                    ->andWhere(["health_care_facility.deactivate" => $deactivate])
-                    ->andWhere("[[group.name]] LIKE :search_text");
-                $query->addParams([":search_text" => "%{$search_text}%"]);
+                    ->andWhere(["health_care_facility.deactivate" => $deactivate, "group.name" => $search_text]);
+//                    ->andWhere("[[group.name]] LIKE :search_text");
+//                $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else{
                 $query->andWhere(["deactivate" => 'F']);
