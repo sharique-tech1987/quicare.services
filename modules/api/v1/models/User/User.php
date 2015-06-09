@@ -236,6 +236,11 @@ class User extends ActiveRecord
                 $query->where(["user.isReal" => $isReal]);
             }
             
+            if(isset($search_text) && ($search_by == "u_group" || $search_by == "u_facility")){
+                $search_text = explode(",", $search_text);
+                
+            }
+            
             if($search_type == "all_users" && $search_by == "all"){
                 // Use query builder expressions for performance improvement
 //              This condition and else condition is same.
@@ -269,13 +274,15 @@ class User extends ActiveRecord
             }
             else if($search_type == "all_users" && $search_by == "u_group" && $search_text ){
                 $query->innerJoinWith('groups', false)
-                    ->andWhere("[[group.name]] LIKE :search_text");
-                $query->addParams([":search_text" => "%{$search_text}%"]);
+                    ->andWhere(["group.name" => $search_text]);
+//                    ->andWhere("[[group.name]] LIKE :search_text");
+//                $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "all_users" && $search_by == "u_facility" && $search_text){
                 $query->innerJoinWith('facilities', false)
-                    ->andWhere("[[health_care_facility.name]] LIKE :search_text");
-                $query->addParams([":search_text" => "%{$search_text}%"]);
+                        ->andWhere(["health_care_facility.name" => $search_text]);
+//                    ->andWhere("[[health_care_facility.name]] LIKE :search_text");
+//                $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if($search_type == "all_users" && $search_by == "npi" && $search_text){
                 $query->andWhere(["npi" => $search_text]);
@@ -324,16 +331,16 @@ class User extends ActiveRecord
             else if(in_array($search_type, $validSearchTypeValues) && 
                 $search_by == "u_group" && $search_text ){
                 $query->innerJoinWith('groups', false)
-                    ->andWhere(["user.deactivate" => $deactivate])
-                    ->andWhere("[[group.name]] LIKE :search_text");
-                $query->addParams([":search_text" => "%{$search_text}%"]);
+                    ->andWhere(["user.deactivate" => $deactivate, "group.name" => $search_text]);
+//                    ->andWhere("[[group.name]] LIKE :search_text");
+//                $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else if(in_array($search_type, $validSearchTypeValues) && 
                 $search_by == "u_facility" && $search_text){
                 $query->innerJoinWith('facilities', false)
-                    ->andWhere(["user.deactivate" => $deactivate])
-                    ->andWhere("[[health_care_facility.name]] LIKE :search_text");
-                $query->addParams([":search_text" => "%{$search_text}%"]);
+                    ->andWhere(["user.deactivate" => $deactivate, "health_care_facility.name" => $search_text]);
+//                    ->andWhere("[[health_care_facility.name]] LIKE :search_text");
+//                $query->addParams([":search_text" => "%{$search_text}%"]);
             }
             else{
                 $query->andWhere(["user.deactivate" => 'F']);
