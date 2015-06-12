@@ -89,10 +89,29 @@ class FacilityController extends Controller
             $params = Yii::$app->request->get();
             $this->response->statusCode = 200;
             $recordFilter = new RecordFilter();
-            $recordFilter->id = $id;
+            if(is_numeric($id)){
+                $recordFilter->id = $id;
+            }
             $recordFilter->attributes = $params;
+            $facility = null;
             
-            $facility = FacilityCrud::read($recordFilter, $findModel = false);
+            if(is_numeric($id)){
+                $facility = FacilityCrud::read($recordFilter, $findModel = false);
+            }
+            else if(is_string($id)){
+                $facilityIds = array_filter(explode(',', $id));
+                if(sizeof($facilityIds)){
+                    $facility = [];
+                    foreach ($facilityIds as $value) {
+                        $recordFilter->id = $value;
+                        $tempFacility = FacilityCrud::read($recordFilter, $findModel = false);
+                        if($tempFacility !== null){
+                            array_push($facility, $tempFacility);
+                        }
+                    }
+                }
+            }
+
             $serviceResult = new ServiceResult(true, 
                 $data = $facility , 
                 $errors = array()); 
