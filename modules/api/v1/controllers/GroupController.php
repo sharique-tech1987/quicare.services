@@ -86,10 +86,28 @@ class GroupController extends Controller
             $params = Yii::$app->request->get();
             $this->response->statusCode = 200;
             $recordFilter = new RecordFilter();
-            $recordFilter->id = $id;
+            if(is_numeric($id)){
+                $recordFilter->id = $id;
+            }
             $recordFilter->attributes = $params;
+            $group = null;
             
-            $group = $this->groupCrud->read($recordFilter, $findModel = false);
+            if(is_numeric($id)){
+                $group = $this->groupCrud->read($recordFilter, $findModel = false);
+            }
+            else if(is_string($id)){
+                $groupIds = array_filter(explode(',', $id));
+                if(sizeof($groupIds)){
+                    $group = [];
+                    foreach ($groupIds as $value) {
+                        $recordFilter->id = $value;
+                        $tempGroup = $this->groupCrud->read($recordFilter, $findModel = false);
+                        if($tempGroup !== null){
+                            array_push($group, $tempGroup);
+                        }
+                    }
+                }
+            }
             
             $serviceResult = new ServiceResult(true, 
                 $data = $group, 

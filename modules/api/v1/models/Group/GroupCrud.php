@@ -181,8 +181,22 @@ class GroupCrud{
                     $filteredFields = array();
                 }
                 $group_array = $group->toArray($filteredFields, $filteredFields);
-                $group_array["facilities"] = $group->facilities;
-                $group_array["users"] = $group->users;
+                if(sizeof($filteredFields)){
+                    if(in_array('facility', $filteredFields)){
+                        $group_array["facilities"] = $group->facilities;
+                    }
+                    else if(in_array('hospital_facility', $filteredFields)){
+                        $group_array["facilities"] = $group->hospitalFacilities;
+                    }
+                    if(in_array('users', $filteredFields)){
+                        $group_array["users"] = $group->users;
+                    }
+                }
+                else{
+                    $group_array["facilities"] = $group->facilities;
+                    $group_array["users"] = $group->users;
+                }
+                
                 return $group_array;
             }
         }

@@ -89,6 +89,13 @@ class Group extends ActiveRecord
             ->viaTable('health_care_facility_group', ['group_id' => 'id']);
     }
     
+    public function getHospitalFacilities()
+    {
+        return $this->hasMany(Facility::className(), ['id' => 'facility_id'])
+            ->viaTable('health_care_facility_group', ['group_id' => 'id'])
+            ->where(['health_care_facility.type' => 'HL']);
+    }
+    
     public function getUsers()
     {
         return $this->hasMany(User::className(), ['id' => 'user_id'])
