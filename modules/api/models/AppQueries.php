@@ -18,4 +18,49 @@ class AppQueries {
               ->where(['hcf.type' => 'HL']);
     }
     
+    static function getIcdNineByCodes($code){
+        $query = (new \yii\db\Query())
+        ->select(["code", "CONCAT_WS(' : ', code, long_desc) AS long_desc"])
+        ->from('icd_nine_codes')
+        ->where("[[code]] LIKE :search_text")
+        ->limit(15);
+        $query->addParams([":search_text" => "%{$code}%"]);
+        $rows = $query->all();
+        return $rows;
+    }
+
+    
+    static function getIcdNineCodesByDescription($desc){
+        $query = (new \yii\db\Query())
+        ->select(["code", "CONCAT_WS(' : ', code, long_desc) AS long_desc"])
+        ->from('icd_nine_codes')
+        ->where("[[long_desc]] LIKE :search_text")
+        ->limit(15);
+        $query->addParams([":search_text" => "%{$desc}%"]);
+        $rows = $query->all();
+        return $rows;
+    }
+    
+    static function getIcdTenByCodes($code){
+        $query = (new \yii\db\Query())
+        ->select(["code", "CONCAT_WS(' : ', code, long_desc) AS long_desc"])
+        ->from('icd_ten_codes')
+        ->where("[[code]] LIKE :search_text")
+        ->limit(15);
+        $query->addParams([":search_text" => "%{$code}%"]);
+        $rows = $query->all();
+        return $rows;
+    }
+    
+    static function getIcdTenCodesByDescription($desc){
+        $query = (new \yii\db\Query())
+        ->select(["code", "CONCAT_WS(' : ', code, long_desc) AS long_desc"])
+        ->from('icd_ten_codes')
+        ->where("[[long_desc]] LIKE :search_text")
+        ->limit(15);
+        $query->addParams([":search_text" => "%{$desc}%"]);
+        $rows = $query->all();
+        return $rows;
+    }
+    
 }

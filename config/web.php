@@ -38,10 +38,8 @@ $config = [
                 require(__DIR__ . '/urlRules/admissionUrlRule.php'),
                 require(__DIR__ . '/urlRules/setPasswordUrlRule.php'),
                 require(__DIR__ . '/urlRules/userMenuUrlRule.php'), 
-                            
-                
-                
-                
+                require(__DIR__ . '/urlRules/IcdUrlRule.php'),
+
             ],
 		],
         'request' => [
