@@ -10,41 +10,76 @@ use Yii;
 
 class AdmissionCrud{
     
-    private function verifyCreateOrUpdateParams(Admission $admission, $facility, $facilityGroupIds){
+    private function verifyCreateOrUpdateParams(Admission $admission, $facility, $facilityGroupIds, $admissionDiagnosis){
+        $errors = array();
+        if(!isset($admissionDiagnosis) || !(is_array($admissionDiagnosis) && !empty($admissionDiagnosis))){
+            $errors["diagnosis"] = "You cannot leave this field blank";
+        }
         if(!isset($admission)){
-            throw new \Exception("Admission should not be null");
+            $errors["admission"] = "Admission should not be null";
         }
         
         if($facility->deactivate === "T" || $facility->type !== "HL"){
-            throw new \Exception("Selected facility should be activated hospital");
+            $errors["facility"] = "Selected facility should be activated hospital";
         }
         
         if(!in_array($admission->group, $facilityGroupIds)){
-            throw new \Exception("Selected group should activated and exist in hospital");
+            $errors["group"] = "Selected group should activated and exist in hospital";
         }
+        
+        return $errors;
     }
     
-    public function create(Admission $admission){
+    public function create(Admission $admission, $admissionDiagnosis){
         $recordFilter = new RecordFilter();
         $recordFilter->id = $admission->sent_to_facility;
         $facility = FacilityCrud::read($recordFilter, true);
         $facilityGroups = $facility->getActiveGroups()->all();
         $facilityGroupIds = $this->getGroupsIds($facilityGroups);
-        $this->verifyCreateOrUpdateParams($admission, $facility, $facilityGroupIds);
+        /*
+         * Create Admission diagnosis table to store diagnosis
+         * Diagnosis is mandatory for creating admission
+         * Diagnosis should be array which sent through service
+         * Use verifyCreateOrUpdateParams method to verify admission diagnosis field
+         * 
+         */
+        $errors = $this->verifyCreateOrUpdateParams($admission, $facility, $facilityGroupIds, $admissionDiagnosis);
         
-        
+        $transaction = Yii::$app->db->beginTransaction();
         $admission->transaction_number = $this->generateTransactionNumber();
+        $validate = $admission->validate();
         
-        $isSaved = $admission->save();
+        if((sizeof($errors) == 0) && $validate)
+        {
+            $isSaved = $admission->save();
+            if ($isSaved) {
+                foreach ($admissionDiagnosis as $admDiag) {
+                    $admDiag->admission_id = $admission->transaction_number;
+                    $isSaved = $admDiag->save();
+                    if(!$isSaved){
+//                        Collect Errors
+                        $errors = $admDiag->getErrors();
+                        break;
+                    }
+                }
+            }
+            
+        }
+        else{
+            $admissionErrors = $admission->getErrors();
+            $errors = array_merge($errors,$admissionErrors);
+        }
         $serviceResult = null;
         
-        if ($isSaved) {
+        if ((sizeof($errors) == 0)) {
+            $transaction->commit();
             $data = array("transaction_number" => $admission->transaction_number);
             $serviceResult = new ServiceResult(true, $data, $errors = array());
         } 
         else{
+            $transaction->rollBack();
             $serviceResult = new ServiceResult(false, $data = array(), 
-                $errors = $admission->getErrors());
+                $errors = $errors);
         }
         
         return $serviceResult;

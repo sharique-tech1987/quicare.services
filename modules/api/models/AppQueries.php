@@ -63,4 +63,31 @@ class AppQueries {
         return $rows;
     }
     
+    static function isValidIcdCode($code){
+        $row = self::isValidIcdNineCode($code);
+        
+        if(!$row){
+            $row = self::isValidIcdTenCode($code);
+            return $row;
+        }
+        else{
+            return $row;
+        }
+    }
+    
+    private static function isValidIcdNineCode($code){
+        $query = (new \yii\db\Query())
+        ->select(["1"])
+        ->from('icd_nine_codes')
+        ->where(["code" => $code]);
+        return $query->exists();
+    }    
+    
+    private static function isValidIcdTenCode($code){
+        $query = (new \yii\db\Query())
+        ->select(["1"])
+        ->from('icd_ten_codes')
+        ->where(["code" => $code]);
+        return $query->exists();
+    }
 }

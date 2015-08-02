@@ -40,7 +40,7 @@ class Admission extends ActiveRecord
         return [
             [['transaction_number', 'patient_first_name', 'patient_last_name', 
                 'patient_gender', 'patient_dob', 'sent_to_facility', 'group',
-                'sent_by_facility', 'sent_by_user'], 
+                'sent_by_facility', 'sent_by_user', 'patient_ssn'], 
                 'required', 'on' => ['post']],
             
             [['sent_by_facility'], 'exist',  'targetClass' => Facility::className(), 
@@ -64,11 +64,16 @@ class Admission extends ActiveRecord
                 . "of characters", 
                 'on' => ['post'] ],
             
+            [['zip_code'], 'integer',  
+                'on' => ['post', 'put'], "message" => "Please enter a valid 5 digit zip code"],
             [['zip_code'], 'compare', 'compareValue' => 0, 'operator' => '>', 
                 'on' => ['post'], "message" => "Please enter a valid 5 "
                 . "digit zip code of the healthcare facility"],
             [ ['zip_code'], 'string', 'length' => [5, 5], 'on' => ['post'] ],
             
+//            [['patient_ssn'], 'integer',  
+//                'on' => ['post', 'put'], "message" => "Please enter a valid 9 digit ssn"],
+//            Write custom validation for ssn if required            
             [['patient_ssn'], 'compare', 'compareValue' => 0, 'operator' => '>', 
                 'on' => ['post'], "message" => "Please enter a valid 9 "
                 . "digit ssn"],

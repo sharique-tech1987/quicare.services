@@ -7,6 +7,7 @@ use app\modules\api\models\RecordFilter;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
 use app\modules\api\v1\models\Admission\Admission;
 use app\modules\api\v1\models\Admission\AdmissionCrud;
+use app\modules\api\v1\models\AdmissionDiagnosis\AdmissionDiagnosis;
 
 use Yii;
 
@@ -117,8 +118,8 @@ class AdmissionController extends Controller
             $admission = new Admission();
             $admission->scenario = 'post';
             $admission->attributes = $params;
-
-            $this->response->data = $this->crud->create($admission);
+            $admissionDiagnosis = $this->getAdmissionDiagnosis($params);
+            $this->response->data = $this->crud->create($admission, $admissionDiagnosis);
             
         } 
         catch (\Exception $ex) {
@@ -171,49 +172,8 @@ class AdmissionController extends Controller
     }
  
     private function trimParams($params){
-        if(isset($params["deactivate"])){
-            $params["deactivate"] = strtoupper(trim($params["deactivate"]));
-        }
-        
-        if(isset($params["state"])){
-            $params["state"] = strtoupper(trim($params["state"]));
-        }
-        
-        if(isset($params["type"])){
-            $params["type"] = strtoupper(trim($params["type"]));
-        }
-        
-        if(isset($params["representative_name"])){
-            $params["representative_name"] = trim($params["representative_name"]);
-        }
-        
-        if(isset($params["city"])){
-            $params["city"] = trim($params["city"]);
-        }
-        
-        if(isset($params["npi"])){
-            $params["npi"] = trim($params["npi"]);
-        }
-        
-        if(isset($params["phone"])){
-            $params["phone"] = trim($params["phone"]);
-        }
-        
-        if(isset($params["representative_contact_number"])){
-            $params["representative_contact_number"] = 
-                trim($params["representative_contact_number"]);
-        }
-        
-        if(isset($params["ein"])){
-            $params["ein"] = trim($params["ein"]);
-        }
-        
-        if(isset($params["zip_code"])){
-            $params["zip_code"] = trim($params["zip_code"]);
-        }
-        
-        if(isset($params["isReal"])){
-            $params["isReal"] = strtoupper(trim($params["isReal"]));
+        if(isset($params["patient_gender"])){
+            $params["patient_gender"] = strtoupper(trim($params["patient_gender"]));
         }
     
         return $params;
@@ -222,16 +182,16 @@ class AdmissionController extends Controller
     private function getFacilityGroup($params){
         $facilityGroups = null;
 //      Refactor this and return array only
-        if (isset($params["group_id"]) && is_int($params["group_id"])){
+        if (isset($params["diagnosis_code"]) && is_int($params["diagnosis_code"])){
             $facilityGroups = new FacilityGroup();
             $facilityGroups->attributes = $params;
         }
-        else if(isset($params["group_id"]) && is_array($params["group_id"])){
+        else if(isset($params["diagnosis_code"]) && is_array($params["diagnosis_code"])){
             $facilityGroups = array();
-            $groups_ids = $params["group_id"];
+            $groups_ids = $params["diagnosis_code"];
             foreach ($groups_ids as $value) {
                     $tempFgObject = new FacilityGroup();
-                    $tempFgObject->group_id = $value;
+                    $tempFgObject->diagnosis_code = $value;
                     array_push($facilityGroups, $tempFgObject);
                 }
         }
@@ -275,6 +235,22 @@ class AdmissionController extends Controller
                 return array("success" => true, "message" => "");
             }
         }
+    }
+    
+    private function getAdmissionDiagnosis($params){
+        $admissionDiagnosis = null;
+
+        if(isset($params["diagnosis_code"]) && (is_array($params["diagnosis_code"])) ){
+            $admissionDiagnosis = array();
+            $diagnosisCodes = $params["diagnosis_code"];
+            foreach ($diagnosisCodes as $value) {
+                    $tempAdmissionDiagnosisObject = new AdmissionDiagnosis();
+                    $tempAdmissionDiagnosisObject->diagnosis_code = $value;
+                    array_push($admissionDiagnosis, $tempAdmissionDiagnosisObject);
+                }
+        }
+        
+        return $admissionDiagnosis;
     }
     
 }
