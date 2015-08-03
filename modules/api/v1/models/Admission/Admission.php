@@ -40,7 +40,9 @@ class Admission extends ActiveRecord
         return [
             [['transaction_number', 'patient_first_name', 'patient_last_name', 
                 'patient_gender', 'patient_dob', 'sent_to_facility', 'group',
-                'sent_by_facility', 'sent_by_user', 'patient_ssn'], 
+                'sent_by_facility', 'sent_by_user', 'patient_ssn', 'patient_eta',
+                'mode_of_tranportation', 'bed_type', 'code_status', 
+                'patient_cell_number'], 
                 'required', 'on' => ['post']],
             
             [['sent_by_facility'], 'exist',  'targetClass' => Facility::className(), 
@@ -64,25 +66,37 @@ class Admission extends ActiveRecord
                 . "of characters", 
                 'on' => ['post'] ],
             
-            [['zip_code'], 'integer',  
-                'on' => ['post', 'put'], "message" => "Please enter a valid 5 digit zip code"],
-            [['zip_code'], 'compare', 'compareValue' => 0, 'operator' => '>', 
-                'on' => ['post'], "message" => "Please enter a valid 5 "
-                . "digit zip code of the healthcare facility"],
+//            [['zip_code'], 'integer',  
+//                'on' => ['post', 'put'], "message" => "Please enter a valid 5 digit zip code"],
+//            [['zip_code'], 'compare', 'compareValue' => 0, 'operator' => '>', 
+//                'on' => ['post'], "message" => "Please enter a valid 5 "
+//                . "digit zip code of the healthcare facility"],
             [ ['zip_code'], 'string', 'length' => [5, 5], 'on' => ['post'] ],
             
 //            [['patient_ssn'], 'integer',  
 //                'on' => ['post', 'put'], "message" => "Please enter a valid 9 digit ssn"],
 //            Write custom validation for ssn if required            
-            [['patient_ssn'], 'compare', 'compareValue' => 0, 'operator' => '>', 
-                'on' => ['post'], "message" => "Please enter a valid 9 "
-                . "digit ssn"],
+//            [['patient_ssn'], 'compare', 'compareValue' => 0, 'operator' => '>', 
+//                'on' => ['post'], "message" => "Please enter a valid 9 "
+//                . "digit ssn"],
             [ ['patient_ssn'], 'string', 'length' => [9, 9], 'on' => ['post'] ],
             
             [['patient_dob'], 'isValidDob', 'on' => ['post']],
             
             [['patient_gender'], 'in', 'range' => ['M', 'F'], 'strict' => true, 
                 'on' => ['post'], "message" => "Please enter valid {attribute} value"],
+                        
+            ['mode_of_tranportation', 'in', 'range' => [1, 2, 3]],
+                        
+            ['bed_type', 'in', 'range' => [1, 2, 3, 4, 5, 6, 7, 8]],
+                        
+            ['code_status', 'in', 'range' => [1, 2, 3]],
+                        
+            [ ['patient_cell_number'], 'string', 'length' => [10, 10], 'on' => ['post'] ],
+            
+            ['patient_eta', 'in', 'range' => [1, 3, 6, 9]],
+            
+            ['patient_email', 'email']
             
             
         ];
@@ -112,7 +126,9 @@ class Admission extends ActiveRecord
                             'patient_ssn','patient_dob', 'patient_gender',
                             'sent_to_facility', 'group', 'address1', 'address2', 'city', 'state',
                             'zip_code', 'patient_email', 'patient_contact_number', 
-                            'sent_by_facility', 'sent_by_user', 'on_behalf_of'];
+                            'sent_by_facility', 'sent_by_user', 'on_behalf_of', 
+                            'patient_eta', 'mode_of_tranportation', 'bed_type', 'code_status', 
+                            'patient_cell_number'];
         return $scenarios;
         
     }

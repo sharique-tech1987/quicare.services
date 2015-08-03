@@ -55,9 +55,9 @@ class User extends ActiveRecord
             
             [['email'], 'email', 'on' => ['post', 'put'] ],
             
-            [[ 'npi', 'cell_phone'], 
-                'compare', 'compareValue' => 0, 'operator' => '>', 
-                'on' => ['post', 'put'], "message" => "{attribute} should be 10 digits"  ],
+//            [[ 'npi', 'cell_phone'], 
+//                'compare', 'compareValue' => 0, 'operator' => '>', 
+//                'on' => ['post', 'put'], "message" => "{attribute} should be 10 digits"  ],
             [[ 'npi', 'cell_phone'],
                 'string', 'length' => [10, 10], 'on' => ['post', 'put']  ],
             
