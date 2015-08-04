@@ -29,7 +29,7 @@ class AdmissionDiagnosis extends ActiveRecord{
     
     public function scenarios() {
         return [
-            'default' => ['!admission_id', '!diagnosis_code']
+            'default' => ['!admission_id', '!diagnosis_code', '!diagnosis_desc']
         ];
     }
     
@@ -45,8 +45,9 @@ class AdmissionDiagnosis extends ActiveRecord{
     }
     
     public function hasValidDiagnosisCode($attribute,$params){
-        $value = $this->$attribute;
-        if(!AppQueries::isValidIcdCode($value)){
+        $code = $this->diagnosis_code;
+        $desc = $this->diagnosis_desc;
+        if(!AppQueries::isValidIcdCode($code, $desc)){
             $this->addError($attribute, "Please enter valid ICD Code");
         }
         

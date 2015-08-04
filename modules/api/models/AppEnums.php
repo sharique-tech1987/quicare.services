@@ -42,5 +42,38 @@ class AppEnums{
         return $facilityText[strtoupper($facilityCode)];
     }
     
+    public static function getTranportationText($code){
+        $transportationText = array(1 => "Ambulance",
+                              2 => "Personal Transportation",
+                              3 => "Unknown",
+                              
+            );
+        
+        return $transportationText[strtoupper($code)];
+    }
+    
+    public static function getBedTypeText($code){
+        $bedTypeText = array(1 => "Outpatient/ Observation 24H w Telemetry",
+                            2 => "Outpatient/ Observation 24H w/o Telemetry",
+                            3 => "Med/Surg  w Telemetry",
+                            4 => "Med/Surg w/o Telemetry",
+                            5 => "Intermediate Medical Unit",
+                            6 => "Intensive Care Unit",
+                            7 => "Pediatrics Bed",
+            );
+        
+        return $bedTypeText[strtoupper($code)];
+    }
+    
+    public static function getCodeSatusText($code){
+        $codeStatusText = array(1 => "Full Code",
+                              2 => "Do NOT Resuscitate",
+                              3 => "Comfort Measures Only",
+                              
+            );
+        
+        return $codeStatusText[strtoupper($code)];
+    }
+    
 }
 

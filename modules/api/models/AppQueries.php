@@ -63,11 +63,11 @@ class AppQueries {
         return $rows;
     }
     
-    static function isValidIcdCode($code){
-        $row = self::isValidIcdNineCode($code);
+    static function isValidIcdCode($code, $desc){
+        $row = self::isValidIcdNineCode($code, $desc);
         
         if(!$row){
-            $row = self::isValidIcdTenCode($code);
+            $row = self::isValidIcdTenCode($code, $desc);
             return $row;
         }
         else{
@@ -75,19 +75,19 @@ class AppQueries {
         }
     }
     
-    private static function isValidIcdNineCode($code){
+    private static function isValidIcdNineCode($code, $desc){
         $query = (new \yii\db\Query())
         ->select(["1"])
         ->from('icd_nine_codes')
-        ->where(["code" => $code]);
+        ->where(["code" => $code, "long_desc" => $desc]);
         return $query->exists();
     }    
     
-    private static function isValidIcdTenCode($code){
+    private static function isValidIcdTenCode($code, $desc){
         $query = (new \yii\db\Query())
         ->select(["1"])
         ->from('icd_ten_codes')
-        ->where(["code" => $code]);
+        ->where(["code" => $code, "long_desc" => $desc]);
         return $query->exists();
     }
 }

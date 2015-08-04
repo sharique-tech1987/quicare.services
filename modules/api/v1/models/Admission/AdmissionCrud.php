@@ -6,6 +6,7 @@ use app\modules\api\v1\models\Admission\Admission;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\v1\models\Facility\FacilityCrud;
+use app\modules\api\models\AppEnums;
 use Yii;
 
 class AdmissionCrud{
@@ -51,6 +52,8 @@ class AdmissionCrud{
         
         if((sizeof($errors) == 0) && $validate)
         {
+//           Value of this field will be depending upon the type of user
+            $admission->intiated_on = date("Y-m-d H:i:s", time());
             $isSaved = $admission->save();
             if ($isSaved) {
                 foreach ($admissionDiagnosis as $admDiag) {
@@ -140,7 +143,7 @@ class AdmissionCrud{
         }
     }
 
-    public function readAll(RecordFilter $recordFilter){
+    public function readAll(RecordFilter $recordFilter, $withAdmissionDiagnosis = false){
         $serviceResult = null;
         if ($recordFilter->validate()) {
             
@@ -154,6 +157,10 @@ class AdmissionCrud{
                 $filteredFields = array();
             }
             
+            if($withAdmissionDiagnosis){
+                $query->with(['admissionDiagnosis']);
+            }
+            
             Admission::addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
 
             Admission::addFilters($query, $recordFilter->filter);
@@ -163,14 +170,28 @@ class AdmissionCrud{
             
             $result = $query->all();
             
-            $resultArray = array();
-            foreach ($result as $value){
-                $valueArray = $value->toArray($filteredFields, $filteredFields);
-                array_push($resultArray, $valueArray);
+            if($withAdmissionDiagnosis){
+                $resultArray = array();
+                foreach ($result as $value){
+                    $valueArray = $value->toArray($filteredFields, $filteredFields); 
+                    $valueArray['bed_type'] = AppEnums::getBedTypeText($value->bed_type);
+                    $valueArray['code_status'] = AppEnums::getCodeSatusText($value->code_status);
+                    $valueArray['admitting_facility'] =  $value->hospital["name"];
+                    $valueArray['referring_facility'] = $value->clinic["name"];
+                    if(sizeof($filteredFields)){
+                        if(in_array('diagnosis', $filteredFields)){
+                            $valueArray['diagnosis'] = $this->getDiagnosisString($value->admissionDiagnosis);
+                        }
+                    }
+                    else{
+                        $valueArray['diagnosis'] = $this->getDiagnosisString($value->admissionDiagnosis);
+                    }
+                    array_push($resultArray, $valueArray);
+                }
+                
+                $result = $resultArray;
+
             }
-            
-            $result = $resultArray;
-            
 
             $data = array("total_records" => $record_count, "records" => $result);
             $serviceResult = new ServiceResult(true, $data, $errors = array());
@@ -182,6 +203,12 @@ class AdmissionCrud{
                 $errors = $recordFilter->getErrors());
             return $serviceResult;
         }
+    }
+    
+    private function getDiagnosisString($diagnosis){
+        return implode(",", array_filter(array_map(function($diag){
+            return $diag->diagnosis_desc; 
+        }, $diagnosis)) );
     }
 
 }

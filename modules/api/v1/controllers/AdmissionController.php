@@ -61,7 +61,7 @@ class AdmissionController extends Controller
 
             $recordFilter->attributes = $params;
             
-            $result = $this->crud->readAll($recordFilter);
+            $result = $this->crud->readAll($recordFilter, true);
             
             if(isset($params["export_csv"])){
                 $result = $result->data["records"];
@@ -240,12 +240,13 @@ class AdmissionController extends Controller
     private function getAdmissionDiagnosis($params){
         $admissionDiagnosis = null;
 
-        if(isset($params["diagnosis_code"]) && (is_array($params["diagnosis_code"])) ){
+        if(isset($params["diagnosis"]) && (is_array($params["diagnosis"])) ){
             $admissionDiagnosis = array();
-            $diagnosisCodes = $params["diagnosis_code"];
-            foreach ($diagnosisCodes as $value) {
+            $diagnosisArray = $params["diagnosis"];
+            foreach ($diagnosisArray as $value) {
                     $tempAdmissionDiagnosisObject = new AdmissionDiagnosis();
-                    $tempAdmissionDiagnosisObject->diagnosis_code = $value;
+                    $tempAdmissionDiagnosisObject->diagnosis_code = $value["code"];
+                    $tempAdmissionDiagnosisObject->diagnosis_desc = $value["desc"];
                     array_push($admissionDiagnosis, $tempAdmissionDiagnosisObject);
                 }
         }

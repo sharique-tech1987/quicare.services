@@ -7,6 +7,7 @@ use yii\helpers\Json;
 use app\modules\api\v1\models\Facility\Facility;
 use app\modules\api\v1\models\User\User;
 use app\modules\api\v1\models\Group\Group;
+use app\modules\api\v1\models\AdmissionDiagnosis\AdmissionDiagnosis;
 
 class Admission extends ActiveRecord
 {
@@ -88,7 +89,7 @@ class Admission extends ActiveRecord
                         
             ['mode_of_tranportation', 'in', 'range' => [1, 2, 3]],
                         
-            ['bed_type', 'in', 'range' => [1, 2, 3, 4, 5, 6, 7, 8]],
+            ['bed_type', 'in', 'range' => [1, 2, 3, 4, 5, 6, 7]],
                         
             ['code_status', 'in', 'range' => [1, 2, 3]],
                         
@@ -200,6 +201,21 @@ class Admission extends ActiveRecord
         }
         $query->orderBy([$orderby => $sort]);
 
+    }
+    
+    public function getAdmissionDiagnosis(){
+        // Admission has many diagnosis via AdmissionDiagnosis.admission_id -> transaction_number
+        return $this->hasMany(AdmissionDiagnosis::className(), ['admission_id' => 'transaction_number']);
+    }
+    
+    public function getHospital(){
+        // Order has_one Customer via Customer.id -> customer_id
+        return $this->hasOne(Facility::className(), ['id' => 'sent_to_facility']);
+    }
+    
+    public function getClinic(){
+        // Order has_one Customer via Customer.id -> customer_id
+        return $this->hasOne(Facility::className(), ['id' => 'sent_by_facility']);
     }
 
 }
