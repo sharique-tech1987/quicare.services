@@ -113,7 +113,7 @@ class AdmissionCrud{
         
     }
     
-    public static function read(RecordFilter $recordFilter, $findModel = true){
+    public function read(RecordFilter $recordFilter, $findModel = true){
         $admission = Admission::findOne($recordFilter->id);
         if($admission !== null ){
             if($findModel){
@@ -128,10 +128,17 @@ class AdmissionCrud{
                     $filteredFields = array();
                 }
                 $admissionArray = $admission->toArray($filteredFields, $filteredFields);
-                $admissionArray["sent_to_facility"] = $admission->getSentToFacility()->all();
-                $admissionArray["sent_by_facility"] = $admission->getSentByFacility()->all();
-                $admissionArray["sent_by_user"] = $admission->getSentByUser()->all();
-                $admissionArray["group"] = $admission->getGroup()->all();
+                $admissionArray["sent_to_facility"] = $admission->hospital;
+                $admissionArray["sent_by_facility"] = $admission->clinic;
+                $admissionArray["sent_by_user"] = $admission->user;
+                $admissionArray["group"] = $admission->groupObject;
+                $admissionArray['bed_type'] = array("id" => $admission->bed_type, 
+                                                    "name" => AppEnums::getBedTypeText($admission->bed_type));
+                $admissionArray['code_status'] = array("id" => $admission->code_status, 
+                                                       "name" => AppEnums::getCodeSatusText($admission->code_status));
+                $admissionArray['mode_of_tranportation'] = array("id" => $admission->mode_of_tranportation, 
+                                                       "name" => AppEnums::getTranportationText($admission->mode_of_tranportation));
+                $admissionArray['diagnosis'] = $admission->admissionDiagnosis;
                 
 //                $admissionArray["users"] = $admission->users;
                 return $admissionArray;
@@ -174,10 +181,10 @@ class AdmissionCrud{
                 $resultArray = array();
                 foreach ($result as $value){
                     $valueArray = $value->toArray($filteredFields, $filteredFields); 
-                    $valueArray['bed_type'] = AppEnums::getBedTypeText($value->bed_type);
-                    $valueArray['code_status'] = AppEnums::getCodeSatusText($value->code_status);
-                    $valueArray['admitting_facility'] =  $value->hospital["name"];
-                    $valueArray['referring_facility'] = $value->clinic["name"];
+                    $valueArray['bed_type'] = array("id" => $value->bed_type, "name" => AppEnums::getBedTypeText($value->bed_type));
+                    $valueArray['code_status'] = array("id" => $value->code_status, "name" => AppEnums::getCodeSatusText($value->code_status));
+                    $valueArray['sent_to_facility'] =  array("id" => $value->sent_to_facility, "name" => $value->hospital["name"]);
+                    $valueArray['sent_by_facility'] = array("id" => $value->sent_by_facility, "name" => $value->clinic["name"]);
                     if(sizeof($filteredFields)){
                         if(in_array('diagnosis', $filteredFields)){
                             $valueArray['diagnosis'] = $this->getDiagnosisString($value->admissionDiagnosis);

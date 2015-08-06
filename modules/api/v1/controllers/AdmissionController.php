@@ -92,7 +92,7 @@ class AdmissionController extends Controller
             $recordFilter->id = $id;
             $recordFilter->attributes = $params;
             
-            $admission = AdmissionCrud::read($recordFilter, $findModel = false);
+            $admission = $this->crud->read($recordFilter, $findModel = false);
             $serviceResult = new ServiceResult(true, 
                 $data = $admission , 
                 $errors = array()); 

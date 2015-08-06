@@ -157,19 +157,19 @@ class Admission extends ActiveRecord
 
     }
     
-    public function getSentToFacility(){
-        return $this->hasOne(Facility::className(), ['id' => 'sent_to_facility']);
-    }
-    
-    public function getSentByFacility(){
-        return $this->hasOne(Facility::className(), ['id' => 'sent_by_facility']);
-    }
+//    public function getSentToFacility(){
+//        return $this->hasOne(Facility::className(), ['id' => 'sent_to_facility']);
+//    }
+//    
+//    public function getSentByFacility(){
+//        return $this->hasOne(Facility::className(), ['id' => 'sent_by_facility']);
+//    }
 
-    public function getSentByUser() {
+    public function getUser() {
         return $this->hasOne(User::className(), ['id' => 'sent_by_user']);
     }
 
-    public function getGroup() {
+    public function getGroupObject() {
         return $this->hasOne(Group::className(), ['id' => 'group']);
     }
     
