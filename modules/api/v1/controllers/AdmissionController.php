@@ -83,7 +83,6 @@ class AdmissionController extends Controller
         
     }
 	
-	
     public function actionView($id){
         try {
             $params = Yii::$app->request->get();
@@ -133,36 +132,12 @@ class AdmissionController extends Controller
     }
     
     public function actionUpdate($id){
-        try {
-            $params = Yii::$app->request->post();
-            date_default_timezone_set("UTC");
-
-            $this->response->statusCode = 200;
-            
-            $recordFilter = new RecordFilter();
-            $recordFilter->id = $id;
-                        
-            $facility = FacilityCrud::read($recordFilter);
-            $facility->scenario = 'put';
-            $params = $this->trimParams($params);
-            $facility->attributes = $params;
-            
-            $facilityGroups = $this->getFacilityGroup($params);
-
-            $this->response->data = $this->crud->update($facility, $facilityGroups);
-                
-            
-            
-        } 
-        catch (\Exception $ex) {
-            $this->response->statusCode = 500;
-            $serviceResult = new ServiceResult(false, $data = array(), 
-                $errors = array("exception" => $ex->getMessage()));
-            $this->response->data = $serviceResult;    
-        }
-            
+        $this->response->statusCode = 405;
+        $serviceResult = new ServiceResult(false, $data = array(), 
+            $errors = array("message" => "Update method not implemented for this resource" ));
+        $this->response->data = $serviceResult;
         
-        }
+       }
 	
     public function actionDelete($id){
         $this->response->statusCode = 405;
@@ -177,26 +152,6 @@ class AdmissionController extends Controller
         }
     
         return $params;
-    }
-    
-    private function getFacilityGroup($params){
-        $facilityGroups = null;
-//      Refactor this and return array only
-        if (isset($params["diagnosis_code"]) && is_int($params["diagnosis_code"])){
-            $facilityGroups = new FacilityGroup();
-            $facilityGroups->attributes = $params;
-        }
-        else if(isset($params["diagnosis_code"]) && is_array($params["diagnosis_code"])){
-            $facilityGroups = array();
-            $groups_ids = $params["diagnosis_code"];
-            foreach ($groups_ids as $value) {
-                    $tempFgObject = new FacilityGroup();
-                    $tempFgObject->diagnosis_code = $value;
-                    array_push($facilityGroups, $tempFgObject);
-                }
-        }
-        
-        return $facilityGroups;
     }
     
     private function downloadCSV($data, $fileName){
