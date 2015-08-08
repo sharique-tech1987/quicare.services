@@ -2,7 +2,29 @@
 
 namespace app\modules\api\models;
 
+abstract class Status{
+    const initiated = 1;
+    const accepted = 2;
+    const denied = 3;
+    const bedAllocated = 4;
+    const patientArrived = 5;
+    const patientNoShow = 6;
+    const closed = 7;
+    const patientDischarged = 8;
+}
+
 class AppEnums{
+    
+    public static function getStatusArray(){
+        return array(Status::initiated, 
+                    Status::accepted,
+                    Status::denied,
+                    Status::bedAllocated,
+                    Status::patientArrived,
+                    Status::patientNoShow,
+                    Status::closed,
+                    Status::patientDischarged);
+    }
     
     public static function getCategoryText($categoryCode){
         $categoryText = array("AS" => "App Users",
@@ -76,4 +98,6 @@ class AppEnums{
     }
     
 }
+
+
 

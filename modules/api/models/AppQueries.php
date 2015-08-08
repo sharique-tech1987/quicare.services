@@ -90,4 +90,38 @@ class AppQueries {
         ->where(["code" => $code, "long_desc" => $desc]);
         return $query->exists();
     }
+
+    static function insertAdmissionStatus($db, $admissionId, $status){
+        $command = $db->createCommand()->insert('admission_status', 
+                                    ["admission_id" => $admissionId, 
+                                    "status" => $status, 
+                                    "created_on" => date("Y-m-d H:i:s", time())]);
+        $command->execute();
+    }
+    
+    public static function isValidAdmission($admissionId){
+        $query = (new \yii\db\Query())
+        ->select(["1"])
+        ->from('admission')
+        ->where(["transaction_number" => $admissionId]);
+        return $query->exists();
+    }
+    
+    public static function getLastAdmissionStatus($admissionId){
+        $query = (new \yii\db\Query())
+        ->select(["*"])
+        ->from('admission_status')
+        ->where(["admission_id" => $admissionId])
+        ->orderBy(['created_on' => SORT_DESC]);
+        return $query->one();
+    }
+    
+    public static function getAdmissionStatuses($admissionId){
+        $query = (new \yii\db\Query())
+        ->select(["*"])
+        ->from('admission_status')
+        ->where(["admission_id" => $admissionId])
+        ->orderBy(['created_on' => SORT_DESC]);
+        return $query->all();
+    }
 }
