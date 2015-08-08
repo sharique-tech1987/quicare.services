@@ -8,6 +8,7 @@ use app\modules\api\models\RecordFilter;
 use app\modules\api\v1\models\Facility\FacilityCrud;
 use app\modules\api\models\AppEnums;
 use Yii;
+use app\modules\api\models\AppQueries;
 
 class AdmissionCrud{
     
@@ -46,7 +47,8 @@ class AdmissionCrud{
          */
         $errors = $this->verifyCreateOrUpdateParams($admission, $facility, $facilityGroupIds, $admissionDiagnosis);
         
-        $transaction = Yii::$app->db->beginTransaction();
+        $db = Yii::$app->db;
+        $transaction = $db->beginTransaction();
         $admission->transaction_number = $this->generateTransactionNumber();
         $validate = $admission->validate();
         
@@ -56,6 +58,7 @@ class AdmissionCrud{
             $admission->intiated_on = date("Y-m-d H:i:s", time());
             $isSaved = $admission->save();
             if ($isSaved) {
+                AppQueries::insertAdmissionStatus($db, $admission->transaction_number, 1);
                 foreach ($admissionDiagnosis as $admDiag) {
                     $admDiag->admission_id = $admission->transaction_number;
                     $isSaved = $admDiag->save();

@@ -5,8 +5,6 @@ use yii\rest\Controller;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
-use app\modules\api\v1\models\AdmissionStatus\AdmissionStatus;
-use app\modules\api\v1\models\AdmissionStatus\AdmissionStatusCrud;
 use app\modules\api\models\AppQueries;
 use app\modules\api\models\AppEnums;
 use app\modules\api\models\Status;
@@ -21,7 +19,7 @@ class AdmissionStatusController extends Controller
     
     public function init() {
         parent::init();
-        $this->crud = new AdmissionStatusCrud();
+//        $this->crud = new AdmissionStatusCrud();
         $this->response = Yii::$app->response;
         $this->response->format = \yii\web\Response::FORMAT_JSON;
         $this->response->headers->set('Content-type', 'application/json; charset=utf-8');
