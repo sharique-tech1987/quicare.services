@@ -113,6 +113,14 @@ class AdmissionStatusController extends Controller
             }
             
             if(sizeof($errors) == 0){
+                if(!$this->hasUpdateStatusPermission($status)){
+                    $errors['status'] = 'Don\'t have permission to update';
+                }
+            }
+            
+//            Write a function to check user can update only his facility admission
+            
+            if(sizeof($errors) == 0){
                 $lastStatus = AppQueries::getLastAdmissionStatus($admissionId);
                 if($status == Status::initiated && $lastStatus == false){
                     AppQueries::insertAdmissionStatus($db, $admissionId, $status);
@@ -138,19 +146,19 @@ class AdmissionStatusController extends Controller
                 else{
                     $errors['status'] = 'Valid Status should be given';
                 }
-                
-                $serviceResult = null;
-                if(sizeof($errors) == 0){
-                    $transaction->commit();
-                    $serviceResult = new ServiceResult(true, $data = array(), $errors = array());
-                    
-                }
-                else{
-                    $transaction->rollBack();
-                    $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
-                }
-                return $serviceResult;
             }
+            
+            $serviceResult = null;
+            if(sizeof($errors) == 0){
+                $transaction->commit();
+                $serviceResult = new ServiceResult(true, $data = array(), $errors = array());
+
+            }
+            else{
+                $transaction->rollBack();
+                $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+            }
+            return $serviceResult;
 
             
         } 
@@ -205,4 +213,34 @@ class AdmissionStatusController extends Controller
         }
     }
     
+    
+    private function hasUpdateStatusPermission($status){
+//        Ask and write rule for action closed as well
+        if($this->authUser["category"] == "HL" && $this->authUser["role"] == "PN" && 
+                ($status == Status::accepted || $status == Status::denied)  ){
+            return true;
+        }
+        else if($this->authUser["category"] == "HL" && $this->authUser["role"] == "BR" && 
+                $status == Status::bedAllocated  ){
+            return true;
+        }
+        else if( $this->authUser["category"] == "HL" && 
+                ($this->authUser["role"] == "BR" || $this->authUser["role"] == "AK")  && 
+                $status == Status::patientArrived  ){
+            return true;
+        }
+        else if( $this->authUser["category"] == "HL" && 
+                ($this->authUser["role"] == "BR" || $this->authUser["role"] == "AK")  && 
+                $status == Status::patientNoShow  ){
+            return true;
+        }
+        else if( $this->authUser["category"] == "HL" && 
+                ($this->authUser["role"] == "BR" || $this->authUser["role"] == "AK")  && 
+                $status == Status::patientDischarged  ){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
 }
