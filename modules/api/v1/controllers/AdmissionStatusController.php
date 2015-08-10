@@ -8,7 +8,7 @@ use app\modules\api\models\AuthToken\AuthTokenCrud;
 use app\modules\api\models\AppQueries;
 use app\modules\api\models\AppEnums;
 use app\modules\api\models\Status;
-
+use app\modules\api\v1\models\Admission\AdmissionCrud;
 use Yii;
 
 class AdmissionStatusController extends Controller
@@ -19,7 +19,7 @@ class AdmissionStatusController extends Controller
     
     public function init() {
         parent::init();
-//        $this->crud = new AdmissionStatusCrud();
+        $this->crud = new AdmissionCrud();
         $this->response = Yii::$app->response;
         $this->response->format = \yii\web\Response::FORMAT_JSON;
         $this->response->headers->set('Content-type', 'application/json; charset=utf-8');
@@ -105,21 +105,29 @@ class AdmissionStatusController extends Controller
             $admissionId = isset($params["admission_id"]) ? $params["admission_id"] : null;
             $status = isset($params["status"]) ? $params["status"] : null;
             $errors = array();
-            if(!$admissionId || !AppQueries::isValidAdmission($admissionId)){
+            $admission = null;
+            if(!$admissionId){
                 $errors['admission_id'] = 'Valid Admission Id should be given';
+            }
+            else{
+                $recordFilter = new RecordFilter();
+                $recordFilter->id = $admissionId;
+                $admission = $this->crud->read($recordFilter);
+                if($admission === null){
+                    $errors['admission_id'] = 'Valid Admission Id should be given';
+                }
             }
             if(!$status || !in_array($status, AppEnums::getStatusArray())){
                 $errors['status'] = 'Valid Status should be given';
             }
             
             if(sizeof($errors) == 0){
-                if(!$this->hasUpdateStatusPermission($status)){
+                if(!$this->hasUpdateStatusPermission($status, $admission)){
                     $errors['status'] = 'Don\'t have permission to update';
                 }
             }
-            
-//            Write a function to check user can update only his facility admission
-            
+//            Merge update status and has update staus permission functionality 
+//            at the time of refactoring
             if(sizeof($errors) == 0){
                 $lastStatus = AppQueries::getLastAdmissionStatus($admissionId);
                 if($status == Status::initiated && $lastStatus == false){
@@ -202,7 +210,7 @@ class AdmissionStatusController extends Controller
         else {
             $token = sizeof(explode('Basic', $authHeader)) >= 2 ? 
                 trim(explode('Basic', $authHeader)[1]) : null;
-            $user = AuthTokenCrud::read($token);
+            $user = AuthTokenCrud::read($token, true);
             if($user === null){
                 return array("success" => false, "message" => "Not a valid token");
             }
@@ -214,33 +222,50 @@ class AdmissionStatusController extends Controller
     }
     
     
-    private function hasUpdateStatusPermission($status){
+    private function hasUpdateStatusPermission($status, $admission){
 //        Ask and write rule for action closed as well
-        if($this->authUser["category"] == "HL" && $this->authUser["role"] == "PN" && 
-                ($status == Status::accepted || $status == Status::denied)  ){
+        $userFacilities = $this->getFacilityIdsFromUserFacilities($this->authUser->facilityIds);
+//        Checking user hospital and admission hospital is same
+        $verifyUserAdmissionFacility = sizeof($userFacilities) && 
+                in_array($admission->sent_to_facility, $userFacilities);
+        $userGroups = $this->getGroupIdsFromUserGroups($this->authUser->groupIds);
+//        Checking user group and admission group is same
+        $verifyUserAdmissionGroup = sizeof($userGroups) && 
+                in_array($admission->group, $userGroups);
+        if($this->authUser->category == "HL" && $this->authUser->role == "PN" && 
+                ($status == Status::accepted || $status == Status::denied) && 
+                $verifyUserAdmissionGroup  ){
             return true;
         }
-        else if($this->authUser["category"] == "HL" && $this->authUser["role"] == "BR" && 
-                $status == Status::bedAllocated  ){
+        else if($this->authUser->category == "HL" && $this->authUser->role == "BR" && 
+                $status == Status::bedAllocated && $verifyUserAdmissionFacility ){
             return true;
         }
-        else if( $this->authUser["category"] == "HL" && 
-                ($this->authUser["role"] == "BR" || $this->authUser["role"] == "AK")  && 
-                $status == Status::patientArrived  ){
+        else if( $this->authUser->category == "HL" && 
+                ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
+                $status == Status::patientArrived && $verifyUserAdmissionFacility ){
             return true;
         }
-        else if( $this->authUser["category"] == "HL" && 
-                ($this->authUser["role"] == "BR" || $this->authUser["role"] == "AK")  && 
-                $status == Status::patientNoShow  ){
+        else if( $this->authUser->category == "HL" && 
+                ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
+                $status == Status::patientNoShow && $verifyUserAdmissionFacility ){
             return true;
         }
-        else if( $this->authUser["category"] == "HL" && 
-                ($this->authUser["role"] == "BR" || $this->authUser["role"] == "AK")  && 
-                $status == Status::patientDischarged  ){
+        else if( $this->authUser->category == "HL" && 
+                ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
+                $status == Status::patientDischarged && $verifyUserAdmissionFacility ){
             return true;
         }
         else{
             return false;
         }
+    }
+    
+    private function getFacilityIdsFromUserFacilities($userFacilities){
+        return array_map(function($uf){return $uf->facility_id;}, $userFacilities);
+    }
+    
+    private function getGroupIdsFromUserGroups($userGroups){
+        return array_map(function($ug){return $ug->group_id;}, $userGroups);
     }
 }

@@ -9,6 +9,8 @@ use app\modules\api\v1\models\UserRole\UserRole;
 use app\modules\api\v1\models\Group\Group;
 use app\modules\api\v1\models\Facility\Facility;
 use yii\helpers\Json;
+use app\modules\api\v1\models\UserFacility\UserFacility;
+use app\modules\api\v1\models\UserGroup\UserGroup;
 
 class User extends ActiveRecord
 {
@@ -406,6 +408,14 @@ class User extends ActiveRecord
                 ->exists();
         
             
+    }
+    
+    public function getFacilityIds(){
+        return $this->hasMany(UserFacility::className(), ['user_id' => 'id']);
+    }
+    
+    public function getGroupIds(){
+        return $this->hasMany(UserGroup::className(), ['user_id' => 'id']);
     }
 }
 
