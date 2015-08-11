@@ -87,7 +87,7 @@ class Admission extends ActiveRecord
             [['patient_gender'], 'in', 'range' => ['M', 'F'], 'strict' => true, 
                 'on' => ['post'], "message" => "Please enter valid {attribute} value"],
                         
-            ['mode_of_tranportation', 'in', 'range' => [1, 2, 3]],
+            ['mode_of_tranportation', 'in', 'range' => [1, 2, 3, 4]],
                         
             ['bed_type', 'in', 'range' => [1, 2, 3, 4, 5, 6, 7]],
                         

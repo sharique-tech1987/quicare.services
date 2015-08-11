@@ -97,14 +97,14 @@ class AdmissionCrud{
         $admission = Admission::getLastTransactionId($todayDate);
         
         if(sizeof($admission)){
-            $transactionIdArray = explode("_", $admission->transaction_number)[1];
+            $transactionIdArray = explode("-", $admission->transaction_number)[1];
             $newTransactionCount = (int)$transactionIdArray + 1;
             $newTransactionCountPadded = sprintf("%02s", $newTransactionCount);
-            return $todayDate . "_". $newTransactionCountPadded;
+            return $todayDate . "-". $newTransactionCountPadded;
             
         }
         else{
-            return $todayDate . "_01";
+            return $todayDate . "-01";
         }
         
     }

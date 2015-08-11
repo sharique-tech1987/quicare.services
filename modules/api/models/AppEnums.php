@@ -68,6 +68,7 @@ class AppEnums{
         $transportationText = array(1 => "Ambulance",
                               2 => "Personal Transportation",
                               3 => "Unknown",
+                              4 => "Air Medical Transport",
                               
             );
         
