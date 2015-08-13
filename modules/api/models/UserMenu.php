@@ -51,7 +51,6 @@ class UserMenu{
     private static function getHealthCareCenterMenu($role){
         $healthCareCenterMenu = array( 
                                         array("name" => "Admissions", "url" => "admissions", "icon"=> "fa fa-ticket"),
-                                        array("name" => "Transfer Form", "url" => "transfer_form", "icon"=> "fa fa-file-text"), 
                                         array("name" => "Settings", "url" => "", "icon"=> "", 
                     "childs" => array(
                     array("name" => "Account Settings", "url" => "pages/profile", "icon"=> "fa fa-user"),
@@ -63,7 +62,7 @@ class UserMenu{
         if(strtoupper($role) === "AR"){
             array_splice($healthCareCenterMenu, 0, 0, 
                     array(array("name" => "Dashboard", "url" => "dashboard", "icon"=> "fa fa-dashboard")) );
-            array_splice($healthCareCenterMenu, 3, 0, 
+            array_splice($healthCareCenterMenu, 2, 0, 
                     array(array("name" => "Users", "url" => "users", "icon"=> "fa fa-user-md"), 
                           array("name" => "Healthcare Facilities", "url" => "facilities", "icon"=> "fa fa-h-square"),
                           array("name" => "Hospital Groups", "url" => "groups", "icon"=> "fa fa-group")) );
@@ -71,6 +70,9 @@ class UserMenu{
             return $healthCareCenterMenu;
         }
         else if(strtoupper($role) === "HR"){
+            array_splice($healthCareCenterMenu, 1, 0, 
+                    array(array("name" => "Healthcare Facilities", "url" => "facilities", "icon"=> "fa fa-h-square"),
+                          array("name" => "Hospital Groups", "url" => "groups", "icon"=> "fa fa-group")) );
             return $healthCareCenterMenu;
         }
         
