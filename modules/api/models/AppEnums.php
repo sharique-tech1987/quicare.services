@@ -98,6 +98,22 @@ class AppEnums{
         return $codeStatusText[strtoupper($code)];
     }
     
+    public static function getStatusIconsText($code){
+        $iconsText = array(1 => "initiated_admission.png",
+                              2 => "accepted_admission.png",
+                              3 => "admission_denied.png",
+                              4 => "bed_allocated.png",
+                              5 => "patient_arrived.png",
+                              6 => "closed_admission.png",
+                              7 => "closed_admission.png",
+                              8 => "patient_discharged.png",
+                              
+                              
+            );
+        
+        return $iconsText[strtoupper($code)];
+    }
+    
 }
 
 

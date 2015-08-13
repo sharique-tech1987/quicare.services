@@ -66,6 +66,7 @@ class AdmissionStatusController extends Controller
 
             $this->response->statusCode = 200;
             $admissionId = isset($id) ? $id : null;
+            $lastStatus = isset($params['last_status']) ? $params['last_status'] : null;
             
             $errors = array();
             if(!$admissionId || !AppQueries::isValidAdmission($admissionId)){
@@ -75,6 +76,10 @@ class AdmissionStatusController extends Controller
             $serviceResult = null;
             if(sizeof($errors) == 0){
                 $data = AppQueries::getAdmissionStatuses($admissionId);
+                if($lastStatus != null && sizeof($data)){
+                    $data[0]['icon'] = AppEnums::getStatusIconsText($data[0]['status']);
+                    $data = array($data[0]);
+                }
                 $serviceResult = new ServiceResult(true, $data, $errors = array());
             }
             else{
@@ -126,8 +131,6 @@ class AdmissionStatusController extends Controller
                     $errors['status'] = 'Don\'t have permission to update';
                 }
             }
-//            Merge update status and has update staus permission functionality 
-//            at the time of refactoring
             if(sizeof($errors) == 0){
                 $lastStatus = AppQueries::getLastAdmissionStatus($admissionId);
                 if($status == Status::initiated && $lastStatus == false){
@@ -139,6 +142,7 @@ class AdmissionStatusController extends Controller
                 }
                 else if( $status == Status::bedAllocated && $lastStatus && $lastStatus['status'] == Status::accepted ){
                     AppQueries::insertAdmissionStatus($db, $admissionId, $status);
+                    
                 }
                 else if( ($status == Status::patientArrived || $status == Status::patientNoShow) 
                         && $lastStatus && $lastStatus['status'] == Status::bedAllocated){
@@ -159,7 +163,9 @@ class AdmissionStatusController extends Controller
             $serviceResult = null;
             if(sizeof($errors) == 0){
                 $transaction->commit();
-                $serviceResult = new ServiceResult(true, $data = array(), $errors = array());
+                $serviceResult = new ServiceResult(true, 
+                        $data = array("icon" => AppEnums::getStatusIconsText($status)), 
+                        $errors = array());
 
             }
             else{
