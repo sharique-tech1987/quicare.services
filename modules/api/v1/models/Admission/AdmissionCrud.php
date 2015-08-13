@@ -56,6 +56,7 @@ class AdmissionCrud{
         {
 //           Value of this field will be depending upon the type of user
             $admission->intiated_on = date("Y-m-d H:i:s", time());
+            $admission->last_status = 1;
             $isSaved = $admission->save();
             if ($isSaved) {
                 AppQueries::insertAdmissionStatus($db, $admission->transaction_number, 1);
@@ -91,6 +92,16 @@ class AdmissionCrud{
         return $serviceResult;
     }
     
+    public function updateAdmissionStatus(Admission $admission, $lastStatus){
+        
+        $admission->last_status = $lastStatus;
+        $isSaved = $admission->save();
+        
+        if(!$isSaved){
+            return false;
+        }
+
+    }
     
     private function generateTransactionNumber(){
         $todayDate = date("mdY");
@@ -188,6 +199,8 @@ class AdmissionCrud{
                     $valueArray['code_status'] = array("id" => $value->code_status, "name" => AppEnums::getCodeSatusText($value->code_status));
                     $valueArray['sent_to_facility'] =  array("id" => $value->sent_to_facility, "name" => $value->hospital["name"]);
                     $valueArray['sent_by_facility'] = array("id" => $value->sent_by_facility, "name" => $value->clinic["name"]);
+                    $valueArray['status_icon'] = AppEnums::getStatusIconsText($value->last_status);
+                    $valueArray['status_text'] = AppEnums::getStatusText($value->last_status);
                     if(sizeof($filteredFields)){
                         if(in_array('diagnosis', $filteredFields)){
                             $valueArray['diagnosis'] = $this->getDiagnosisString($value->admissionDiagnosis);

@@ -114,6 +114,22 @@ class AppEnums{
         return $iconsText[strtoupper($code)];
     }
     
+    public static function getStatusText($code){
+        $statusText = array(1 => "Initiated",
+                              2 => "Accepted",
+                              3 => "Denied",
+                              4 => "Bed Allocated",
+                              5 => "Patient Arrived",
+                              6 => "Patient No-Show",
+                              7 => "Closed",
+                              8 => "Discharged",
+                              
+                              
+            );
+        
+        return $statusText[strtoupper($code)];
+    }
+    
 }
 
 

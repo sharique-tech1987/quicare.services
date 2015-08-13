@@ -139,21 +139,26 @@ class AdmissionStatusController extends Controller
                 else if( ($status == Status::accepted || $status == Status::denied) && 
                         $lastStatus && $lastStatus['status'] == Status::initiated){
                     AppQueries::insertAdmissionStatus($db, $admissionId, $status);
+                    $this->crud->updateAdmissionStatus($admission, $status);
+                    
                 }
                 else if( $status == Status::bedAllocated && $lastStatus && $lastStatus['status'] == Status::accepted ){
                     AppQueries::insertAdmissionStatus($db, $admissionId, $status);
-                    
+                    $this->crud->updateAdmissionStatus($admission, $status);
                 }
                 else if( ($status == Status::patientArrived || $status == Status::patientNoShow) 
                         && $lastStatus && $lastStatus['status'] == Status::bedAllocated){
                     AppQueries::insertAdmissionStatus($db, $admissionId, $status);
+                    $this->crud->updateAdmissionStatus($admission, $status);
                 }
                 else if( $status == Status::patientDischarged && $lastStatus && $lastStatus['status'] == Status::patientArrived ){
                     AppQueries::insertAdmissionStatus($db, $admissionId, $status);
+                    $this->crud->updateAdmissionStatus($admission, $status);
                 }
                 else if( $status == Status::closed && $lastStatus && 
                         ($lastStatus['status'] >= Status::initiated && $lastStatus['status'] <= Status::patientNoShow) ){
                     AppQueries::insertAdmissionStatus($db, $admissionId, $status);
+                    $this->crud->updateAdmissionStatus($admission, $status);
                 }
                 else{
                     $errors['status'] = 'Valid Status should be given';
