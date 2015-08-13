@@ -153,6 +153,8 @@ class AdmissionCrud{
                 $admissionArray['mode_of_tranportation'] = array("id" => $admission->mode_of_tranportation, 
                                                        "name" => AppEnums::getTranportationText($admission->mode_of_tranportation));
                 $admissionArray['diagnosis'] = $admission->admissionDiagnosis;
+                $admissionArray['status_icon'] = AppEnums::getStatusIconsText($admission->last_status);
+                $admissionArray['status_text'] = AppEnums::getStatusText($admission->last_status);
                 
 //                $admissionArray["users"] = $admission->users;
                 return $admissionArray;
