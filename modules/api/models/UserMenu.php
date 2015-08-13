@@ -69,7 +69,7 @@ class UserMenu{
             
             return $healthCareCenterMenu;
         }
-        else if(strtoupper($role) === "HR"){
+        else if(strtoupper($role) === "UR"){
             array_splice($healthCareCenterMenu, 1, 0, 
                     array(array("name" => "Healthcare Facilities", "url" => "facilities", "icon"=> "fa fa-h-square"),
                           array("name" => "Hospital Groups", "url" => "groups", "icon"=> "fa fa-group")) );
