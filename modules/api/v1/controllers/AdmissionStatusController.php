@@ -142,12 +142,12 @@ class AdmissionStatusController extends Controller
                     $this->crud->updateAdmissionStatus($admission, $status);
                     
                 }
-                else if( $status == Status::bedAllocated && $lastStatus && $lastStatus['status'] == Status::accepted ){
+                else if( $status == Status::bedAssigned && $lastStatus && $lastStatus['status'] == Status::accepted ){
                     AppQueries::insertAdmissionStatus($db, $admissionId, $status);
                     $this->crud->updateAdmissionStatus($admission, $status);
                 }
                 else if( ($status == Status::patientArrived || $status == Status::patientNoShow) 
-                        && $lastStatus && $lastStatus['status'] == Status::bedAllocated){
+                        && $lastStatus && $lastStatus['status'] == Status::bedAssigned){
                     AppQueries::insertAdmissionStatus($db, $admissionId, $status);
                     $this->crud->updateAdmissionStatus($admission, $status);
                 }
@@ -169,7 +169,8 @@ class AdmissionStatusController extends Controller
             if(sizeof($errors) == 0){
                 $transaction->commit();
                 $serviceResult = new ServiceResult(true, 
-                        $data = array("icon" => AppEnums::getStatusIconsText($status)), 
+                        $data = array("icon" => AppEnums::getStatusIconsText($status), 
+                                      "status_text" => AppEnums::getStatusText($status)), 
                         $errors = array());
 
             }
@@ -249,7 +250,7 @@ class AdmissionStatusController extends Controller
             return true;
         }
         else if($this->authUser->category == "HL" && $this->authUser->role == "BR" && 
-                $status == Status::bedAllocated && $verifyUserAdmissionFacility ){
+                $status == Status::bedAssigned && $verifyUserAdmissionFacility ){
             return true;
         }
         else if( $this->authUser->category == "HL" && 

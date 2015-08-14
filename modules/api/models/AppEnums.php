@@ -6,7 +6,7 @@ abstract class Status{
     const initiated = 1;
     const accepted = 2;
     const denied = 3;
-    const bedAllocated = 4;
+    const bedAssigned = 4;
     const patientArrived = 5;
     const patientNoShow = 6;
     const closed = 7;
@@ -19,7 +19,7 @@ class AppEnums{
         return array(Status::initiated, 
                     Status::accepted,
                     Status::denied,
-                    Status::bedAllocated,
+                    Status::bedAssigned,
                     Status::patientArrived,
                     Status::patientNoShow,
                     Status::closed,
@@ -118,7 +118,7 @@ class AppEnums{
         $statusText = array(1 => "Initiated",
                               2 => "Accepted",
                               3 => "Denied",
-                              4 => "Bed Allocated",
+                              4 => "Bed Assigned",
                               5 => "Patient Arrived",
                               6 => "Patient No-Show",
                               7 => "Closed",
