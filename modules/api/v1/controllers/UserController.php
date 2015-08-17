@@ -10,7 +10,7 @@ use app\modules\api\v1\models\UserGroup\UserGroup;
 use app\modules\api\v1\models\UserFacility\UserFacility;
 use app\modules\api\components\CryptoLib;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
-
+use app\modules\api\v1\models\UserOnCallGroup\UserOnCallGroup;
 use Yii;
 
 class UserController extends Controller
@@ -120,11 +120,13 @@ class UserController extends Controller
             $user = new User();
             $user->scenario = 'post';
             $user->attributes = $params;
+            $userGroups = isset($params["group_id"]) ? $params["group_id"] : null;
+            $userFailities = isset($params["facility_id"]) ? $params["facility_id"] : null;
+            $onCallGroupIds = isset($params['on_call_group_ids']) ? 
+                    $params['on_call_group_ids'] : null;
 
-            $userGroups = $this->getUserGroup($params);
-            $userFacilities = $this->getUserFacilities($params);
-
-            $this->response->data = $this->userCrud->create($user, $userGroups, $userFacilities);
+            $this->response->data = $this->userCrud->create($user, $userGroups, $userFailities, 
+                    $onCallGroupIds);
             
         } 
         catch (\Exception $ex) {
@@ -180,10 +182,13 @@ class UserController extends Controller
                 $user->password = $saltAndHash['hash'];
             }
 
-            $userGroups = $this->getUserGroup($params);
-            $userFacilities = $this->getUserFacilities($params);
+            $userGroups = isset($params["group_id"]) ? $params["group_id"] : null;
+            $userFailities = isset($params["facility_id"]) ? $params["facility_id"] : null;
+            $onCallGroupIds = isset($params['on_call_group_ids']) ? 
+                    $params['on_call_group_ids'] : null;
 
-            $this->response->data = $this->userCrud->update($user, $userGroups, $userFacilities);
+            $this->response->data = $this->userCrud->update($user, $userGroups, $userFailities, 
+                    $onCallGroupIds );
         
             
         } 
@@ -195,7 +200,7 @@ class UserController extends Controller
         }
             
         
-        }
+    }
 	
     public function actionDelete($id){
         $this->response->statusCode = 405;
@@ -205,6 +210,10 @@ class UserController extends Controller
     }
  
     private function trimParams($params){
+        if(isset($params["user_name"])){
+            $params["user_name"] = strtolower(trim($params["user_name"]));
+        }
+        
         if(isset($params["deactivate"])){
             $params["deactivate"] = strtoupper(trim($params["deactivate"]));
         }

@@ -124,4 +124,15 @@ class AppQueries {
         ->orderBy(['created_on' => SORT_DESC]);
         return $query->all();
     }
+    
+    public static function getFacilitiesGroups($facilityIds){
+        $query = (new Query())
+                ->select(['hfg.group_id'])
+                ->from('health_care_facility_group hfg')
+                ->innerJoin('group g', 'hfg.group_id = g.id')
+                ->where(["hfg.facility_id" => $facilityIds, "g.deactivate" => "F"]);
+                
+        $rows = $query->all();
+        return $rows;
+    }
 }

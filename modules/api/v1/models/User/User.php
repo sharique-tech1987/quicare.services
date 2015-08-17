@@ -11,6 +11,7 @@ use app\modules\api\v1\models\Facility\Facility;
 use yii\helpers\Json;
 use app\modules\api\v1\models\UserFacility\UserFacility;
 use app\modules\api\v1\models\UserGroup\UserGroup;
+use app\modules\api\v1\models\UserOnCallGroup\UserOnCallGroup;
 
 class User extends ActiveRecord
 {
@@ -194,6 +195,11 @@ class User extends ActiveRecord
     {
         return $this->hasMany(Group::className(), ['id' => 'group_id'])
             ->viaTable('user_group', ['user_id' => 'id']);
+    }
+    
+    public function getOnCallGroups()
+    {
+        return $this->hasMany(UserOnCallGroup::className(), ['user_id' => 'id']);
     }
     
     public function getFacilities()

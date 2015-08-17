@@ -9,6 +9,8 @@ use Yii;
 use app\modules\api\v1\models\UserFacility\UserFacility;
 use app\modules\api\v1\models\User\User;
 use app\modules\api\models\AppEnums;
+use app\modules\api\v1\models\UserOnCallGroup\UserOnCallGroup;
+use app\modules\api\models\AppQueries;
 
 class UserCrud{
     /*
@@ -17,7 +19,7 @@ class UserCrud{
      * param: UserFacility
      */
     
-    private function verifyCreateOrUpdateParams(User $user, $userGroups, $userFacilities){
+    private function verifyCreateOrUpdateParams(User $user, $userGroups, $userFacilities, $onCallUserGroups){
         /*
          * Function checks for valid params and throws exception if it has not valid params
          * E.g. Check if user is hospital physician it has groups and facilities
@@ -25,14 +27,23 @@ class UserCrud{
         $errors = array();
         $checkUserGroup = isset($userGroups);
         $checkUserFacilities = isset($userFacilities);
-        
+        $checkOnCallUserGroups = isset($onCallUserGroups);
         if($checkUserGroup && !(is_array($userGroups) && !empty($userGroups)) ){
             $errors['groups'] = ['You cannot leave this field blank'];
-            //throw new \Exception("Groups should be array");
         }
         if($checkUserFacilities && !(is_array($userFacilities) && !empty($userFacilities)) ){
             $errors['facilities'] = ['You cannot leave this field blank'];
-//            throw new \Exception("Facilities should be array");
+        }
+        if ($checkUserGroup && $checkUserFacilities) {
+            $groupIds = $this->getGroupIds(AppQueries::getFacilitiesGroups($userFacilities));
+            $commonGroups = array_intersect($userGroups,$groupIds);
+            $groupDiff = array_diff($userGroups,$commonGroups);
+            if(sizeof($groupDiff) != 0){
+                $errors['groups'] = ['One of the group is not exist in selected facility'];
+            }
+        }
+        if($checkOnCallUserGroups && !(is_array($onCallUserGroups) && !empty($onCallUserGroups)) ){
+            $errors['on_call_groups'] = ['On call groups should be array'];
         }
         if (sizeof($errors) == 0) {
             if( (isset($user->category) && isset($user->role)) ){
@@ -41,12 +52,7 @@ class UserCrud{
                     !( $checkUserGroup && $checkUserFacilities)  ){
                     $errors['groups'] = ["User should have groups"];
                     $errors['facilities'] = ['User should have facilities'];
-    //                throw new \Exception("User should have groups and facilities");
                 }
-//                else if( !( ($user->category == "HL" && $user->role == "PN") || 
-//                      ($user->category == "CC" && $user->role == "SN") || 
-//                      ($user->category == "HR") || 
-//                    ($user->category == "AS" &&  in_array($user->role, array("SR", "AR"))) ) ){
                 else if( !( ($user->category == "HL" && $user->role == "PN") || 
                       ($user->category == "CC" && $user->role == "SN") || 
                       ($user->category == "HR") || 
@@ -54,21 +60,16 @@ class UserCrud{
 
                     if(!$checkUserFacilities){
                         $errors['facilities'] = ["User should have facilities"];
-    //                    throw new \Exception("User should have facilities");
                     }
                     else if($checkUserGroup){
                         $errors['groups'] = ["User should not have groups"];
-    //                    throw new \Exception("User should not have groups");
                     }
 
                 }
-//                else if( ( ($user->category == "AS" &&  in_array($user->role, array("SR", "AR")) ) || 
-//                    $user->category == "HR") 
                 else if( ( ($user->category == "AS" ) || $user->category == "HR") 
                     && ($checkUserGroup || $checkUserFacilities)  ){
                         $errors['groups'] = ["User should not have groups"];
                         $errors['facilities'] = ["User should not have facilities"];
-    //                throw new \Exception("User should not have groups and facilities");
                 }
             }
         }
@@ -77,12 +78,17 @@ class UserCrud{
         
     }
     
-    public function create(User $user, $userGroups, $userFacilities){
+    public function create(User $user, $userGroups, $userFacilities, $onCallGroupIds){
         /*
          * $userGroups is not mandatory for all users
          * $userFacilities is not mandatory for all users
          */
-        $errors = $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
+        $errors = $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities, $onCallGroupIds);
+        
+        /*
+         * Get groups of facilities then check $userGroups are matched with 
+         * facility's group
+         */
         
         $transaction = Yii::$app->db->beginTransaction();
         $validate = $user->validate();
@@ -91,16 +97,16 @@ class UserCrud{
         {
             $isSaved = $user->save();
 
-    //      Errors collection  
-            
             if ($isSaved) {
                 if (isset($userGroups)){
                     foreach ($userGroups as $ug) {
-                        $ug->user_id = $user->id;
-                        $isSaved = $ug->save();
+                        $tempUgObject = new UserGroup();
+                        $tempUgObject->group_id = $ug;
+                        $tempUgObject->user_id = $user->id;
+                        $isSaved = $tempUgObject->save();
                         if(!$isSaved){
     //                        Collect Errors
-                            $errors = $ug->getErrors();
+                            $errors = $tempUgObject->getErrors();
                             break;
                         }
                     }
@@ -109,18 +115,20 @@ class UserCrud{
     //          if no errors in previous operation then proceed  
                 if ( (sizeof($errors) == 0) && isset($userFacilities) ){
                     foreach ($userFacilities as $uf) {
+                        $tempUfObject = new UserFacility();
                         if($user->category === "HL"){
-                            $uf->scenario = "hospital";
+                            $tempUfObject->scenario = "hospital";
                         }
                         else if(in_array ($user->category, array("CC", "FT", "ET")) &&
                                 !($user->category === "CC" && $user->role === "SN")   ){
-                            $uf->scenario = "clinic";
+                            $tempUfObject->scenario = "clinic";
                         }
-                        $uf->user_id = $user->id;
-                        $isSaved = $uf->save();
+                        $tempUfObject->facility_id = $uf;
+                        $tempUfObject->user_id = $user->id;
+                        $isSaved = $tempUfObject->save();
                         if(!$isSaved){
     //                        Collect Errors
-                            $errors = $uf->getErrors();
+                            $errors = $tempUfObject->getErrors();
                             break;
                         }
                     }
@@ -156,18 +164,19 @@ class UserCrud{
         return $serviceResult;
     }
     
-    public function update(User $user, $userGroups, $userFacilities){
+    public function update(User $user, $userGroups, $userFacilities, $onCalluserGroups){
         /*
          * $userGroups is not mandatory for all users
          * $userFacilities is not mandatory for all users
          */
-        $errors = $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities);
-        
+        $errors = $this->verifyCreateOrUpdateParams($user, $userGroups, $userFacilities, 
+                $onCalluserGroups);
+
         $transaction = Yii::$app->db->beginTransaction();
         if(strtoupper($user->deactivate) === 'T'){
            $user->enable_two_step_verification = 'F'; 
         }
-        
+
         $validate = $user->validate();
         
         if((sizeof($errors) == 0) && $validate)
@@ -175,18 +184,33 @@ class UserCrud{
             $isSaved = $user->save();
             UserGroup::deleteUsersGroups($user->id);
             UserFacility::deleteUsersFacilities($user->id);
-
-    //      Errors collection  
-    //        $errors = array();
+            UserOnCallGroup::deleteUsersGroups($user->id);
 
             if ($isSaved) {
-                if (isset($userGroups)){
-                    foreach ($userGroups as $ug) {
-                        $ug->user_id = $user->id;
-                        $isSaved = $ug->save();
+                if (isset($onCalluserGroups)){
+                    $commonGroups = array_intersect($userGroups, $onCalluserGroups);
+                    foreach ($commonGroups as $OnCallUg) {
+                        $tempUgOnCallObject = new UserOnCallGroup();
+                        $tempUgOnCallObject->group_id = $OnCallUg;
+                        $tempUgOnCallObject->user_id = $user->id;
+                        $isSaved = $tempUgOnCallObject->save();
                         if(!$isSaved){
     //                        Collect Errors
-                            $errors = $ug->getErrors();
+                            $errors = $tempUgOnCallObject->getErrors();
+                            break;
+                        }
+                    }
+
+                }
+                if ( (sizeof($errors) == 0) && isset($userGroups)){
+                    foreach ($userGroups as $ug) {
+                        $tempUgObject = new UserGroup();
+                        $tempUgObject->user_id = $user->id;
+                        $tempUgObject->group_id = $ug;
+                        $isSaved = $tempUgObject->save();
+                        if(!$isSaved){
+    //                        Collect Errors
+                            $errors = $tempUgObject->getErrors();
                             break;
                         }
                     }
@@ -195,11 +219,13 @@ class UserCrud{
     //          if no errors in previous operation then proceed  
                 if ( (sizeof($errors) == 0) && isset($userFacilities) ){
                     foreach ($userFacilities as $uf) {
-                        $uf->user_id = $user->id;
-                        $isSaved = $uf->save();
+                        $tempUfObject = new UserFacility();
+                        $tempUfObject->user_id = $user->id;
+                        $tempUfObject->facility_id = $uf;
+                        $isSaved = $tempUfObject->save();
                         if(!$isSaved){
     //                        Collect Errors
-                            $errors = $uf->getErrors();
+                            $errors = $tempUfObject->getErrors();
                             break;
                         }
                     }
@@ -324,6 +350,13 @@ class UserCrud{
                 $user_array = $user->toArray($filteredFields, $filteredFields);
                 $user_array["groups"] = $user->groups;
                 $user_array["facilities"] = $user->facilities;
+                if($user->category == "HL" && $user->role == "PN" ||
+                    $user->category == "CC" && $user->role == "SN"){
+                        $user_array["on_call_groups"] = $user->onCallGroups;
+                }
+                else{
+                    $user_array["on_call_groups"] = array();
+                }
                 return $user_array;
             }
             
@@ -337,6 +370,14 @@ class UserCrud{
         return implode(",", array_filter(array_map(function($fac){
             return $fac->name; 
         }, $facilities)) );
+    }
+    
+    private function getGroupIds($facilityGroups){
+        $tempGroups = array();
+        foreach ($facilityGroups as $fg) {
+            array_push($tempGroups, $fg["group_id"]);
+        }
+        return $tempGroups;
     }
     
     public function updateUserPassword($user){

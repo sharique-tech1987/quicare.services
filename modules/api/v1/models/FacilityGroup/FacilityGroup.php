@@ -36,7 +36,8 @@ class FacilityGroup extends ActiveRecord{
         return [ 
             [['facility_id', 'group_id' ], 'required', 
                  'message' => '{attribute} required',  ],
-            [['group_id'], 'exist',  'targetClass' => Group::className(), 'targetAttribute' => 'id', 
+            [['group_id'], 'exist',  'targetClass' => Group::className(), 
+                'targetAttribute' => 'id', 'filter' => ["deactivate" => "F"],
                 'message' => 'Foreign key violation. Group id does not exist']
             
         ];
