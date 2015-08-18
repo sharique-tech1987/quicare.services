@@ -130,6 +130,59 @@ class AppEnums{
         return $statusText[strtoupper($code)];
     }
     
+    public static function getSpecialtyText($code){
+        $specialtyText = array(1 => "Anaesthesia",
+                            2 => "Allergy and Immunology",
+                            3 => "Cardiovascular surgery",
+                            4 => "Clinical laboratory sciences",
+                            5 => "Cardiology",
+                            6 => "Dietetics",
+                            7 => "Dermatology",
+                            8 => "Emergency medicine",
+                            9 => "Endocrinology",
+                            10 => "Family Medicine",
+                            11 => "Forensic Medicine",
+                            12 => "Gynecology",
+                            13 => "General surgery",
+                            14 => "Geriatrics",
+                            15 => "Gastroenterology",
+                            16 => "Hepatology",
+                            17 => "Intensive care medicine",
+                            18 => "Infectious disease",
+                            19 => "Medical research",
+                            20 => "Neurology",
+                            21 => "Neurosurgery",
+                            22 => "Nephrology",
+                            23 => "Otorhinolaryngology",
+                            24 => "Oral and maxillofacial surgery",
+                            25 => "Oncology",
+                            26 => "Ophthalmology",
+                            27 => "Orthopedic surgery",
+                            28 => "Obstetrics and gynecology",
+                            29 => "Pathology",
+                            30 => "Palliative care",
+                            31 => "Pediatrics",
+                            32 => "Physical medicine and rehabilitation Or Physiatry",
+                            33 => "Plastic surgery",
+                            34 => "Pulmonology",
+                            35 => "Podiatry",
+                            36 => "Proctology",
+                            37 => "Pediatric surgery",
+                            38 => "Psychiatry",
+                            39 => "Radiology",
+                            40 => "Rheumatology",
+                            41 => "Stomatology",
+                            42 => "Surgical oncology",
+                            43 => "Thoracic surgery",
+                            44 => "Transplant surgery",
+                            45 => "Urgent Care Medicine",
+                            46 => "Urology",
+                            47 => "Vascular surgery",
+                        );
+
+        return $specialtyText[strtoupper($code)];
+    }
+    
 }
 
 

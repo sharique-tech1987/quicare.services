@@ -135,4 +135,14 @@ class AppQueries {
         $rows = $query->all();
         return $rows;
     }
+    
+    public static function isValidPhysician($value){
+        $query = (new Query())
+                ->select('1')
+                ->from('user')
+                ->where(['and', 'id= :id', ['or', ['and', "category='HL'", "role='PN'" ],  ['and', "category='CC'", "role='SN'"] ]])
+                ->addParams([':id' => $value])
+                ->exists();
+        return $query;
+    }
 }

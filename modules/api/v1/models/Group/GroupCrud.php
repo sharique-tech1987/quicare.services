@@ -8,6 +8,7 @@ use app\modules\api\models\RecordFilter;
 use Yii;
 use app\modules\api\v1\models\UserGroup\UserGroup;
 use app\modules\api\v1\models\User\User;
+use app\modules\api\models\AppEnums;
 
 class GroupCrud{
     
@@ -190,6 +191,13 @@ class GroupCrud{
                     }
                     if(in_array('users', $filteredFields)){
                         $group_array["users"] = $group->users;
+                    }
+                    if(in_array('on_call_users', $filteredFields)){
+                        $onCallUsers = $group->onCallUsers;
+                        foreach ($onCallUsers as $value){
+                            $value->specialty = AppEnums::getSpecialtyText($value->specialty);
+                        }
+                        $group_array["on_call_users"] = $onCallUsers;
                     }
                 }
                 else{

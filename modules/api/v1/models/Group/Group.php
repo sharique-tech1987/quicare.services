@@ -102,6 +102,12 @@ class Group extends ActiveRecord
             ->viaTable('user_group', ['group_id' => 'id']);
     }
     
+    public function getOnCallUsers()
+    {
+        return $this->hasMany(User::className(), ['id' => 'user_id'])
+            ->viaTable('user_on_call_group', ['group_id' => 'id']);
+    }
+    
     public static function addFilters($query, $filters){
         if(isset($filters))
         {

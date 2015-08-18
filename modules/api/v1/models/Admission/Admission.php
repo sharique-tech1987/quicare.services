@@ -8,6 +8,7 @@ use app\modules\api\v1\models\Facility\Facility;
 use app\modules\api\v1\models\User\User;
 use app\modules\api\v1\models\Group\Group;
 use app\modules\api\v1\models\AdmissionDiagnosis\AdmissionDiagnosis;
+use app\modules\api\models\AppQueries;
 
 class Admission extends ActiveRecord
 {
@@ -97,8 +98,9 @@ class Admission extends ActiveRecord
             
             ['patient_eta', 'in', 'range' => [1, 3, 6, 9]],
             
-            ['patient_email', 'email']
+            ['patient_email', 'email'],
             
+            [['physician'], 'hasValidPhysician', 'on' => ['post'] ],
             
         ];
     }
@@ -129,7 +131,7 @@ class Admission extends ActiveRecord
                             'zip_code', 'patient_email', 'patient_contact_number', 
                             'sent_by_facility', 'sent_by_user', 'on_behalf_of', 
                             'patient_eta', 'mode_of_tranportation', 'bed_type', 'code_status', 
-                            'patient_cell_number'];
+                            'patient_cell_number', 'physician'];
         return $scenarios;
         
     }
@@ -216,6 +218,13 @@ class Admission extends ActiveRecord
     public function getClinic(){
         // Order has_one Customer via Customer.id -> customer_id
         return $this->hasOne(Facility::className(), ['id' => 'sent_by_facility']);
+    }
+    
+    public function hasValidPhysician($attribute,$params){
+        $value = $this->$attribute;
+        if(!AppQueries::isValidPhysician($value)){
+            $this->addError($attribute, "Please enter valid phys");
+        }
     }
 
 }

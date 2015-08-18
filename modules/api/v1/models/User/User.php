@@ -91,7 +91,7 @@ class User extends ActiveRecord
                 'on' => ['post', 'put'] ],
             
             [['specialty'], 'hasValidSpecialty', 'on' => ['post', 'put'] ],
-            
+
             [['isReal'], 'in', 'range' => ['F', 'T'], 'strict' => true, 
                 'on' => ['post', 'put'], "message" => "Please enter valid {attribute} value"],
             
@@ -389,11 +389,6 @@ class User extends ActiveRecord
             'role',
             'created' => 'created_on',
             'updated' => 'updated_on',
-        ];
-    }
-    
-    public function extraFields() {
-        return [
             'middle_name',
             'email',
             'cell_phone',
@@ -407,6 +402,22 @@ class User extends ActiveRecord
             'isReal',
         ];
     }
+    
+//    public function extraFields() {
+//        return [
+//            'middle_name',
+//            'email',
+//            'cell_phone',
+//            'degree',
+//            'npi',
+//            'specialty',
+//            'notify',
+//            'enable_two_step_verification',
+//            'deactivate',
+//            'time_zone',
+//            'isReal',
+//        ];
+//    }
     
     public static function isSalesReprestative($userId){
         return self::find()->where(["id" => $userId, "deactivate" => "F", 'category' => 'AS'])
