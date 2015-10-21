@@ -235,38 +235,49 @@ class AdmissionStatusController extends Controller
     
     
     private function hasUpdateStatusPermission($status, $admission){
-//        Ask and write rule for action closed as well
-        $userFacilities = $this->getFacilityIdsFromUserFacilities($this->authUser->facilityIds);
-//        Checking user hospital and admission hospital is same
-        $verifyUserAdmissionFacility = sizeof($userFacilities) && 
-                in_array($admission->sent_to_facility, $userFacilities);
-        $userGroups = $this->getGroupIdsFromUserGroups($this->authUser->groupIds);
-//        Checking user group and admission group is same
-        $verifyUserAdmissionGroup = sizeof($userGroups) && 
-                in_array($admission->group, $userGroups);
-        if($this->authUser->category == "HL" && $this->authUser->role == "PN" && 
-                ($status == Status::accepted || $status == Status::denied) && 
-                $verifyUserAdmissionGroup  ){
+        
+        if( $this->authUser->category == "HR" && 
+                ($this->authUser->role == "AR" || $this->authUser->role == "UR") ){
+            if( $status == Status::accepted || $status == Status::denied || 
+                $status == Status::bedAssigned || $status == Status::patientArrived ||
+                $status == Status::patientNoShow || $status == Status::closed || 
+                $status == Status::patientDischarged)
             return true;
         }
-        else if($this->authUser->category == "HL" && $this->authUser->role == "BR" && 
-                $status == Status::bedAssigned && $verifyUserAdmissionFacility ){
-            return true;
-        }
-        else if( $this->authUser->category == "HL" && 
-                ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
-                $status == Status::patientArrived && $verifyUserAdmissionFacility ){
-            return true;
-        }
-        else if( $this->authUser->category == "HL" && 
-                ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
-                $status == Status::patientNoShow && $verifyUserAdmissionFacility ){
-            return true;
-        }
-        else if( $this->authUser->category == "HL" && 
-                ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
-                $status == Status::patientDischarged && $verifyUserAdmissionFacility ){
-            return true;
+        else if($this->authUser->category == "HL" && 
+                (in_array($this->authUser->role, ["PN", "BR", "AK"])) ){
+            $userFacilities = $this->getFacilityIdsFromUserFacilities($this->authUser->facilityIds);
+//          Checking user hospital and admission hospital is same
+            $verifyUserAdmissionFacility = sizeof($userFacilities) && 
+                    in_array($admission->sent_to_facility, $userFacilities);
+            $userGroups = $this->getGroupIdsFromUserGroups($this->authUser->groupIds);
+//          Checking user group and admission group is same
+            $verifyUserAdmissionGroup = sizeof($userGroups) && 
+                    in_array($admission->group, $userGroups);
+            if($this->authUser->category == "HL" && $this->authUser->role == "PN" && 
+                    ($status == Status::accepted || $status == Status::denied) && 
+                    $verifyUserAdmissionGroup  ){
+                return true;
+            }
+            else if($this->authUser->category == "HL" && $this->authUser->role == "BR" && 
+                    $status == Status::bedAssigned && $verifyUserAdmissionFacility ){
+                return true;
+            }
+            else if( $this->authUser->category == "HL" && 
+                    ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
+                    $status == Status::patientArrived && $verifyUserAdmissionFacility ){
+                return true;
+            }
+            else if( $this->authUser->category == "HL" && 
+                    ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
+                    $status == Status::patientNoShow && $verifyUserAdmissionFacility ){
+                return true;
+            }
+            else if( $this->authUser->category == "HL" && 
+                    ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
+                    $status == Status::patientDischarged && $verifyUserAdmissionFacility ){
+                return true;
+            }
         }
         else{
             return false;

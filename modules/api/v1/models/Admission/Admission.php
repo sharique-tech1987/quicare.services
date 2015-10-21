@@ -158,14 +158,6 @@ class Admission extends ActiveRecord
             ->one();
 
     }
-    
-//    public function getSentToFacility(){
-//        return $this->hasOne(Facility::className(), ['id' => 'sent_to_facility']);
-//    }
-//    
-//    public function getSentByFacility(){
-//        return $this->hasOne(Facility::className(), ['id' => 'sent_by_facility']);
-//    }
 
     public function getUser() {
         return $this->hasOne(User::className(), ['id' => 'sent_by_user']);
@@ -211,12 +203,10 @@ class Admission extends ActiveRecord
     }
     
     public function getHospital(){
-        // Order has_one Customer via Customer.id -> customer_id
         return $this->hasOne(Facility::className(), ['id' => 'sent_to_facility']);
     }
     
     public function getClinic(){
-        // Order has_one Customer via Customer.id -> customer_id
         return $this->hasOne(Facility::className(), ['id' => 'sent_by_facility']);
     }
     
