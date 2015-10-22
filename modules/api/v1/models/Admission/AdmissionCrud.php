@@ -7,12 +7,13 @@ use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\v1\models\Facility\FacilityCrud;
 use app\modules\api\models\AppEnums;
+use app\modules\api\v1\models\Group\GroupCrud;
 use Yii;
 use app\modules\api\models\AppQueries;
 
 class AdmissionCrud{
     
-    private function verifyCreateOrUpdateParams(Admission $admission, $facility, $facilityGroupIds, $admissionDiagnosis){
+    private function verifyCreateParams(Admission $admission, $facility, $facilityGroupIds, $admissionDiagnosis){
         $errors = array();
         if(!isset($admissionDiagnosis) || !(is_array($admissionDiagnosis) && !empty($admissionDiagnosis))){
             $errors["diagnosis"] = "You cannot leave this field blank";
@@ -32,6 +33,64 @@ class AdmissionCrud{
         return $errors;
     }
     
+    private function verifyUpdateParams(Admission $admission, $facilityGroupIds, $groupPhysiciansIds){
+        $errors = array();
+        if(!in_array($admission->group, $facilityGroupIds)){
+            $errors["group"] = "Selected group should activated and affiliated to clinic";
+        }
+        
+        if(isset($groupPhysiciansIds) && !in_array($admission->physician, $groupPhysiciansIds)){
+            $errors["physician"] = "Selected physician should activated and exist in group";
+        }
+        
+        return $errors;
+    }
+    
+    public function update(Admission $admission){
+        $recordFilter = new RecordFilter();
+        $recordFilter->id = $admission->sent_by_facility;
+        $facility = FacilityCrud::read($recordFilter, true);
+        $facilityGroups = $facility->getActiveGroups()->all();
+        $facilityGroupIds = $this->getGroupsIds($facilityGroups);
+        if($admission->physician != 0){
+            $recordFilter->id = $admission->group;
+            $group = GroupCrud::read($recordFilter, true);
+            $groupPhysicians = $group->getActiveHospitalPhysicianUsers()->all();
+            $groupPhysiciansIds = $this->getGroupPhysicianIds($groupPhysicians);
+        }
+        else{
+            $groupPhysiciansIds = null;
+        }
+        $errors = $this->verifyUpdateParams($admission, $facilityGroupIds, $groupPhysiciansIds);
+        
+        $db = Yii::$app->db;
+        $transaction = $db->beginTransaction();
+        
+        if((sizeof($errors) == 0))
+        {
+            $isSaved = $admission->save();
+            if(!$isSaved){
+//          Collect Errors
+                $errors = $admission->getErrors();
+            }
+        }
+        
+        $serviceResult = null;
+        
+        if ((sizeof($errors) == 0)) {
+            $transaction->commit();
+            $data = array();
+            $serviceResult = new ServiceResult(true, $data, $errors = array());
+        } 
+        else{
+            $transaction->rollBack();
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = $errors);
+        }
+        
+        return $serviceResult;
+    }
+    
     public function create(Admission $admission, $admissionDiagnosis){
         $recordFilter = new RecordFilter();
         $recordFilter->id = $admission->sent_to_facility;
@@ -45,7 +104,7 @@ class AdmissionCrud{
          * Use verifyCreateOrUpdateParams method to verify admission diagnosis field
          * 
          */
-        $errors = $this->verifyCreateOrUpdateParams($admission, $facility, $facilityGroupIds, $admissionDiagnosis);
+        $errors = $this->verifyCreateParams($admission, $facility, $facilityGroupIds, $admissionDiagnosis);
         
         $db = Yii::$app->db;
         $transaction = $db->beginTransaction();
@@ -127,6 +186,12 @@ class AdmissionCrud{
         
     }
     
+    private function getGroupPhysicianIds($groupPhysicians){
+        
+        return array_map(function($grpPhy){return $grpPhy->id;}, $groupPhysicians);
+        
+    }
+    
     public function read(RecordFilter $recordFilter, $findModel = true){
         $admission = Admission::findOne($recordFilter->id);
         if($admission !== null ){
@@ -146,6 +211,7 @@ class AdmissionCrud{
                 $admissionArray["sent_by_facility"] = $admission->clinic;
                 $admissionArray["sent_by_user"] = $admission->user;
                 $admissionArray["group"] = $admission->groupObject;
+                $admissionArray["admitting_physician"] = $admission->hospitalPhysician;
                 $admissionArray['bed_type'] = array("id" => $admission->bed_type, 
                                                     "name" => AppEnums::getBedTypeText($admission->bed_type));
                 $admissionArray['code_status'] = array("id" => $admission->code_status, 

@@ -50,8 +50,8 @@ class Admission extends ActiveRecord
             [['sent_by_facility'], 'exist',  'targetClass' => Facility::className(), 
                 'targetAttribute' => 'id', 'filter'=>["type" => ["CC", "FT", "ET"], 
                                                       "deactivate" => "F"],
-                'message' => 'Facility not exist or facility is not able to send admission', 
-                'on' => ['post', 'put']],
+                'message' => 'Facility not exist or cannot send admission to facility', 
+                'on' => ['post']],
             
             [['sent_by_user'], 'exist',  'targetClass' => User::className(), 
                 'targetAttribute' => 'id', 'filter'=>function($query){
@@ -60,7 +60,7 @@ class Admission extends ActiveRecord
                             . "AND deactivate = 'F' ");
                 },
                 'message' => 'User not exist or user is not able to send admission', 
-                'on' => ['post', 'put']],
+                'on' => ['post']],
             
             [['patient_first_name', 'patient_last_name'], 'match', 
                 'pattern' => "/^[A-Za-z\s-'.,]+$/", 
@@ -132,6 +132,9 @@ class Admission extends ActiveRecord
                             'sent_by_facility', 'sent_by_user', 'on_behalf_of', 
                             'patient_eta', 'mode_of_tranportation', 'bed_type', 'code_status', 
                             'patient_cell_number', 'physician'];
+        
+//        $scenarios['put_group_and_physician'] = [];
+//        $scenarios['put_group'] = [];
         return $scenarios;
         
     }
@@ -159,12 +162,21 @@ class Admission extends ActiveRecord
 
     }
 
+//    Rename this method to getClinicPhysician
     public function getUser() {
         return $this->hasOne(User::className(), ['id' => 'sent_by_user']);
     }
 
     public function getGroupObject() {
         return $this->hasOne(Group::className(), ['id' => 'group']);
+//        Based on user permission
+//            ->select(["id", "name"]);
+    }
+    
+    public function getHospitalPhysician() {
+        return $this->hasOne(User::className(), ['id' => 'physician']);
+//        Based on user permission
+//                ->select(["id", "first_name", "last_name"]);
     }
     
     public static function addFilters($query, $filters){
@@ -213,7 +225,7 @@ class Admission extends ActiveRecord
     public function hasValidPhysician($attribute,$params){
         $value = $this->$attribute;
         if(!AppQueries::isValidPhysician($value)){
-            $this->addError($attribute, "Please enter valid phys");
+            $this->addError($attribute, "Please enter valid physician");
         }
     }
 

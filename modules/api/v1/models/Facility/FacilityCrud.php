@@ -279,8 +279,21 @@ class FacilityCrud{
                     $filteredFields = array();
                 }
                 $facility_array = $facility->toArray($filteredFields, $filteredFields);
-                $facility_array["groups"] = $facility->groups;
-                $facility_array["users"] = $facility->users;
+//                Change facility call in client side application.
+                if(sizeof($filteredFields)){
+                    if(in_array('groups', $filteredFields)){
+                        $facility_array["groups"] = $facility->groups;
+                    }
+                    if(in_array('users', $filteredFields)){
+                        $facility_array["users"] = $facility->users;
+                    }
+                }
+                else{
+                    $facility_array["groups"] = $facility->groups;
+                    $facility_array["users"] = $facility->users;
+                }
+//                $facility_array["groups"] = $facility->groups;
+//                $facility_array["users"] = $facility->users;
                 return $facility_array;
             }
             

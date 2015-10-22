@@ -96,6 +96,15 @@ class Group extends ActiveRecord
             ->where(['health_care_facility.type' => 'HL']);
     }
     
+    public function getActiveHospitalPhysicianUsers()
+    {
+        return $this->hasMany(User::className(), ['id' => 'user_id'])
+            ->viaTable('user_group', ['group_id' => 'id'])
+            ->where(['and', "user.deactivate='F'", 
+                            ['or', ['and', "user.category='HL'", "user.role='PN'" ],  
+                            ['and', "user.category='CC'", "user.role='SN'"]] ] );
+    }
+    
     public function getUsers()
     {
         return $this->hasMany(User::className(), ['id' => 'user_id'])

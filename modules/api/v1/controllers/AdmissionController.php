@@ -132,10 +132,55 @@ class AdmissionController extends Controller
     }
     
     public function actionUpdate($id){
-        $this->response->statusCode = 405;
-        $serviceResult = new ServiceResult(false, $data = array(), 
-            $errors = array("message" => "Update method not implemented for this resource" ));
-        $this->response->data = $serviceResult;
+        try {
+            $params = Yii::$app->request->post();
+            date_default_timezone_set("UTC");
+
+            $this->response->statusCode = 200;
+            $allowedAdmissionOpList = ["update_grp_phy", "update_grp"];
+            
+            if(isset($params["admission_op"]) && 
+                    in_array($params["admission_op"], $allowedAdmissionOpList)  ){
+                
+                $params = $this->trimParams($params);
+                $recordFilter = new RecordFilter();
+                $recordFilter->id = $id;
+                $admission = $this->crud->read($recordFilter);
+            }
+            else{
+                $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("operation_error" => "Requested operation is not allowed"));
+                $this->response->data = $serviceResult;
+                return;
+            }
+            
+            if($params["admission_op"] == "update_grp_phy" && 
+                    isset($params["group"]) && isset($params["physician"])){
+//                $admission->scenario = 'put_group_and_physician';
+                $admission->group = is_int($params["group"]) ? $params["group"] : 0;
+                $admission->physician = is_int($params["physician"]) ? $params["physician"]  : 0;
+                $this->response->data = $this->crud->update($admission);
+            }
+            
+            else if($params["admission_op"] == "update_grp" && 
+                    isset($params["group"])){
+//                $admission->scenario = 'put_group';
+                $admission->group =  is_int($params["group"]) ? $params["group"] : 0;
+                $admission->physician = 0;
+                $this->response->data = $this->crud->update($admission);
+            }
+            else{
+                $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("params" => "params missing"));
+                $this->response->data = $serviceResult;
+            }
+        } 
+        catch (\Exception $ex) {
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
         
        }
 	
