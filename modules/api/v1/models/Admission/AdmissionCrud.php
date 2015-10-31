@@ -9,7 +9,9 @@ use app\modules\api\v1\models\Facility\FacilityCrud;
 use app\modules\api\models\AppEnums;
 use app\modules\api\v1\models\Group\GroupCrud;
 use Yii;
+use app\modules\api\v1\models\AdmissionStatus\AdmissionStatusCrud;
 use app\modules\api\models\AppQueries;
+use app\modules\api\models\AppStatus;
 
 class AdmissionCrud{
     
@@ -69,6 +71,10 @@ class AdmissionCrud{
         if((sizeof($errors) == 0))
         {
             $isSaved = $admission->save();
+            $lastStatus = AppStatus::denied;    //Denied
+            $currentStatus = AppStatus::initiated; //Initiated
+            $admissionStatusCrud = new AdmissionStatusCrud();
+            $admissionStatusCrud->create($db, $admission, $lastStatus, $currentStatus);
             if(!$isSaved){
 //          Collect Errors
                 $errors = $admission->getErrors();
@@ -115,10 +121,14 @@ class AdmissionCrud{
         {
 //           Value of this field will be depending upon the type of user
             $admission->intiated_on = date("Y-m-d H:i:s", time());
-            $admission->last_status = 1;
+//            $admission->last_status = 1;
             $isSaved = $admission->save();
             if ($isSaved) {
-                AppQueries::insertAdmissionStatus($db, $admission->transaction_number, 1);
+                $lastStatus = -1;
+                $currentStatus = AppStatus::initiated;
+                $admissionStatusCrud = new AdmissionStatusCrud();
+                $admissionStatusCrud->create($db, $admission, $lastStatus, $currentStatus);
+//                AppQueries::insertAdmissionStatus($db, $admission->transaction_number, 1);
                 foreach ($admissionDiagnosis as $admDiag) {
                     $admDiag->admission_id = $admission->transaction_number;
                     $isSaved = $admDiag->save();
@@ -151,6 +161,7 @@ class AdmissionCrud{
         return $serviceResult;
     }
     
+//    Ensure this method is not used anywhere and remove it
     public function updateAdmissionStatus(Admission $admission, $lastStatus){
         
         $admission->last_status = $lastStatus;

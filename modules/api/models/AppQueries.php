@@ -97,6 +97,16 @@ class AppQueries {
                                     "status" => $status, 
                                     "created_on" => date("Y-m-d H:i:s", time())]);
         $command->execute();
+        
+        self::updateAdmissionLastStatus($db, $admissionId, $status);
+        
+    }
+    
+    private static function updateAdmissionLastStatus($db, $admissionId, $status){
+        $command = $db->createCommand()->update('admission', 
+            ['last_status' => $status], 
+            ['transaction_number' => $admissionId]);
+        $command->execute();
     }
     
     public static function isValidAdmission($admissionId){

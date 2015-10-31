@@ -7,8 +7,9 @@ use app\modules\api\models\RecordFilter;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
 use app\modules\api\models\AppQueries;
 use app\modules\api\models\AppEnums;
-use app\modules\api\models\Status;
+use app\modules\api\models\AppStatus;
 use app\modules\api\v1\models\Admission\AdmissionCrud;
+use app\modules\api\v1\models\AdmissionStatus\AdmissionStatusCrud;
 use Yii;
 
 class AdmissionStatusController extends Controller
@@ -132,35 +133,14 @@ class AdmissionStatusController extends Controller
                 }
             }
             if(sizeof($errors) == 0){
-                $lastStatus = AppQueries::getLastAdmissionStatus($admissionId);
-                if($status == Status::initiated && $lastStatus == false){
-                    AppQueries::insertAdmissionStatus($db, $admissionId, $status);
+                $lastStatusRec = AppQueries::getLastAdmissionStatus($admissionId);
+                $lastStatus = -1;
+                if($lastStatusRec != false && !empty($lastStatusRec)){
+                    $lastStatus = $lastStatusRec['status'];
                 }
-                else if( ($status == Status::accepted || $status == Status::denied) && 
-                        $lastStatus && $lastStatus['status'] == Status::initiated){
-                    AppQueries::insertAdmissionStatus($db, $admissionId, $status);
-                    $this->crud->updateAdmissionStatus($admission, $status);
-                    
-                }
-                else if( $status == Status::bedAssigned && $lastStatus && $lastStatus['status'] == Status::accepted ){
-                    AppQueries::insertAdmissionStatus($db, $admissionId, $status);
-                    $this->crud->updateAdmissionStatus($admission, $status);
-                }
-                else if( ($status == Status::patientArrived || $status == Status::patientNoShow) 
-                        && $lastStatus && $lastStatus['status'] == Status::bedAssigned){
-                    AppQueries::insertAdmissionStatus($db, $admissionId, $status);
-                    $this->crud->updateAdmissionStatus($admission, $status);
-                }
-                else if( $status == Status::patientDischarged && $lastStatus && $lastStatus['status'] == Status::patientArrived ){
-                    AppQueries::insertAdmissionStatus($db, $admissionId, $status);
-                    $this->crud->updateAdmissionStatus($admission, $status);
-                }
-                else if( $status == Status::closed && $lastStatus && 
-                        ($lastStatus['status'] >= Status::initiated && $lastStatus['status'] <= Status::patientNoShow) ){
-                    AppQueries::insertAdmissionStatus($db, $admissionId, $status);
-                    $this->crud->updateAdmissionStatus($admission, $status);
-                }
-                else{
+                $admissionStatusCrud = new AdmissionStatusCrud();
+                $createStatusSuccess = $admissionStatusCrud->create($db, $admission, $lastStatus, $status);
+                if(!$createStatusSuccess){
                     $errors['status'] = 'Valid Status should be given';
                 }
             }
@@ -238,10 +218,10 @@ class AdmissionStatusController extends Controller
         
         if( $this->authUser->category == "HR" && 
                 ($this->authUser->role == "AR" || $this->authUser->role == "UR") ){
-            if( $status == Status::accepted || $status == Status::denied || 
-                $status == Status::bedAssigned || $status == Status::patientArrived ||
-                $status == Status::patientNoShow || $status == Status::closed || 
-                $status == Status::patientDischarged)
+            if( $status == AppStatus::accepted || $status == AppStatus::denied || 
+                $status == AppStatus::bedAssigned || $status == AppStatus::patientArrived ||
+                $status == AppStatus::patientNoShow || $status == AppStatus::closed || 
+                $status == AppStatus::patientDischarged)
             return true;
         }
         else if($this->authUser->category == "HL" && 
@@ -255,27 +235,27 @@ class AdmissionStatusController extends Controller
             $verifyUserAdmissionGroup = sizeof($userGroups) && 
                     in_array($admission->group, $userGroups);
             if($this->authUser->category == "HL" && $this->authUser->role == "PN" && 
-                    ($status == Status::accepted || $status == Status::denied) && 
+                    ($status == AppStatus::accepted || $status == AppStatus::denied) && 
                     $verifyUserAdmissionGroup  ){
                 return true;
             }
             else if($this->authUser->category == "HL" && $this->authUser->role == "BR" && 
-                    $status == Status::bedAssigned && $verifyUserAdmissionFacility ){
+                    $status == AppStatus::bedAssigned && $verifyUserAdmissionFacility ){
                 return true;
             }
             else if( $this->authUser->category == "HL" && 
                     ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
-                    $status == Status::patientArrived && $verifyUserAdmissionFacility ){
+                    $status == AppStatus::patientArrived && $verifyUserAdmissionFacility ){
                 return true;
             }
             else if( $this->authUser->category == "HL" && 
                     ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
-                    $status == Status::patientNoShow && $verifyUserAdmissionFacility ){
+                    $status == AppStatus::patientNoShow && $verifyUserAdmissionFacility ){
                 return true;
             }
             else if( $this->authUser->category == "HL" && 
                     ($this->authUser->role == "BR" || $this->authUser->role == "AK")  && 
-                    $status == Status::patientDischarged && $verifyUserAdmissionFacility ){
+                    $status == AppStatus::patientDischarged && $verifyUserAdmissionFacility ){
                 return true;
             }
         }
