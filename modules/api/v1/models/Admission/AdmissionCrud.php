@@ -71,13 +71,18 @@ class AdmissionCrud{
         if((sizeof($errors) == 0))
         {
             $isSaved = $admission->save();
-            $lastStatus = AppStatus::denied;    //Denied
-            $currentStatus = AppStatus::initiated; //Initiated
-            $admissionStatusCrud = new AdmissionStatusCrud();
-            $admissionStatusCrud->create($db, $admission, $lastStatus, $currentStatus);
             if(!$isSaved){
 //          Collect Errors
                 $errors = $admission->getErrors();
+            }
+            if((sizeof($errors) == 0) && $admission->last_status == AppStatus::denied){
+                $lastStatus = $admission->last_status;    //Denied
+                $currentStatus = AppStatus::initiated; //Initiated
+                $admissionStatusCrud = new AdmissionStatusCrud();
+                $createStatusSuccess = $admissionStatusCrud->create($db, $admission, $lastStatus, $currentStatus);
+                if(!$createStatusSuccess){
+                    $errors['status'] = 'Valid Status should be given';
+                }
             }
         }
         
