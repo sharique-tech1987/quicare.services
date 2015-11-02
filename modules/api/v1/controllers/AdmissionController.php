@@ -118,7 +118,7 @@ class AdmissionController extends Controller
             $admission->scenario = 'post';
             $admission->attributes = $params;
             $admissionDiagnosis = $this->getAdmissionDiagnosis($params);
-            $this->response->data = $this->crud->create($admission, $admissionDiagnosis);
+            $this->response->data = $this->crud->create($admission, $admissionDiagnosis, $this->authUser);
             
         } 
         catch (\Exception $ex) {
@@ -159,7 +159,7 @@ class AdmissionController extends Controller
 //                $admission->scenario = 'put_group_and_physician';
                 $admission->group = is_int($params["group"]) ? $params["group"] : 0;
                 $admission->physician = is_int($params["physician"]) ? $params["physician"]  : 0;
-                $this->response->data = $this->crud->update($admission);
+                $this->response->data = $this->crud->update($admission, $this->authUser);
             }
             
             else if($params["admission_op"] == "update_grp" && 
@@ -167,7 +167,7 @@ class AdmissionController extends Controller
 //                $admission->scenario = 'put_group';
                 $admission->group =  is_int($params["group"]) ? $params["group"] : 0;
                 $admission->physician = 0;
-                $this->response->data = $this->crud->update($admission);
+                $this->response->data = $this->crud->update($admission, $this->authUser);
             }
             else{
                 $serviceResult = new ServiceResult(false, $data = array(), 

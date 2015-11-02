@@ -91,11 +91,12 @@ class AppQueries {
         return $query->exists();
     }
 
-    static function insertAdmissionStatus($db, $admissionId, $status){
+    static function insertAdmissionStatus($db, $admissionId, $status, $userId){
         $command = $db->createCommand()->insert('admission_status', 
                                     ["admission_id" => $admissionId, 
                                     "status" => $status, 
-                                    "created_on" => date("Y-m-d H:i:s", time())]);
+                                    "created_on" => date("Y-m-d H:i:s", time()),
+                                    "user_id" => $userId]);
         $command->execute();
         
         self::updateAdmissionLastStatus($db, $admissionId, $status);
@@ -128,10 +129,11 @@ class AppQueries {
     
     public static function getAdmissionStatuses($admissionId){
         $query = (new \yii\db\Query())
-        ->select(["*"])
-        ->from('admission_status')
-        ->where(["admission_id" => $admissionId])
-        ->orderBy(['created_on' => SORT_DESC]);
+        ->select(["adm_status.*", 'u.first_name', 'u.last_name', 'u.category', 'u.role'])
+        ->from(['admission_status adm_status'])
+        ->innerJoin(['user u'], 'adm_status.user_id = u.id')
+        ->where(["adm_status.admission_id" => $admissionId])
+        ->orderBy(['adm_status.created_on' => SORT_DESC]);
         return $query->all();
     }
     

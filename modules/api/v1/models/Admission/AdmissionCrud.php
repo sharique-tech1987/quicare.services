@@ -48,7 +48,7 @@ class AdmissionCrud{
         return $errors;
     }
     
-    public function update(Admission $admission){
+    public function update(Admission $admission, $user){
         $recordFilter = new RecordFilter();
         $recordFilter->id = $admission->sent_by_facility;
         $facility = FacilityCrud::read($recordFilter, true);
@@ -79,7 +79,8 @@ class AdmissionCrud{
                 $lastStatus = $admission->last_status;    //Denied
                 $currentStatus = AppStatus::initiated; //Initiated
                 $admissionStatusCrud = new AdmissionStatusCrud();
-                $createStatusSuccess = $admissionStatusCrud->create($db, $admission, $lastStatus, $currentStatus);
+                $createStatusSuccess = $admissionStatusCrud->create($db, $admission, $lastStatus, 
+                        $currentStatus, $user["id"]);
                 if(!$createStatusSuccess){
                     $errors['status'] = 'Valid Status should be given';
                 }
@@ -102,7 +103,7 @@ class AdmissionCrud{
         return $serviceResult;
     }
     
-    public function create(Admission $admission, $admissionDiagnosis){
+    public function create(Admission $admission, $admissionDiagnosis, $user){
         $recordFilter = new RecordFilter();
         $recordFilter->id = $admission->sent_to_facility;
         $facility = FacilityCrud::read($recordFilter, true);
@@ -132,7 +133,8 @@ class AdmissionCrud{
                 $lastStatus = -1;
                 $currentStatus = AppStatus::initiated;
                 $admissionStatusCrud = new AdmissionStatusCrud();
-                $admissionStatusCrud->create($db, $admission, $lastStatus, $currentStatus);
+                $admissionStatusCrud->create($db, $admission, $lastStatus, $currentStatus, 
+                        $user["id"]);
 //                AppQueries::insertAdmissionStatus($db, $admission->transaction_number, 1);
                 foreach ($admissionDiagnosis as $admDiag) {
                     $admDiag->admission_id = $admission->transaction_number;

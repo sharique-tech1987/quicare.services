@@ -20,7 +20,7 @@ class AdmissionStatusController extends Controller
     
     public function init() {
         parent::init();
-        $this->crud = new AdmissionCrud();
+        $this->crud = new AdmissionStatusCrud();
         $this->response = Yii::$app->response;
         $this->response->format = \yii\web\Response::FORMAT_JSON;
         $this->response->headers->set('Content-type', 'application/json; charset=utf-8');
@@ -67,7 +67,6 @@ class AdmissionStatusController extends Controller
 
             $this->response->statusCode = 200;
             $admissionId = isset($id) ? $id : null;
-            $lastStatus = isset($params['last_status']) ? $params['last_status'] : null;
             
             $errors = array();
             if(!$admissionId || !AppQueries::isValidAdmission($admissionId)){
@@ -76,23 +75,19 @@ class AdmissionStatusController extends Controller
             
             $serviceResult = null;
             if(sizeof($errors) == 0){
-                $data = AppQueries::getAdmissionStatuses($admissionId);
-                if($lastStatus != null && sizeof($data)){
-                    $data[0]['icon'] = AppEnums::getStatusIconsText($data[0]['status']);
-                    $data = array($data[0]);
-                }
+                $recordFilter = new RecordFilter();
+                $recordFilter->id = $admissionId;
+                $data = $this->crud->read($recordFilter);
                 $serviceResult = new ServiceResult(true, $data, $errors = array());
             }
             else{
                 $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
             }
             
-            return $serviceResult;
-
+            $this->response->data = $serviceResult;
             
         } 
         catch (\Exception $ex) {
-            $transaction->rollBack();
             $this->response->statusCode = 500;
             $serviceResult = new ServiceResult(false, $data = array(), 
                 $errors = array("exception" => $ex->getMessage()));
@@ -118,7 +113,8 @@ class AdmissionStatusController extends Controller
             else{
                 $recordFilter = new RecordFilter();
                 $recordFilter->id = $admissionId;
-                $admission = $this->crud->read($recordFilter);
+                $admissionCrud = new AdmissionCrud();
+                $admission = $admissionCrud->read($recordFilter);
                 if($admission === null){
                     $errors['admission_id'] = 'Valid Admission Id should be given';
                 }
@@ -138,8 +134,9 @@ class AdmissionStatusController extends Controller
                 if($lastStatusRec != false && !empty($lastStatusRec)){
                     $lastStatus = $lastStatusRec['status'];
                 }
-                $admissionStatusCrud = new AdmissionStatusCrud();
-                $createStatusSuccess = $admissionStatusCrud->create($db, $admission, $lastStatus, $status);
+                $userId = $this->authUser->id;
+                $createStatusSuccess = $this->crud->create($db, $admission, $lastStatus, 
+                        $status, $userId);
                 if(!$createStatusSuccess){
                     $errors['status'] = 'Valid Status should be given';
                 }
