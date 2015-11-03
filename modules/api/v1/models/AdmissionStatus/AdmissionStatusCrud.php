@@ -2,7 +2,6 @@
 
 namespace app\modules\api\v1\models\AdmissionStatus;
 
-use app\modules\api\v1\models\AdmissionStatus\AdmissionStatus;
 use app\modules\api\models\AppStatus;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\models\AppQueries;
@@ -12,7 +11,7 @@ use Yii;
 class AdmissionStatusCrud{
     
     
-    private function verifyCreateOrUpdateParams(AdmissionStatus $admissionStatus){
+    private function verifyCreateOrUpdateParams($admissionStatus){
         $errors = array();
         if(!isset($admissionStatus)){
             $errors["admission_status"] = "Admission status should not be null";
