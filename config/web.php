@@ -40,6 +40,7 @@ $config = [
                 require(__DIR__ . '/urlRules/userMenuUrlRule.php'), 
                 require(__DIR__ . '/urlRules/IcdUrlRule.php'),
                 require(__DIR__ . '/urlRules/AdmissionStatusUrlRule.php'),
+                require(__DIR__ . '/urlRules/fileUrlRule.php'),
 
             ],
 		],
