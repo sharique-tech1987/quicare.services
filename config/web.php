@@ -41,6 +41,7 @@ $config = [
                 require(__DIR__ . '/urlRules/IcdUrlRule.php'),
                 require(__DIR__ . '/urlRules/AdmissionStatusUrlRule.php'),
                 require(__DIR__ . '/urlRules/fileUrlRule.php'),
+                require(__DIR__ . '/urlRules/medRecordTypeUrlRule.php'),
 
             ],
 		],
