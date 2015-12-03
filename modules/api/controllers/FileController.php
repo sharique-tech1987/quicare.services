@@ -75,7 +75,8 @@ class FileController extends Controller
         
         $serviceResult = null;
         $errors = array();
-        
+        $baseUploadPath = '/var/www/uploaded_files/';
+//        Check base upload path exist
         try{    
             $admissionId = isset($params['admission_id']) ? $params['admission_id'] : null;
 
@@ -83,12 +84,16 @@ class FileController extends Controller
                 $errors['admission_id'] = 'Valid Admission Id should be given';
                 $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
             }
-            else if ( sizeof($errors) == 0 && sizeof( $_FILES ) > 1 ) {
+            else if ( sizeof( $_FILES ) > 1 ) {
                 $errors['file'] = 'Cannot upload multiple files';
                 $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
             }
+            else if ( !file_exists($baseUploadPath) ) {
+                $errors['file'] = 'Uploaded folder is not setup';
+                $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+            }
 
-            else if ( sizeof($errors) == 0 && !empty( $_FILES ) ) {
+            else if ( !empty( $_FILES ) ) {
                 $tempPath = $_FILES[ 'file' ][ 'tmp_name' ];
                 $fileSize = $_FILES[ 'file' ][ 'size' ];
                 $lastLine = exec('file -bi '. escapeshellarg($tempPath));
@@ -97,7 +102,6 @@ class FileController extends Controller
                 if(sizeof($fileType) && array_key_exists($fileType[0] , $validMimeTypes)){
                     if($fileSize < 20971520){
                         $fileName = $_FILES[ 'file' ][ 'name' ];
-                        $baseUploadPath = '/var/www/uploaded_files/';
                         if($admissionId != null){
                             if (file_exists($baseUploadPath . $admissionId)) {
                                 $admissionFolderPath = $baseUploadPath . $admissionId . '/';
