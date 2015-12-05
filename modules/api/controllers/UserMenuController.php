@@ -53,7 +53,7 @@ class UserMenuController extends Controller
     public function actionIndex(){
         try{
             $this->response->statusCode = 200;
-            $result = UserMenu::getUserMenu($this->authUser["category"], $this->authUser["role"]);
+            $result = UserMenu::getUserMenu($this->authUser["category"], $this->authUser["role"], $this->authUser["user_name"]);
             $serviceResult = new ServiceResult(true, $data = $result, 
                 $errors = array());
             $this->response->data = $serviceResult;
