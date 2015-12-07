@@ -4,26 +4,26 @@ namespace app\modules\api\models;
 
 class UserMenu{
     
-    public static function getUserMenu($category, $role){
+    public static function getUserMenu($category, $role, $username){
 //      Replace category and role with User object
         
         $checkCategory = array("CC", "FT", "ET");
         
         if(strtoupper($category) === "AS"){
-            return self::getAppUserMenu($role);
+            return self::getAppUserMenu($role, $username);
         }
         else if(strtoupper($category) === "HR"){
-            return self::getHealthCareCenterMenu($role);
+            return self::getHealthCareCenterMenu($role, $username);
         }
         else if(strtoupper($category) === "HL"){
-            return self::getHospitalMenu($role);
+            return self::getHospitalMenu($role, $username);
         }
         else if(in_array(strtoupper($category), $checkCategory) ){
-            return self::getClinicMenu($role);
+            return self::getClinicMenu($role, $username);
         }
     }
     
-    private static function getAppUserMenu($role){
+    private static function getAppUserMenu($role, $username){
 //      This menu is currently same for all App Users
         $appUserMenu = array( 
                             array("name" => "Dashboard", "url" => "dashboard", "icon"=> "fa fa-dashboard"), 
@@ -31,33 +31,36 @@ class UserMenu{
                             array("name" => "Users", "url" => "users", "icon"=> "fa fa-user-md"), 
                             array("name" => "Healthcare Facilities", "url" => "facilities", "icon"=> "fa fa-h-square"),
                             array("name" => "Hospital Groups", "url" => "groups", "icon"=> "fa fa-group"), 
-                                         
-                                    );
-        
-        
-            array_push($appUserMenu, array("name" => "Settings", "url" => "", "icon"=> "", 
-                "childs" => array(array("name" => "Quicare Scheduler", "url" => "", "icon"=> ""),
-                                  array("name" => "Account Settings", "url" => "pages/profile", "icon"=> "fa fa-user"),
-//  Transaction menu will be present near future                    
-//                                  array("name" => "Transactions", "url" => "", "icon"=> ""),
-                                  array("name" => "Activity Log", "url" => "", "icon"=> ""),
-                                  array("name" => "Support", "url" => "", "icon"=> ""),
-                                  array("name" => "Help", "url" => "", "icon"=> "") ) ));
+                            array("name" => $username, "url" => "", "icon"=> "fa fa-gear",
+                                "childs" => array(
+                                    array("name" => "Profile", "url" => "profile", "icon"=> "fa fa-user"),
+                                    array("name" => "Quicare Scheduler", "url" => "", "icon"=> "fa fa-gear"),
+                                    //array("name" => "Transactions", "url" => "", "icon"=> ""),
+                                    array("name" => "Activity Log", "url" => "", "icon"=> "fa fa-gear"),
+                                    array("name" => "Support", "url" => "", "icon"=> "fa fa-gear"),
+                                    array("name" => "Help", "url" => "", "icon"=> "fa fa-gear"),
+                                    array("name" => "Logout", "url" => "signin", "icon"=> "fa fa-sign-out")
+                                )
+                            )
+                            
+                        );
             
             return $appUserMenu;
 
     }
     
-    private static function getHealthCareCenterMenu($role){
+    private static function getHealthCareCenterMenu($role, $username){
         $healthCareCenterMenu = array( 
-                                        array("name" => "Admissions", "url" => "admissions", "icon"=> "fa fa-ticket"),
-                                        array("name" => "Settings", "url" => "", "icon"=> "", 
-                    "childs" => array(
-                    array("name" => "Account Settings", "url" => "pages/profile", "icon"=> "fa fa-user"),
+            array("name" => "Admissions", "url" => "admissions", "icon"=> "fa fa-ticket"),
+            array("name" => $username, "url" => "", "icon"=> "fa fa-gear",
+                "childs" => array(
+                    array("name" => "Account Settings", "url" => "profile", "icon"=> "fa fa-user"),
                     array("name" => "Support", "url" => "", "icon"=> ""),
-                    array("name" => "Help", "url" => "", "icon"=> "")    ) )
-                                         
-                                        ); 
+                    array("name" => "Help", "url" => "", "icon"=> ""),
+                    array("name" => "Logout", "url" => "signin", "icon"=> "fa fa-sign-out")    
+                ) 
+            )
+        ); 
         
         if(strtoupper($role) === "AR"){
             array_splice($healthCareCenterMenu, 0, 0, 
@@ -79,17 +82,20 @@ class UserMenu{
         return null;
     }
     
-    private static function getHospitalMenu($role){
+    private static function getHospitalMenu($role, $username){
         $checkRoles = array("BR", "AK");
         
-        $settingsChilds = array(
-                    array("name" => "Account Settings", "url" => "pages/profile", "icon"=> "fa fa-user"),
-                    array("name" => "Support", "url" => "", "icon"=> ""),
-                    array("name" => "Help", "url" => "", "icon"=> ""));
         $hospitalMenu = array( 
-                                        array("name" => "Admissions", "url" => "admissions", "icon"=> "fa fa-ticket"),
-                                        array("name" => "Settings", "url" => "", "icon"=> "", 
-                    "childs" => $settingsChilds )); 
+            array("name" => "Admissions", "url" => "admissions", "icon"=> "fa fa-ticket"),
+            array("name" => $username, "url" => "", "icon"=> "fa fa-gear", 
+                "childs" => array(
+                    array("name" => "Account Settings", "url" => "profile", "icon"=> "fa fa-user"),
+                    array("name" => "Support", "url" => "", "icon"=> ""),
+                    array("name" => "Help", "url" => "", "icon"=> ""),
+                    array("name" => "Logout", "url" => "signin", "icon"=> "fa fa-sign-out") 
+                ) 
+            )
+        ); 
         
         if(strtoupper($role) === "AR"){
             array_splice($hospitalMenu, 0, 0, 
@@ -116,20 +122,23 @@ class UserMenu{
         
     }
     
-    private static function getClinicMenu($role){
+    private static function getClinicMenu($role, $username){
         /*
          * These menus are applicable on clinic type facilities (Clinic, FSED, ED)
          */
         $checkRoles = array("PN", "RE", "PT", "SF");
         
-        $settingsChilds = array(
-                    array("name" => "Account Settings", "url" => "pages/profile", "icon"=> "fa fa-user"),
-                    array("name" => "Support", "url" => "", "icon"=> ""),
-                    array("name" => "Help", "url" => "", "icon"=> ""));
         $clinicMenu = array( 
-                                        array("name" => "Admissions", "url" => "admissions", "icon"=> "fa fa-ticket"),
-                                        array("name" => "Settings", "url" => "", "icon"=> "", 
-                    "childs" => $settingsChilds )); 
+            array("name" => "Admissions", "url" => "admissions", "icon"=> "fa fa-ticket"),
+            array("name" => $username, "url" => "", "icon"=> "fa fa-gear", 
+                "childs" => array(
+                    array("name" => "Account Settings", "url" => "profile", "icon"=> "fa fa-user"),
+                    array("name" => "Support", "url" => "", "icon"=> ""),
+                    array("name" => "Help", "url" => "", "icon"=> ""),
+                    array("name" => "Logout", "url" => "signin", "icon"=> "fa fa-sign-out") 
+                ) 
+            )
+        ); 
         
         if(strtoupper($role) === "AR"){
             array_splice($clinicMenu, 0, 0, 
