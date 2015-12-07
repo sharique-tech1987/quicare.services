@@ -118,7 +118,9 @@ class AdmissionController extends Controller
             $admission->scenario = 'post';
             $admission->attributes = $params;
             $admissionDiagnosis = $this->getAdmissionDiagnosis($params);
-            $this->response->data = $this->crud->create($admission, $admissionDiagnosis, $this->authUser);
+            $fileAttachments = isset($params['files']) ? $params['files'] : null;
+            $this->response->data = $this->crud->create($admission, 
+                    $admissionDiagnosis, $this->authUser, $fileAttachments);
             
         } 
         catch (\Exception $ex) {

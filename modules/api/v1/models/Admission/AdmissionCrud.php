@@ -12,6 +12,7 @@ use Yii;
 use app\modules\api\v1\models\AdmissionStatus\AdmissionStatusCrud;
 use app\modules\api\models\AppQueries;
 use app\modules\api\models\AppStatus;
+use app\modules\api\v1\models\AdmissionAttachment\AdmissionAttachmentCrud;
 
 class AdmissionCrud{
     
@@ -103,7 +104,7 @@ class AdmissionCrud{
         return $serviceResult;
     }
     
-    public function create(Admission $admission, $admissionDiagnosis, $user){
+    public function create(Admission $admission, $admissionDiagnosis, $user, $fileAttachments){
         $recordFilter = new RecordFilter();
         $recordFilter->id = $admission->sent_to_facility;
         $facility = FacilityCrud::read($recordFilter, true);
@@ -145,6 +146,22 @@ class AdmissionCrud{
                         break;
                     }
                 }
+                if(sizeof($errors == 0) && $fileAttachments != null){
+                    $admissionAttachmentCrud = new AdmissionAttachmentCrud();
+                    $fileAttachments = $admissionAttachmentCrud->filterFileAttachmentArray($fileAttachments);
+                    $createAdmAttachmentSuccess = $admissionAttachmentCrud->
+                            create($admission->transaction_number, $fileAttachments, $user["id"]);
+                    if($createAdmAttachmentSuccess){
+                        if(!$this->moveAdmissionAttachment($fileAttachments, $admission->transaction_number)){
+                            $errors["file"] = "File(s) cannot be associated to admission";
+                        }
+                            
+                    }
+                    else {
+                            $errors["file"] = "File(s) cannot be associated to admission";
+                    }
+                    
+                }
             }
             
         }
@@ -166,18 +183,6 @@ class AdmissionCrud{
         }
         
         return $serviceResult;
-    }
-    
-//    Ensure this method is not used anywhere and remove it
-    public function updateAdmissionStatus(Admission $admission, $lastStatus){
-        
-        $admission->last_status = $lastStatus;
-        $isSaved = $admission->save();
-        
-        if(!$isSaved){
-            return false;
-        }
-
     }
     
     private function generateTransactionNumber(){
@@ -318,6 +323,32 @@ class AdmissionCrud{
         return implode(",", array_filter(array_map(function($diag){
             return $diag->diagnosis_desc; 
         }, $diagnosis)) );
+    }
+    
+    private function moveAdmissionAttachment($source, $destination){
+        $baseUploadPath = '/var/www/uploaded_files/';
+        $admissionId = $destination;
+        $admissionFolderPath = $baseUploadPath . $admissionId . '/';
+        $success = true;
+        foreach ($source as $fa) {
+            if(file_exists( $baseUploadPath . 'temp/' . $fa['file_name'])){
+                if( file_exists( $admissionFolderPath) ){
+                    rename($baseUploadPath . 'temp/' . $fa['file_name'], $admissionFolderPath . $fa['file_name']);
+                }
+                else{
+                    if(mkdir($admissionFolderPath, 0740)) {
+                        rename($baseUploadPath . 'temp/' . $fa['file_name'], $admissionFolderPath . $fa['file_name']);
+                    }
+                    else{
+                        $success = false;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return $success; 
+        
     }
 
 }

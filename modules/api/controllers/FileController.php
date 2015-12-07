@@ -6,6 +6,7 @@ use app\modules\api\models\ServiceResult;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
 use app\modules\api\components\CryptoLib;
 use app\modules\api\models\AppQueries;
+use app\modules\api\v1\models\AdmissionAttachment\AdmissionAttachmentCrud;
 
 
 use Yii;
@@ -76,9 +77,9 @@ class FileController extends Controller
         $serviceResult = null;
         $errors = array();
         $baseUploadPath = '/var/www/uploaded_files/';
-//        Check base upload path exist
         try{    
             $admissionId = isset($params['admission_id']) ? $params['admission_id'] : null;
+            $recordType = isset($params['record_type']) ? $params['record_type'] : null;
 
             if($admissionId != null && !AppQueries::isValidAdmission($admissionId)){
                 $errors['admission_id'] = 'Valid Admission Id should be given';
@@ -90,6 +91,10 @@ class FileController extends Controller
             }
             else if ( !file_exists($baseUploadPath) ) {
                 $errors['file'] = 'Uploaded folder is not setup';
+                $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+            }
+            else if($recordType == null){
+                $errors['file'] = 'Record type should be given';
                 $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
             }
 
@@ -110,6 +115,9 @@ class FileController extends Controller
                                         strtotime(date('Y-m-d H:i:s')) . $validMimeTypes[$fileType[0]];
                                 rename($admissionFolderPath . $fileName, $admissionFolderPath . $uniqueFileName);
     //                                Store file reference in db(admission_id, file_name, file type)
+                                $admissionAttachmentCrud = new AdmissionAttachmentCrud();
+                                $fileAttachment = array(array("file_name" => $uniqueFileName, "record_type" => $recordType));
+                                $admissionAttachmentCrud->create($admissionId, $fileAttachment, $this->authUser["id"]);
                             }
                             else{
                                 $admissionFolderPath = $baseUploadPath . $admissionId . '/';
@@ -119,6 +127,10 @@ class FileController extends Controller
                                             strtotime(date('Y-m-d H:i:s')) . $validMimeTypes[$fileType[0]];
                                     rename($admissionFolderPath . $fileName, $admissionFolderPath . $uniqueFileName);
     //                                Store file reference in db(admission_id, file_name, file type)
+                                    $admissionAttachmentCrud = new AdmissionAttachmentCrud();
+                                    $fileAttachment = array(array("file_name" => $uniqueFileName, "record_type" => $recordType));
+                                    $admissionAttachmentCrud->create($admissionId, $fileAttachment, $this->authUser["id"]);
+                                    
                                 }
                             }
                         }
