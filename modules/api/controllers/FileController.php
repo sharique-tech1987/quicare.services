@@ -179,7 +179,7 @@ class FileController extends Controller
     }
 	
     public function actionDelete(){
-        $params = Yii::$app->request->post();
+        $params = Yii::$app->request->get();
         $this->response->statusCode = 200;
         
         $errors = array();
