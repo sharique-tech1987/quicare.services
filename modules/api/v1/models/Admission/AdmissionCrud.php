@@ -244,6 +244,7 @@ class AdmissionCrud{
                 $admissionArray['diagnosis'] = $admission->admissionDiagnosis;
                 $admissionArray['status_icon'] = AppEnums::getStatusIconsText($admission->last_status);
                 $admissionArray['status_text'] = AppEnums::getStatusText($admission->last_status);
+                $admissionArray['files'] = AppQueries::getAdmissionAttachments($admission['transaction_number']);
                 
 //                $admissionArray["users"] = $admission->users;
                 return $admissionArray;

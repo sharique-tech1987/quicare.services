@@ -37,12 +37,12 @@ class AdmissionAttachment extends ActiveRecord{
         return [ 
             [['admission_id', 'file_name', 'record_type', 'uploaded_by' ], 'required', 
                  'message' => '{attribute} required',  ],
-            [['admission_id'], 'exist',  'targetClass' => Admission::className(), 
-                'targetAttribute' => 'transaction_number',
-                'message' => 'Admission does not exist'],
-            [['uploaded_by'], 'exist',  'targetClass' => User::className(), 
-                'targetAttribute' => 'id', 'filter' => ["deactivate" => "F"],
-                'message' => 'User does not exist or deactivated']
+//            [['admission_id'], 'exist',  'targetClass' => Admission::className(), 
+//                'targetAttribute' => 'transaction_number',
+//                'message' => 'Admission does not exist'],
+//            [['uploaded_by'], 'exist',  'targetClass' => User::className(), 
+//                'targetAttribute' => 'id', 'filter' => ["deactivate" => "F"],
+//                'message' => 'User does not exist or deactivated']
             
         ];
     }

@@ -265,6 +265,11 @@ class FacilityCrud{
     }
     
     public static function read(RecordFilter $recordFilter, $findModel = true){
+/*
+ *      This will be changed because it is an extra call to db if we need
+ *      some facility realted fields. 
+ *      E.g. if we need facility's groups we fetch facility object first.
+ */        
         $facility = Facility::findOne($recordFilter->id);
         if($facility !== null ){
             if($findModel){

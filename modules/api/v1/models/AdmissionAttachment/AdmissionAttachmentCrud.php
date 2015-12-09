@@ -35,6 +35,11 @@ class AdmissionAttachmentCrud{
         
         $transaction = Yii::$app->db->beginTransaction();
         $isSaved = false;
+/*
+ *         Change this loop with a single query
+ *         Pass file attachment, admission_id, record_type and uploaded_by
+ *         to that query
+ */
         foreach ($fileAttachment as $fa) {
             if( array_key_exists( 'file_name', $fa) && 
                 array_key_exists('record_type', $fa) ){

@@ -334,6 +334,11 @@ class UserCrud{
     }
     
     public function read(RecordFilter $recordFilter, $findModel = true){
+/*
+ *      This will be changed because it is an extra call to db if we need
+ *      some user realted fields. 
+ *      E.g. if we need user facilities we fetch user object first.
+ */        
         $user = User::findOne($recordFilter->id);
         if($user !== null ){
             if($findModel){

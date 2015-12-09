@@ -168,6 +168,11 @@ class GroupCrud{
     }
 
     public function read(RecordFilter $recordFilter, $findModel = true){
+/*
+ *      This will be changed because it is an extra call to db if we need
+ *      some group realted fields. 
+ *      E.g. if we need groups facilities we fetch group object first.
+ */        
         $group = Group::findOne($recordFilter->id);
         if($group !== null ){
             if($findModel){
