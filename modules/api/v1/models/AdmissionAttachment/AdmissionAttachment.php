@@ -10,7 +10,7 @@ use \yii\db\ActiveRecord;
 class AdmissionAttachment extends ActiveRecord{
     public static function tableName()
     {
-        return 'admission_attachement';
+        return 'admission_attachment';
     }
     
     

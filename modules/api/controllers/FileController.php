@@ -178,7 +178,68 @@ class FileController extends Controller
         $this->response->data = $serviceResult;
     }
 	
-    public function actionDelete($id){
+    public function actionDelete(){
+        $params = Yii::$app->request->post();
+        $this->response->statusCode = 200;
+        
+        $errors = array();
+        $baseUploadPath = '/var/www/uploaded_files/';
+        $tempFolderPath = $baseUploadPath . 'temp/';
+        $db = Yii::$app->db;
+        $transaction = $db->beginTransaction();
+        try{ 
+            $fileRow = array();
+            $fileName = isset($params['file_name']) ? $params['file_name'] : null;
+            if($fileName != null){
+                $fileRow = AppQueries::isFilenameExist($fileName);
+                if(sizeof($fileRow) == 1){
+                    if($fileRow[0]['uploaded_by'] == $this->authUser["id"]){
+                        $filePath = $baseUploadPath . $fileRow[0]['admission_id'] . '/' . $fileRow[0]['file_name'];
+                        if (file_exists($filePath)) {
+                            $success = AppQueries::deleteFileAttachment($db, $fileRow[0]['file_name']);
+                            if($success){
+                                $success = unlink($filePath);
+                                $serviceResult = new ServiceResult(true, $data = array(), $errors = array());
+                                $transaction->commit();
+                            }
+                            else{
+                                $errors['file'] = 'File cannot be deleted';
+                                $serviceResult = new ServiceResult(false, $data = array(), $errors = array());
+                                $transaction->rollBack();
+                            }
+                        }
+                        else{
+                            $errors['file'] = 'File not exist';
+                            $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+                        }
+                    }
+                    else {
+                        $errors['file'] = "You don't have permission to delete file ";
+                        $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+                    }
+                }
+                else if (file_exists($tempFolderPath . $fileName)) {
+                    unlink($tempFolderPath . $fileName);
+                }
+                else{
+                    $errors['file'] = 'File not exist';
+                    $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+                }
+            }
+            else{
+                $errors['file'] = 'File name should be given';
+                $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+            }
+            
+            $this->response->data = $serviceResult;
+            
+        } catch (\Exception $ex) {
+            $transaction->rollBack();
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
         
     }
     
