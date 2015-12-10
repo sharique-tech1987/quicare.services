@@ -7,6 +7,7 @@ use app\modules\api\models\AuthToken\AuthTokenCrud;
 use app\modules\api\components\CryptoLib;
 use app\modules\api\models\AppQueries;
 use app\modules\api\v1\models\AdmissionAttachment\AdmissionAttachmentCrud;
+use app\modules\api\models\AppEnums;
 
 
 use Yii;
@@ -93,8 +94,9 @@ class FileController extends Controller
                 $errors['file'] = 'Uploaded folder is not setup';
                 $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
             }
+//            Also check if $recordType is not null then record type must exist in db
             else if($recordType == null){
-                $errors['file'] = 'Record type should be given';
+                $errors['file'] = 'Valid Record type should be given';
                 $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
             }
 
@@ -133,6 +135,7 @@ class FileController extends Controller
                                     
                                 }
                             }
+                            $serviceResult = new ServiceResult(true, $data = array("file" => $uniqueFileName), $errors = array());
                         }
                         else{
                             $internalTempDirPath = $baseUploadPath . '/temp/';
@@ -140,8 +143,10 @@ class FileController extends Controller
                             $uniqueFileName = CryptoLib::randomString(10) .  
                                     strtotime(date('Y-m-d H:i:s')) . $validMimeTypes[$fileType[0]];
                             rename($internalTempDirPath . $fileName, $internalTempDirPath . $uniqueFileName);
+                            $data = array("file" => $uniqueFileName, "record_type" => AppEnums::getRecordTypeText($recordType));
+                            $serviceResult = new ServiceResult(true, $data = $data, $errors = array());
                         }
-                        $serviceResult = new ServiceResult(true, $data = array("file" => $uniqueFileName), $errors = array());
+//                        $serviceResult = new ServiceResult(true, $data = array("file" => $uniqueFileName), $errors = array());
                     }
                     else{
                         $errors['file'] = 'File size exceed from 20 MB';
@@ -182,6 +187,7 @@ class FileController extends Controller
         $params = Yii::$app->request->get();
         $this->response->statusCode = 200;
         
+        $serviceResult = null;
         $errors = array();
         $baseUploadPath = '/var/www/uploaded_files/';
         $tempFolderPath = $baseUploadPath . 'temp/';
@@ -220,6 +226,7 @@ class FileController extends Controller
                 }
                 else if (file_exists($tempFolderPath . $fileName)) {
                     unlink($tempFolderPath . $fileName);
+                    $serviceResult = new ServiceResult(true, $data = array(), $errors = array());
                 }
                 else{
                     $errors['file'] = 'File not exist';

@@ -172,6 +172,17 @@ class AppEnums{
         return $specialtyText[strtoupper($code)];
     }
     
+    public static function getRecordTypeText($code){
+        $recordTypeText = array(1 => "Xray",
+                              2 => "CT Scan",
+                              3 => "Ultrasound",
+                              4 => "ECG",
+                              5 => "MRI",                              
+            );
+        
+        return $recordTypeText[strtoupper($code)];
+    }
+    
 }
 
 
