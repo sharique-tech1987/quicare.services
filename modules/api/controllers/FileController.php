@@ -8,6 +8,9 @@ use app\modules\api\components\CryptoLib;
 use app\modules\api\models\AppQueries;
 use app\modules\api\v1\models\AdmissionAttachment\AdmissionAttachmentCrud;
 use app\modules\api\models\AppEnums;
+use app\modules\api\v1\models\User\UserCrud;
+use app\modules\api\models\RecordFilter;
+use app\modules\api\v1\models\Admission\AdmissionCrud;
 
 
 use Yii;
@@ -99,7 +102,6 @@ class FileController extends Controller
                 $errors['file'] = 'Valid Record type should be given';
                 $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
             }
-
             else if ( !empty( $_FILES ) ) {
                 $tempPath = $_FILES[ 'file' ][ 'tmp_name' ];
                 $fileSize = $_FILES[ 'file' ][ 'size' ];
@@ -110,16 +112,21 @@ class FileController extends Controller
                     if($fileSize < 20971520){
                         $fileName = $_FILES[ 'file' ][ 'name' ];
                         if($admissionId != null){
-                            if (file_exists($baseUploadPath . $admissionId)) {
+                            if(!$this->checkPermission($admissionId)){
+                                $errors['file'] = "Don't have permission to upload file";
+                                $serviceResult = new ServiceResult(false, $data = array(), $errors = $errors);
+                            }
+//                            Refactor file upload code
+                            else if (file_exists($baseUploadPath . $admissionId)) {
                                 $admissionFolderPath = $baseUploadPath . $admissionId . '/';
                                 move_uploaded_file( $tempPath, $admissionFolderPath . $fileName );
                                 $uniqueFileName = CryptoLib::randomString(10) .  
                                         strtotime(date('Y-m-d H:i:s')) . $validMimeTypes[$fileType[0]];
                                 rename($admissionFolderPath . $fileName, $admissionFolderPath . $uniqueFileName);
-    //                                Store file reference in db(admission_id, file_name, file type)
                                 $admissionAttachmentCrud = new AdmissionAttachmentCrud();
                                 $fileAttachment = array(array("file_name" => $uniqueFileName, "record_type" => $recordType));
                                 $admissionAttachmentCrud->create($admissionId, $fileAttachment, $this->authUser["id"]);
+                                $serviceResult = new ServiceResult(true, $data = array("file" => $uniqueFileName), $errors = array());
                             }
                             else{
                                 $admissionFolderPath = $baseUploadPath . $admissionId . '/';
@@ -128,14 +135,14 @@ class FileController extends Controller
                                     $uniqueFileName = CryptoLib::randomString(10) .  
                                             strtotime(date('Y-m-d H:i:s')) . $validMimeTypes[$fileType[0]];
                                     rename($admissionFolderPath . $fileName, $admissionFolderPath . $uniqueFileName);
-    //                                Store file reference in db(admission_id, file_name, file type)
                                     $admissionAttachmentCrud = new AdmissionAttachmentCrud();
                                     $fileAttachment = array(array("file_name" => $uniqueFileName, "record_type" => $recordType));
                                     $admissionAttachmentCrud->create($admissionId, $fileAttachment, $this->authUser["id"]);
+                                    $serviceResult = new ServiceResult(true, $data = array("file" => $uniqueFileName), $errors = array());
                                     
                                 }
                             }
-                            $serviceResult = new ServiceResult(true, $data = array("file" => $uniqueFileName), $errors = array());
+                            
                         }
                         else{
                             $internalTempDirPath = $baseUploadPath . '/temp/';
@@ -146,7 +153,7 @@ class FileController extends Controller
                             $data = array("file" => $uniqueFileName, "record_type" => AppEnums::getRecordTypeText($recordType));
                             $serviceResult = new ServiceResult(true, $data = $data, $errors = array());
                         }
-//                        $serviceResult = new ServiceResult(true, $data = array("file" => $uniqueFileName), $errors = array());
+
                     }
                     else{
                         $errors['file'] = 'File size exceed from 20 MB';
@@ -197,7 +204,7 @@ class FileController extends Controller
             $fileRow = array();
             $fileName = isset($params['file_name']) ? $params['file_name'] : null;
             if($fileName != null){
-                $fileRow = AppQueries::isFilenameExist($fileName);
+                $fileRow = AppQueries::getFileByName($fileName);
                 if(sizeof($fileRow) == 1){
                     if($fileRow[0]['uploaded_by'] == $this->authUser["id"]){
                         $filePath = $baseUploadPath . $fileRow[0]['admission_id'] . '/' . $fileRow[0]['file_name'];
@@ -257,15 +264,54 @@ class FileController extends Controller
         else {
             $token = sizeof(explode('Basic', $authHeader)) >= 2 ? 
                 trim(explode('Basic', $authHeader)[1]) : null;
-            $user = AuthTokenCrud::read($token);
-            if($user === null){
+            $tokenModel = AuthTokenCrud::read($token, false, true);
+            if($tokenModel === null){
                 return array("success" => false, "message" => "Not a valid token");
             }
             else{
+                $recordFilter = new RecordFilter();
+                $recordFilter->id = $tokenModel->user_id;
+                $userCrud = new UserCrud();
+                $user = $userCrud->read($recordFilter, false);
                 $this->authUser = $user;
                 return array("success" => true, "message" => "");
             }
         }
+    }
+    
+    private function getIdsArray($fac){
+        return array_map(function($fac){return $fac['id'];}, $fac);
+    }
+    
+    private function checkPermission($admissionId){
+        $clinicCategories = ["CC", "ET", "FT"];
+        $recordFilter = new RecordFilter();
+        $recordFilter->id = $admissionId;
+        $admissionCrud = new AdmissionCrud();
+        $admission = $admissionCrud->read($recordFilter);
+        $userFacilityIds = $this->getIdsArray($this->authUser["facilities"]);
+        $admSendFromFacility = $admission["sent_by_facility"];
+        $admSendToFacility = $admission["sent_to_facility"];
+        $admSendToGroup = $admission["group"];
+        if(in_array($this->authUser["category"], $clinicCategories) && 
+                !in_array($admSendFromFacility, $userFacilityIds)){
+            return false;
+        }
+
+        else if( $this->authUser["category"] == "HL" ){
+            if($this->authUser["role"] != "PN" && 
+                !in_array($admSendToFacility, $userFacilityIds)){
+                return false;
+            }
+            else{
+                $userGroupIds = $this->getIdsArray($this->authUser["groups"]);
+                if(!in_array($admSendToGroup, $userGroupIds)){
+                    return false;
+                }
+            }
+        }
+        
+        return true;
     }
 	
 	

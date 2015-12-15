@@ -106,14 +106,20 @@ class AuthTokenCrud{
             
     }
     
-    public static function read($token, $findUserModel = false){
+    public static function read($token, $findUserModel = false, $findTokenOnly = false){
+        /*
+         * Set only parameter to true either $findUserModel or $findTokenOnly 
+         */
         $authToken = AuthToken::findOne(['token' => $token, 'expired' => 'F']);
         
         if($authToken === null){
             return $authToken;
         }
         else{
-            if($findUserModel){
+            if($findTokenOnly){
+                return $authToken;
+            }
+            else if($findUserModel){
                 return $authToken->user;
             }
             else{

@@ -175,7 +175,21 @@ class AppQueries {
         return $rows;
     }
     
-    public static function isFilenameExist($fileName){
+    public static function getFileById($fileId){
+        $query = (new Query())
+                ->select(['adm_attach.id',
+                    'adm_attach.admission_id', 
+                    'adm_attach.record_type',
+                    'adm_attach.file_name',  
+                    'adm_attach.uploaded_by', 
+                    'adm_attach.created_on'])
+                ->from(['admission_attachment adm_attach'])
+                ->where(['adm_attach.id' => $fileId]);
+        $rows = $query->all();
+        return $rows;
+    }
+    
+    public static function getFileByName($fileName){
         $query = (new Query())
                 ->select(['adm_attach.id',
                     'adm_attach.admission_id', 
