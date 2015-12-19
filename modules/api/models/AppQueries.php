@@ -209,6 +209,26 @@ class AppQueries {
 
     }
     
+    static function insertUniqueFileId($db, $uniqueFileId, $token, $fileId){
+        $command = $db->createCommand()->insert('temp_file_name', 
+                                    ["unique_file_id" => $uniqueFileId, 
+                                    "file_id" => $fileId, 
+                                    "token" => $token,
+                                    "created_on" => date("Y-m-d H:i:s", time())]);
+        $command->execute();
+        
+    }
+    
+    public static function getUniqueFileId($fileId){
+        $query = (new \yii\db\Query())
+        ->select(["tfn.*", 'uat.expired', 'aa.admission_id', 'aa.file_name'])
+        ->from(['temp_file_name tfn'])
+        ->innerJoin(['user_auth_token uat'], 'tfn.token = uat.token')
+        ->innerJoin(['admission_attachment aa'], 'tfn.file_id = aa.id')
+        ->where(["tfn.unique_file_id" => $fileId]);
+        
+        return $query->all();
+    }
     
 
 }

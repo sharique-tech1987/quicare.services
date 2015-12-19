@@ -63,7 +63,60 @@ class FileController extends Controller
         $this->response->data = $serviceResult;
     }
 	
-    public function actionView($id){}
+    public function actionView($id){
+        try{
+            $params = Yii::$app->request->get();
+            $serviceResult = null;
+            $errors = array();
+            $data = array();
+            $success = false;
+            
+            $admission = null;
+            $admissionId = isset($params['admission_id']) ? $params['admission_id'] : null;
+            
+            $db = Yii::$app->db;
+            $transaction = $db->beginTransaction();
+            
+            if($admissionId == null){
+                $errors['admission_id'] = 'Valid Admission Id should be given';
+            }
+            else{
+                $recordFilter = new RecordFilter();
+                $recordFilter->id = $admissionId;
+                $admissionCrud = new AdmissionCrud();
+                $admission = $admissionCrud->read($recordFilter);
+                if($admission === null){
+                    $errors['admission_id'] = 'Valid Admission Id should be given';
+                }
+            }
+            
+            if(sizeof($errors) == 0 ){
+                if($this->checkPermission($admissionId)){
+                    $fileRow = AppQueries::getFileById($id);
+                    if(sizeof($fileRow) == 1){
+                        $uniqueFileId = CryptoLib::randomString(64);
+                        AppQueries::insertUniqueFileId($db, $uniqueFileId, $this->authUser["token"], $fileRow[0]["id"]);
+                        $success = true;
+                        $data["fl"] = $uniqueFileId;
+                        $transaction->commit();
+                    }
+                }
+                else{
+                    $errors['file'] = "Don't have permission to download file";
+                }
+            }
+            
+            $serviceResult = new ServiceResult($success, $data = $data, $errors = $errors);
+            $this->response->data = $serviceResult;
+            
+        } catch (\Exception $ex) {
+            $transaction->rollBack();
+            $this->response->statusCode = 500;
+            $serviceResult = new ServiceResult(false, $data = array(), 
+                $errors = array("exception" => $ex->getMessage()));
+            $this->response->data = $serviceResult;
+        }
+    }
 	
     public function actionCreate(){
         
@@ -274,6 +327,7 @@ class FileController extends Controller
                 $userCrud = new UserCrud();
                 $user = $userCrud->read($recordFilter, false);
                 $this->authUser = $user;
+                $this->authUser["token"] = $tokenModel->token;
                 return array("success" => true, "message" => "");
             }
         }
