@@ -12,6 +12,8 @@ use yii\helpers\Json;
 use app\modules\api\v1\models\UserFacility\UserFacility;
 use app\modules\api\v1\models\UserGroup\UserGroup;
 use app\modules\api\v1\models\UserOnCallGroup\UserOnCallGroup;
+use app\modules\api\models\ActivityLog;
+
 
 class User extends ActiveRecord
 {
@@ -179,6 +181,10 @@ class User extends ActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
+        	
+        	//Log activity details
+        	ActivityLog::userLog();
+        	
             // Set current date in created_on and updated_on
             if ($insert){
                 $this->created_on = date("Y-m-d H:i:s", time());
