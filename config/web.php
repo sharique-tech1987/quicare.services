@@ -44,6 +44,8 @@ $config = [
                 require(__DIR__ . '/urlRules/medRecordTypeUrlRule.php'),
                 require(__DIR__ . '/urlRules/fetchFileUrlRule.php'),
                 require(__DIR__ . '/urlRules/activityLogUrlRule.php'),
+                require(__DIR__ . '/urlRules/logActionsUrlRule.php'),
+                            
 
             ],
 		],

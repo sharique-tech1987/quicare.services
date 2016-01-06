@@ -36,7 +36,7 @@ class UserMenu{
                                     array("name" => "Profile", "url" => "profile", "icon"=> "fa fa-user"),
                                     array("name" => "Quicare Scheduler", "url" => "", "icon"=> "fa fa-gear"),
                                     //array("name" => "Transactions", "url" => "", "icon"=> ""),
-                                    array("name" => "Activity Log", "url" => "", "icon"=> "fa fa-gear"),
+                                    array("name" => "Activity Log", "url" => "activity_log", "icon"=> "fa fa-gear"),
                                     array("name" => "Support", "url" => "", "icon"=> "fa fa-gear"),
                                     array("name" => "Help", "url" => "", "icon"=> "fa fa-gear"),
                                     array("name" => "Logout", "url" => "signin", "icon"=> "fa fa-sign-out")

@@ -8,7 +8,7 @@ use app\modules\api\models\RecordFilter;
 
 use Yii;
 
-class ActivityLogController extends Controller
+class LogActionController extends Controller
 {
     private $response;
     
@@ -28,7 +28,8 @@ class ActivityLogController extends Controller
             $recordFilter = new RecordFilter();
 
             $recordFilter->attributes = $params;
-            $data = ActivityLogQueries::getActivityLogs($recordFilter);
+            
+            $data = ActivityLogQueries::getActivityLogActions();
             $this->response->data = new ServiceResult(true, $data, $errors = array());
         } 
         catch (\Exception $ex) {
@@ -43,19 +44,19 @@ class ActivityLogController extends Controller
 	
 	
     public function actionView($id){
-        $this->response->statusCode = 405;
-        $serviceResult = new ServiceResult(false, $data = array(), 
-            $errors = array("message" => "View method not implemented for this resource" ));
-        $this->response->data = $serviceResult;
-	}
-	
-    public function actionCreate(){
-        $this->response->statusCode = 405;
-        $serviceResult = new ServiceResult(false, $data = array(), 
-            $errors = array("message" => "Create method not implemented for this resource" ));
-        $this->response->data = $serviceResult;
-        
+    $this->response->statusCode = 405;
+    $serviceResult = new ServiceResult(false, $data = array(), 
+        $errors = array("message" => "View method not implemented for this resource" ));
+    $this->response->data = $serviceResult;
     }
+
+    public function actionCreate(){
+    $this->response->statusCode = 405;
+    $serviceResult = new ServiceResult(false, $data = array(), 
+        $errors = array("message" => "Create method not implemented for this resource" ));
+    $this->response->data = $serviceResult;
+
+}
     
     public function actionUpdate($id){
         $this->response->statusCode = 405;
