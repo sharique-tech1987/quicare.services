@@ -2,9 +2,9 @@
 namespace app\modules\api\v1\controllers;
 
 use yii\rest\Controller;
-use app\modules\api\models\ActivityLogQueries;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
+use app\modules\api\v1\models\ActivityLog\ActivityLogCrud;
 
 use Yii;
 
@@ -19,6 +19,8 @@ class ActivityLogController extends Controller
         $this->response->headers->set('Content-type', 'application/json; charset=utf-8');
     }
     
+//    Write before action method
+    
     public function actionIndex(){
         try {
             $params = Yii::$app->request->get();
@@ -28,8 +30,8 @@ class ActivityLogController extends Controller
             $recordFilter = new RecordFilter();
 
             $recordFilter->attributes = $params;
-            $data = ActivityLogQueries::getActivityLogs($recordFilter);
-            $this->response->data = new ServiceResult(true, $data, $errors = array());
+            $crud = new ActivityLogCrud();
+            $this->response->data = $crud->readAll($recordFilter);
         } 
         catch (\Exception $ex) {
             $this->response->statusCode = 500;

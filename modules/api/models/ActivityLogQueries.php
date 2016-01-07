@@ -20,7 +20,7 @@ class ActivityLogQueries {
         
     }
     
-    static function getActivityLogs(RecordFilter $recordFilter,  $actionId = null){
+    static function getActivityLogsQuery(RecordFilter $recordFilter,  $searchBy = null , $searchText = null){
         $query = (new Query())
                 ->select(['al.*',
                     'ala.*',
@@ -31,23 +31,24 @@ class ActivityLogQueries {
                 ->innerJoin('activity_log al', 'al.action = ala.value')
                 ->innerJoin('user u', 'u.id = al.user_id');
         
-        $record_count = $query->count();
-        if($actionId != null){
-//            Make search_by and search_type variables 
-//            and check data according to their options
-            $query->where(['al.actionId' => $actionId]);
-            $record_count = $query->count();
+        if($searchBy != null && $searchText != null){
+            if($searchBy == "u_name"){
+                $query->where("[[u.user_name]] LIKE :name");
+                $query->addParams([":name" => "%{$searchText}%"]);
+            }
+            else if($searchBy == "u_ip"){
+                $query->where("[[al.client_ip]] LIKE :ip");
+                $query->addParams([":ip" => "%{$searchText}%"]);
+            }
+            else if($searchBy == "u_action"){
+                $query->where(['al.action' => $searchText]);
+            }
         }
-        self::addOffsetAndLimit($query, $recordFilter->page, $recordFilter->limit);
-        self::addSortFilter($query, $recordFilter->orderby, $recordFilter->sort);
         
-        
-        $rows = $query->all();
-        $data = array("total_records" => $record_count, "records" => $rows);
-        return $data;
+        return $query;
     }
     
-    private static function addOffsetAndLimit($query, $page, $limit){
+    public static function addOffsetAndLimit($query, $page, $limit){
         if(isset($page) && isset($limit)){
             $offset = $limit * ($page-1);
             $query->offset($offset)->limit($limit);
@@ -57,7 +58,7 @@ class ActivityLogQueries {
         }
     }
     
-    private static function addSortFilter($query, $orderby, $sort){
+    public static function addSortFilter($query, $orderby, $sort){
         $activityLogTableCols = ['action', 'created_on', 'client_ip'];
         
         if( !(isset($orderby) && isset($sort)) || (!in_array($orderby, $activityLogTableCols))  ) {
@@ -81,4 +82,5 @@ class ActivityLogQueries {
         $data = array("records" => $rows);
         return $data;
     }
+    
 }
