@@ -8,6 +8,8 @@ use Yii;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
+use app\modules\api\models\ActivityLogQueries;
+use app\modules\api\models\AppLogValues;
 
 class GroupController extends Controller
 {
@@ -69,6 +71,9 @@ class GroupController extends Controller
             
             else{
                 $this->response->data = $result;
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::listViewed, 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                        "Group");
             }
         } 
         catch (\Exception $ex) {
@@ -113,6 +118,9 @@ class GroupController extends Controller
                 $data = $group, 
                 $errors = array()); 
             $this->response->data = $serviceResult;
+            ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::viewed, 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                    "Group");
             
         } 
         catch (\Exception $ex) {
@@ -136,6 +144,9 @@ class GroupController extends Controller
             $group->attributes = array_filter($params);
                 
         $this->response->data = $this->groupCrud->create($group);
+        ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::created, 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                "Group");
             
         } catch (\Exception $ex) {
             $this->response->statusCode = 500;
@@ -165,6 +176,9 @@ class GroupController extends Controller
             $group->attributes = array_filter($params);
             
             $this->response->data = $this->groupCrud->update($group);
+            ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::updated, 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                    "Group");
         } catch (\Exception $ex) {
             $this->response->statusCode = 500;
             $serviceResult = new ServiceResult(false, $data = array(), 

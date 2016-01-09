@@ -8,6 +8,8 @@ use app\modules\api\models\AuthToken\AuthTokenCrud;
 use app\modules\api\v1\models\Admission\Admission;
 use app\modules\api\v1\models\Admission\AdmissionCrud;
 use app\modules\api\v1\models\AdmissionDiagnosis\AdmissionDiagnosis;
+use app\modules\api\models\ActivityLogQueries;
+use app\modules\api\models\AppLogValues;
 
 use Yii;
 
@@ -71,6 +73,9 @@ class AdmissionController extends Controller
             
             else{
                 $this->response->data = $result;
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::listViewed, 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                        "Admission");
             }
         } 
         catch (\Exception $ex) {
@@ -96,6 +101,9 @@ class AdmissionController extends Controller
                 $data = $admission , 
                 $errors = array()); 
             $this->response->data = $serviceResult;
+            ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::viewed, 
+                    Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                    "Admission");
             
         } 
         catch (\Exception $ex) {
@@ -121,6 +129,9 @@ class AdmissionController extends Controller
             $fileAttachments = isset($params['files']) ? $params['files'] : null;
             $this->response->data = $this->crud->create($admission, 
                     $admissionDiagnosis, $this->authUser, $fileAttachments);
+            ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::created, 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params,
+                    "Admission");
             
         } 
         catch (\Exception $ex) {
@@ -140,6 +151,8 @@ class AdmissionController extends Controller
 
             $this->response->statusCode = 200;
             $allowedAdmissionOpList = ["update_grp_phy", "update_grp"];
+            
+//           Note: Make status of admission re routed then use it in Activity Log
             
             if(isset($params["admission_op"]) && 
                     in_array($params["admission_op"], $allowedAdmissionOpList)  ){
