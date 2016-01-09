@@ -66,7 +66,12 @@ class ActivityLogQueries {
             $sort = SORT_DESC;
         }
         else{
-            $orderby = 'al.' . $orderby;
+            if($orderby == "action"){
+                $orderby = 'ala.name' ;
+            }
+            else{
+                $orderby = 'al.' . $orderby;
+            }
             $sort = strtoupper($sort) === 'ASC' ? SORT_ASC : SORT_DESC;
         }
         $query->orderBy([$orderby => $sort]);
