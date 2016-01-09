@@ -182,9 +182,6 @@ class User extends ActiveRecord
     {
         if (parent::beforeSave($insert)) {
         	
-        	//Log activity details
-        	ActivityLog::userLog();
-        	
             // Set current date in created_on and updated_on
             if ($insert){
                 $this->created_on = date("Y-m-d H:i:s", time());

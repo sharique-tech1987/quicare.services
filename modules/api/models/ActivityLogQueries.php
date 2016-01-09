@@ -7,7 +7,7 @@ use yii\db\Query;
 use app\modules\api\models\RecordFilter;
 
 class ActivityLogQueries {
-    static function insertActivity($userId, $actionId, $clientIp, $requestedUrl, $urlParams){
+    static function insertActivity($userId, $actionId, $clientIp, $requestedUrl, $urlParams, $details){
         $db = Yii::$app->db;
         $command = $db->createCommand()->insert('activity_log', 
                                     ["user_id" => $userId, 
@@ -15,7 +15,8 @@ class ActivityLogQueries {
                                     "created_on" => date("Y-m-d H:i:s", time()),
                                     "client_ip" => $clientIp,
                                     "request_url" => $requestedUrl,
-                                    "request_params" => var_export($urlParams, true)]);
+                                    "request_params" => var_export($urlParams, true),
+                                    "details" => $details]);
         $retVal = $command->execute();
         
     }
