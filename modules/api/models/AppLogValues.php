@@ -6,15 +6,18 @@ class AppLogValues {
     const viewed  = 1;
     const created  = 2;
     const updated  = 3;
-    const listViewed  = 4;
-    const initiated  = 5;
-    const accepted  = 6;
-    const denied  = 7;
-    const bedAssigned  = 8;
-    const patientArrived  = 9;
-    const patientNoShow  = 10;
-    const closed  = 11;
-    const discharged = 12;
+    const initiated  = 4;
+    const accepted  = 5;
+    const denied  = 6;
+    const bedAssigned  = 7;
+    const patientArrived  = 8;
+    const patientNoShow  = 9;
+    const closed  = 10;
+    const patientDischarged = 11;
+    const loggedin = 12;
+    const loggedout = 13;
+    const uploaded = 14;
+    const downloaded = 15;
 }
 
 

@@ -73,9 +73,11 @@ class AdmissionController extends Controller
             
             else{
                 $this->response->data = $result;
-                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::listViewed, 
-                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
-                        "Admission");
+                if($this->response->data->success){
+                    ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::viewed, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            "Admission List");
+                }
             }
         } 
         catch (\Exception $ex) {
@@ -101,9 +103,11 @@ class AdmissionController extends Controller
                 $data = $admission , 
                 $errors = array()); 
             $this->response->data = $serviceResult;
-            ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::viewed, 
-                    Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
-                    "Admission");
+            if($this->response->data->success){
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::viewed, 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                        "Admission");
+            }
             
         } 
         catch (\Exception $ex) {
@@ -129,9 +133,11 @@ class AdmissionController extends Controller
             $fileAttachments = isset($params['files']) ? $params['files'] : null;
             $this->response->data = $this->crud->create($admission, 
                     $admissionDiagnosis, $this->authUser, $fileAttachments);
-            ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::created, 
-                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params,
-                    "Admission");
+            if($this->response->data->success){
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::created, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params,
+                        "Admission");
+            }
             
         } 
         catch (\Exception $ex) {

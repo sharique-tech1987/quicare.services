@@ -8,6 +8,8 @@ use app\modules\api\v1\models\FacilityGroup\FacilityGroup;
 use app\modules\api\models\ServiceResult;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
+use app\modules\api\models\ActivityLogQueries;
+use app\modules\api\models\AppLogValues;
 
 use Yii;
 
@@ -71,6 +73,11 @@ class FacilityController extends Controller
             
             else{
                 $this->response->data = $result;
+                if($this->response->data->success){
+                    ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::viewed, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            "Healthcare Facility List");
+                }
             }
         } 
         catch (\Exception $ex) {
@@ -116,6 +123,11 @@ class FacilityController extends Controller
                 $data = $facility , 
                 $errors = array()); 
             $this->response->data = $serviceResult;
+            if($this->response->data->success){
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::viewed, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            "Healthcare Facility");
+            }
             
         } 
         catch (\Exception $ex) {
@@ -141,6 +153,11 @@ class FacilityController extends Controller
             $facilityGroups = $this->getFacilityGroup($params);
 
             $this->response->data = $this->facilityCrud->create($facility, $facilityGroups);
+            if($this->response->data->success){
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::created, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            "Healthcare Facility");
+            }
             
         } 
         catch (\Exception $ex) {
@@ -171,7 +188,11 @@ class FacilityController extends Controller
             $facilityGroups = $this->getFacilityGroup($params);
 
             $this->response->data = $this->facilityCrud->update($facility, $facilityGroups);
-                
+            if($this->response->data->success){
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::updated, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            "Healthcare Facility");
+            }
             
             
         } 

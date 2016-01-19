@@ -11,6 +11,8 @@ use app\modules\api\models\AppStatus;
 use app\modules\api\v1\models\Admission\AdmissionCrud;
 use app\modules\api\v1\models\AdmissionStatus\AdmissionStatusCrud;
 use Yii;
+use app\modules\api\models\ActivityLogQueries;
+use app\modules\api\models\AppLogValues;
 
 class AdmissionStatusController extends Controller
 {
@@ -139,6 +141,12 @@ class AdmissionStatusController extends Controller
                         $status, $userId);
                 if(!$createStatusSuccess){
                     $errors['status'] = 'Valid Status should be given';
+                }
+                else{
+                    ActivityLogQueries::insertActivity($this->authUser["id"], 
+                            constant('app\modules\api\models\AppLogValues::'. AppEnums::getStatusConstString($status)), 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                        $admissionId);
                 }
             }
             

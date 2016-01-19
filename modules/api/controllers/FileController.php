@@ -11,6 +11,8 @@ use app\modules\api\models\AppEnums;
 use app\modules\api\v1\models\User\UserCrud;
 use app\modules\api\models\RecordFilter;
 use app\modules\api\v1\models\Admission\AdmissionCrud;
+use app\modules\api\models\ActivityLogQueries;
+use app\modules\api\models\AppLogValues;
 
 
 use Yii;
@@ -98,6 +100,9 @@ class FileController extends Controller
                         AppQueries::insertUniqueFileId($db, $uniqueFileId, $this->authUser["token"], $fileRow[0]["id"]);
                         $success = true;
                         $data["fl"] = $uniqueFileId;
+                        ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::downloaded, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            $fileRow[0]["file_name"]);
                         $transaction->commit();
                     }
                 }
@@ -180,6 +185,10 @@ class FileController extends Controller
                                 $fileAttachment = array(array("file_name" => $uniqueFileName, "record_type" => $recordType));
                                 $admissionAttachmentCrud->create($admissionId, $fileAttachment, $this->authUser["id"]);
                                 $serviceResult = new ServiceResult(true, $data = array("file" => $uniqueFileName), $errors = array());
+//                                    if file uploaded then log this request
+                                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::uploaded, 
+                                    Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                                    $uniqueFileName);
                             }
                             else{
                                 $admissionFolderPath = $baseUploadPath . $admissionId . '/';
@@ -192,6 +201,10 @@ class FileController extends Controller
                                     $fileAttachment = array(array("file_name" => $uniqueFileName, "record_type" => $recordType));
                                     $admissionAttachmentCrud->create($admissionId, $fileAttachment, $this->authUser["id"]);
                                     $serviceResult = new ServiceResult(true, $data = array("file" => $uniqueFileName), $errors = array());
+//                                    if file uploaded then log this request
+                                    ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::uploaded, 
+                                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                                        $uniqueFileName);
                                     
                                 }
                             }
@@ -205,6 +218,10 @@ class FileController extends Controller
                             rename($internalTempDirPath . $fileName, $internalTempDirPath . $uniqueFileName);
                             $data = array("file" => $uniqueFileName, "record_type" => AppEnums::getRecordTypeText($recordType));
                             $serviceResult = new ServiceResult(true, $data = $data, $errors = array());
+//                                    if file uploaded then log this request
+                            ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::uploaded, 
+                                Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                                $uniqueFileName);
                         }
 
                     }

@@ -15,6 +15,21 @@ class AppEnums{
                     AppStatus::patientDischarged);
     }
     
+    public static function getStatusConstString($status){
+        $appStatusClass = new \ReflectionClass ( 'app\modules\api\models\AppStatus' );
+        $constants = $appStatusClass->getConstants();
+        $constName = null;
+        foreach ( $constants as $name => $value )
+        {
+            if ( $value == $status )
+            {
+                    $constName = $name;
+                    break;
+            }
+        }
+        return $constName;
+    }
+    
     public static function getCategoryText($categoryCode){
         $categoryText = array("AS" => "App Users",
                                "CC" => "Clinic",

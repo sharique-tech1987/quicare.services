@@ -30,7 +30,7 @@ class ActivityLogQueries {
                     'u.last_name'])
                 ->from(['activity_log_actions ala'])
                 ->innerJoin('activity_log al', 'al.action = ala.value')
-                ->innerJoin('user u', 'u.id = al.user_id');
+                ->leftJoin('user u', 'u.id = al.user_id');
         
         if($searchBy != null && $searchText != null){
             if($searchBy == "u_name"){

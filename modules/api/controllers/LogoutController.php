@@ -4,6 +4,8 @@ namespace app\modules\api\controllers;
 use yii\rest\Controller;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
 use app\modules\api\models\ServiceResult;
+use app\modules\api\models\ActivityLogQueries;
+use app\modules\api\models\AppLogValues;
 
 use Yii;
 
@@ -26,14 +28,14 @@ class LogoutController extends Controller
     }
 	
 	
-	public function actionView($id){
+    public function actionView($id){
         $this->response->statusCode = 405;
         $serviceResult = new ServiceResult(false, $data = array(), 
             $errors = array("message" => "View method not implemented for this resource" ));
         $this->response->data = $serviceResult;
 	}
 	
-	public function actionCreate(){
+    public function actionCreate(){
         try {
             $params = Yii::$app->request->post();
         
@@ -41,7 +43,19 @@ class LogoutController extends Controller
             
             $token = isset($params["token"]) ? $params["token"] : null;
             $expired = 't';
-            $this->response->data = AuthTokenCrud::update($token, $expired);
+            $resp = AuthTokenCrud::update($token, $expired);
+            if($resp->success){
+                ActivityLogQueries::insertActivity($resp->data["id"], AppLogValues::loggedout, 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                        "Success");
+            }
+            else{
+                ActivityLogQueries::insertActivity($resp->data["id"], AppLogValues::loggedout, 
+                        Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                        "Failed");
+            }
+            
+            $this->response->data = $resp;
             
             
         } 

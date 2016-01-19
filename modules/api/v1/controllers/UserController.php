@@ -12,6 +12,8 @@ use app\modules\api\components\CryptoLib;
 use app\modules\api\models\AuthToken\AuthTokenCrud;
 use app\modules\api\v1\models\UserOnCallGroup\UserOnCallGroup;
 use Yii;
+use app\modules\api\models\ActivityLogQueries;
+use app\modules\api\models\AppLogValues;
 
 class UserController extends Controller
 {
@@ -73,6 +75,11 @@ class UserController extends Controller
             
             else{
                 $this->response->data = $result;
+                if($this->response->data->success){
+                    ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::viewed, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            "User List");
+                }
             }
         } 
         catch (\Exception $ex) {
@@ -86,7 +93,7 @@ class UserController extends Controller
     }
 	
 	
-	public function actionView($id){
+    public function actionView($id){
         try {
             $params = Yii::$app->request->get();
             $this->response->statusCode = 200;
@@ -99,6 +106,11 @@ class UserController extends Controller
                 $data = $user , 
                 $errors = array()); 
             $this->response->data = $serviceResult;
+            if($this->response->data->success){
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::viewed, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            "User");
+            }
             
         } 
         catch (\Exception $ex) {
@@ -109,7 +121,7 @@ class UserController extends Controller
         }
 	}
 	
-	public function actionCreate(){
+    public function actionCreate(){
         try {
             $params = Yii::$app->request->post();
             date_default_timezone_set("UTC");
@@ -127,6 +139,11 @@ class UserController extends Controller
 
             $this->response->data = $this->userCrud->create($user, $userGroups, $userFailities, 
                     $onCallGroupIds);
+            if($this->response->data->success){
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::created, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            "User");
+            }
             
         } 
         catch (\Exception $ex) {
@@ -189,6 +206,11 @@ class UserController extends Controller
 
             $this->response->data = $this->userCrud->update($user, $userGroups, $userFailities, 
                     $onCallGroupIds );
+            if($this->response->data->success){
+                ActivityLogQueries::insertActivity($this->authUser["id"], AppLogValues::updated, 
+                            Yii::$app->request->getUserIP(), Yii::$app->request->absoluteUrl, $params, 
+                            "User");
+            }
         
             
         } 
