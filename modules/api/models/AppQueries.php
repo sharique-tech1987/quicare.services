@@ -159,14 +159,15 @@ class AppQueries {
     
     public static function getAdmissionAttachments($admissionId){
         $query = (new Query())
-                ->select(['adm_attach.admission_id', 
+                ->select(['adm_attach.id',
+                    'adm_attach.admission_id', 
                     'rec.name',
                     'adm_attach.file_name',  
                     'adm_attach.uploaded_by', 
                     'adm_attach.created_on',
                     'u.first_name',
                     'u.last_name',])
-                ->from(['admission_attachement adm_attach'])
+                ->from(['admission_attachment adm_attach'])
                 ->innerJoin('user u', 'u.id = adm_attach.uploaded_by')
                 ->innerJoin('record_type rec', 'rec.value = adm_attach.record_type')
                 ->where(['adm_attach.admission_id' => $admissionId]);
