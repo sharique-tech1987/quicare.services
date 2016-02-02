@@ -45,7 +45,7 @@ $config = [
                 require(__DIR__ . '/urlRules/fetchFileUrlRule.php'),
                 require(__DIR__ . '/urlRules/activityLogUrlRule.php'),
                 require(__DIR__ . '/urlRules/logActionsUrlRule.php'),
-                            
+                require(__DIR__ . '/urlRules/admissionReportUrlRule.php'),
 
             ],
 		],
