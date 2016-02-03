@@ -19,7 +19,7 @@ use Yii;
 
 class FileController extends Controller
 {
-    
+// Setup apache to execute only file with .php   
     private $response;
     private $authUser;
 
